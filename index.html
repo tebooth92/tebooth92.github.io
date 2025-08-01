@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay Calculation Advice</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Work Sans & Karla -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;700&family=Work+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* A4-like styling for PDF output */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page-container {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+        }
+
+        body {
+            font-family: 'Karla', sans-serif;
+            background-color: #e2e8f0; /* slate-200 */
+        }
+        h1, h2, h3, h4, h5, h6, .font-work-sans {
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: 2rem auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* Custom styles for the calculator */
+        .dropdown {
+            position: absolute;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            background-color: #f1f5f9;
+        }
+        
+        /* Custom brand colors */
+        .text-brand-purple { color: #4b2a72; }
+        .bg-brand-purple { background-color: #4b2a72; }
+        .border-brand-purple { border-color: #4b2a72; }
+        .ring-brand-purple:focus { --tw-ring-color: #4b2a72; }
+        .form-checkbox:checked {
+            background-color: #4b2a72;
+            border-color: #4b2a72;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="no-print text-center my-4">
+        <button id="toggle-inputs-btn" class="px-4 py-2 bg-slate-700 text-white rounded-md font-semibold hover:bg-slate-800">Show Calculation Inputs</button>
+        <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">Print / Save as PDF</button>
+    </div>
+    
+    <div class="page-container">
+        <header class="border-b-2 border-brand-purple pb-4 mb-8">
+            <h1 class="text-4xl font-bold text-brand-purple">Pay Calculation Advice</h1>
+            <p id="document-date" class="text-slate-600">Date: July 25, 2025</p>
+        </header>
+
+        <main>
+            <div id="loading-message" class="text-center p-4 text-lg">
+                Loading paycode data from paycode_data.json...
+            </div>
+
+            <div id="calculator-content" class="hidden">
+                <!-- Calculation Inputs Section (collapsible) -->
+                <section id="calculation-inputs-section" class="no-print mb-8 p-6 bg-purple-50 border border-purple-100 rounded-lg hidden">
+                    <h2 class="text-2xl font-bold text-brand-purple mb-6 border-b border-purple-200 pb-2">Calculation Inputs</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <!-- Left Column: Inputs -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-brand-purple mb-4">Substantive Details</h3>
+                            <div class="mb-4">
+                                <label for="effective-date-input" class="block text-sm font-bold mb-2">Effective Date:</label>
+                                <input type="date" id="effective-date-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm ring-brand-purple"/>
+                            </div>
+                            <div class="mb-4">
+                                <label for="code-search" class="block text-sm font-bold mb-2">Substantive Pay Code:</label>
+                                <div class="relative">
+                                    <input type="text" id="code-search" class="w-full p-2 border border-gray-300 rounded-md shadow-sm ring-brand-purple" placeholder="Type to search..."/>
+                                    <div id="code-dropdown" class="dropdown hidden"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="hours-input" class="block text-sm font-bold mb-2">Hours per week:</label>
+                                <input type="number" id="hours-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm ring-brand-purple" value="38" min="0" step="0.5"/>
+                            </div>
+                            <div id="components-container" class="mb-4 hidden">
+                                <h3 class="text-md font-bold mb-2">Pay Components:</h3>
+                                <div id="components-list" class="p-3 border border-gray-200 rounded-md space-y-2"></div>
+                            </div>
+                        </div>
+                        <!-- Right Column: Allowances -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-brand-purple mb-4">Allowances</h3>
+                            <div class="border border-gray-200 p-4 rounded-md mb-4">
+                                <div class="flex items-center mb-2">
+                                    <input type="checkbox" id="existing-over-award-enable" class="form-checkbox h-4 w-4">
+                                    <label for="existing-over-award-enable" class="ml-2 text-sm font-bold">Enable Existing Over Award (EOA)</label>
+                                </div>
+                                <div id="existing-over-award-inputs" class="hidden mt-2 space-y-3">
+                                    <div>
+                                        <label for="existing-over-award-amount" class="block text-xs font-medium mb-1">EOA Amount ($):</label>
+                                        <input type="number" id="existing-over-award-amount" class="w-full p-2 border border-gray-300 rounded-md text-sm" placeholder="e.g., 100" min="0" step="0.01">
+                                    </div>
+                                    <div>
+                                        <label for="existing-over-award-period" class="block text-xs font-medium mb-1">EOA Period:</label>
+                                        <select id="existing-over-award-period" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                                            <option value="hourly">Hourly</option>
+                                            <option value="weekly" selected>Weekly</option>
+                                            <option value="fortnightly">Fortnightly</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="annual">Annual</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border border-gray-200 p-4 rounded-md">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="higher-duties-enable" class="form-checkbox h-4 w-4">
+                                    <label for="higher-duties-enable" class="ml-2 text-sm font-bold">Enable Higher Duties / New Over Award</label>
+                                </div>
+                                <div id="higher-duties-options-container" class="hidden mt-4 space-y-4">
+                                    <div>
+                                        <label for="higher-duties-type" class="block text-xs font-medium mb-1">Calculation Method:</label>
+                                        <select id="higher-duties-type" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                                            <option value="">-- Select Method --</option>
+                                            <option value="classification">Match to Classification</option>
+                                            <option value="percentage">Percentage Increase</option>
+                                            <option value="totalRemuneration">Target Total Remuneration</option>
+                                        </select>
+                                    </div>
+                                    <div id="classification-higher-duties-section" class="hidden">
+                                        <label class="block text-xs font-medium mb-1">Higher Duties To Classification:</label>
+                                        <div class="relative">
+                                            <input type="text" id="higher-duties-target-code-search" class="w-full p-2 border border-gray-300 rounded-md text-sm" placeholder="Search target Pay Code"/>
+                                            <div id="higher-duties-target-code-dropdown" class="dropdown hidden"></div>
+                                        </div>
+                                    </div>
+                                    <div id="percentage-higher-duties-section" class="hidden">
+                                        <label for="higher-duties-percentage" class="block text-xs font-medium mb-1">Increase on (Substantive Base + EOA) (%):</label>
+                                        <input type="number" id="higher-duties-percentage" class="w-full p-2 border border-gray-300 rounded-md text-sm" placeholder="e.g., 10 for 10%" min="0" step="0.1">
+                                    </div>
+                                    <div id="total-remuneration-higher-duties-section" class="hidden space-y-4">
+                                        <div>
+                                            <label for="higher-duties-total-remuneration" class="block text-xs font-medium mb-1">Target Annual Total Remuneration ($):</label>
+                                            <input type="number" id="higher-duties-total-remuneration" class="w-full p-2 border border-gray-300 rounded-md text-sm" placeholder="e.g., 250000" min="0" step="100">
+                                        </div>
+                                        <div>
+                                            <label for="higher-duties-super-inclusion" class="block text-xs font-medium mb-1">Superannuation:</label>
+                                            <select id="higher-duties-super-inclusion" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                                                <option value="excluding">Target Figure EXCLUDES Super</option>
+                                                <option value="including">Target Figure INCLUDES Super</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Summary Section -->
+                <section id="summary-section" class="mb-8">
+                    <h2 class="text-2xl font-work-sans font-bold text-brand-purple mb-4">Calculation Summary</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-sm">
+                        <div class="bg-purple-50 p-4 rounded-md border border-purple-200">
+                            <h3 class="font-bold mb-2 text-brand-purple">Calculation Details</h3>
+                            <p><strong>Effective Date:</strong> <span id="summary-effective-date">Not Selected</span></p>
+                            <p><strong>Pay Code:</strong> <span id="summary-substantive-code">Not Selected</span></p>
+                            <p><strong>Hours per Week:</strong> <span id="summary-hours">38</span></p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-md border border-purple-200">
+                            <h3 class="font-bold mb-2 text-brand-purple">Allowances</h3>
+                            <p><strong>Existing Over Award:</strong> <span id="summary-eoa">None</span></p>
+                            <p class="break-words"><strong>Higher Duties / New Over Award:</strong> <span id="summary-hda">None</span></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Results Section -->
+                <section id="breakdown-container" class="hidden">
+                    <h2 class="text-2xl font-work-sans font-bold text-brand-purple mb-4">Pay Breakdown</h2>
+                    <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600">
+                                    <th class="text-left p-3 font-semibold">Component</th>
+                                    <th class="text-right p-3 font-semibold">Hourly</th>
+                                    <th class="text-right p-3 font-semibold">Weekly</th>
+                                    <th class="text-right p-3 font-semibold">Fortnightly</th>
+                                    <th class="text-right p-3 font-semibold">Annual</th>
+                                </tr>
+                            </thead>
+                            <tbody id="breakdown-body" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div id="no-results-message" class="text-center py-12 text-slate-500">
+                    <p>Please select an effective date and Pay Code to see the pay breakdown.</p>
+                </div>
+            </div>
+            
+            <div id="error-message" class="text-red-600 p-4 bg-red-50 rounded-md hidden mt-4"></div>
+        </main>
+
+        <footer class="mt-12 pt-4 border-t text-xs text-slate-500 text-center">
+            <p>This document is an advice only and has been calculated based on the data provided. All figures are indicative. This is not a formal payslip.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let state = {
+            allPaycodeData: {}, // Raw data from JSON
+            availableVhiaCodes: [], // Filtered by effective date
+            selectedEffectiveDate: '', 
+            selectedCode: '', 
+            codeComponents: [], 
+            selectedComponents: [], 
+            hoursPerWeek: 38,
+            existingOverAwardEnabled: false,
+            existingOverAwardAmount: 0,
+            existingOverAwardPeriod: 'weekly', 
+            existingOverAwardHourlyEquivalent: 0,
+            higherDutiesEnabled: false,
+            higherDutiesType: '', 
+            higherDutiesTargetCode: '',
+            higherDutiesTargetCodeBaseRate: 0,
+            higherDutiesPercentage: 0,
+            higherDutiesTotalRemuneration: 0,
+            higherDutiesSuperInclusion: 'excluding', 
+            newOverAwardAllowanceHourly: 0, 
+            calculatedPay: { hourly: 0, weekly: 0, fortnightly: 0, annualSalary: 0, weeklySuper: 0, fortnightlySuper: 0, annualSuper: 0 },
+        };
+
+        // --- DOM ELEMENTS ---
+        const elements = {
+            loadingMessage: document.getElementById('loading-message'),
+            calculatorContent: document.getElementById('calculator-content'),
+            errorMessage: document.getElementById('error-message'),
+            effectiveDateInput: document.getElementById('effective-date-input'),
+            codeSearch: document.getElementById('code-search'),
+            codeDropdown: document.getElementById('code-dropdown'),
+            hoursInput: document.getElementById('hours-input'),
+            componentsContainer: document.getElementById('components-container'),
+            componentsList: document.getElementById('components-list'),
+            breakdownContainer: document.getElementById('breakdown-container'),
+            breakdownBody: document.getElementById('breakdown-body'),
+            existingOverAwardEnableCheckbox: document.getElementById('existing-over-award-enable'),
+            existingOverAwardInputsContainer: document.getElementById('existing-over-award-inputs'),
+            existingOverAwardAmountInput: document.getElementById('existing-over-award-amount'),
+            existingOverAwardPeriodSelect: document.getElementById('existing-over-award-period'),
+            higherDutiesEnableCheckbox: document.getElementById('higher-duties-enable'),
+            higherDutiesOptionsContainer: document.getElementById('higher-duties-options-container'),
+            higherDutiesTypeSelect: document.getElementById('higher-duties-type'),
+            classificationHigherDutiesSection: document.getElementById('classification-higher-duties-section'),
+            higherDutiesTargetCodeSearch: document.getElementById('higher-duties-target-code-search'),
+            higherDutiesTargetCodeDropdown: document.getElementById('higher-duties-target-code-dropdown'),
+            percentageHigherDutiesSection: document.getElementById('percentage-higher-duties-section'),
+            higherDutiesPercentageInput: document.getElementById('higher-duties-percentage'),
+            totalRemunerationHigherDutiesSection: document.getElementById('total-remuneration-higher-duties-section'),
+            higherDutiesTotalRemunerationInput: document.getElementById('higher-duties-total-remuneration'),
+            higherDutiesSuperInclusionSelect: document.getElementById('higher-duties-super-inclusion'),
+            toggleInputsBtn: document.getElementById('toggle-inputs-btn'),
+            calculationInputsSection: document.getElementById('calculation-inputs-section'),
+            noResultsMessage: document.getElementById('no-results-message'),
+            summaryEffectiveDate: document.getElementById('summary-effective-date'),
+            summarySubstantiveCode: document.getElementById('summary-substantive-code'),
+            summaryHours: document.getElementById('summary-hours'),
+            summaryEoa: document.getElementById('summary-eoa'),
+            summaryHda: document.getElementById('summary-hda'),
+            documentDate: document.getElementById('document-date'),
+        };
+
+        // --- CONSTANTS ---
+        const SUPER_RATE = 0.12; 
+        const ANNUAL_SUPER_CAP = 29932.20; 
+        const BASE_PAY_RATE_COMPONENT_NAME = "Base Pay"; 
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        function initializeApp() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            state.selectedEffectiveDate = today;
+            elements.effectiveDateInput.value = today;
+            
+            loadPaycodeData();
+            setupEventListeners();
+            updateSummary();
+            elements.documentDate.textContent = `Date: ${new Date().toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+        }
+
+        async function loadPaycodeData() {
+            try {
+                const response = await fetch('paycode_data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                handleDataLoaded(data);
+            } catch (error) {
+                showError(`Error loading paycode data: ${error.message}. Please ensure paycode_data.json is available.`);
+                console.error('Error loading paycode data:', error);
+            }
+        }
+        
+        function handleDataLoaded(data) {
+            if (!data || !data.vhia_codes || Object.keys(data.vhia_codes).length === 0) {
+                showError('Error: No VHIA codes found in the data.');
+                return;
+            }
+            
+            state.allPaycodeData = data.vhia_codes;
+            filterVhiaCodesByEffectiveDate();
+            
+            elements.loadingMessage.classList.add('hidden');
+            elements.calculatorContent.classList.remove('hidden');
+        }
+
+        function filterVhiaCodesByEffectiveDate() {
+            if (!state.selectedEffectiveDate) {
+                state.availableVhiaCodes = [];
+                return;
+            }
+
+            const selectedDate = new Date(state.selectedEffectiveDate);
+            const availableCodes = {};
+
+            // Group codes by their VHIA code and find the most recent effective date <= selected date
+            for (const [key, codeData] of Object.entries(state.allPaycodeData)) {
+                const effectiveDate = new Date(codeData.effective_start_date);
+                
+                // Only include codes where effective date <= selected date
+                if (effectiveDate <= selectedDate) {
+                    const baseCode = codeData.vhia_code;
+                    
+                    // Keep only the most recent effective date for each base code
+                    if (!availableCodes[baseCode] || effectiveDate > new Date(availableCodes[baseCode].effective_start_date)) {
+                        availableCodes[baseCode] = {
+                            key: key,
+                            vhia_code: codeData.vhia_code,
+                            description: codeData.description,
+                            pay_scale_level_code: codeData.pay_scale_level_code,
+                            effective_start_date: codeData.effective_start_date,
+                            pay_components: codeData.pay_components || []
+                        };
+                    }
+                }
+            }
+
+            // Convert to array and sort
+            state.availableVhiaCodes = Object.values(availableCodes).sort((a, b) => 
+                a.vhia_code.localeCompare(b.vhia_code)
+            );
+
+            // Clear current selection if it's no longer valid
+            if (state.selectedCode) {
+                const currentSelectedCodeData = state.availableVhiaCodes.find(code => 
+                    code.vhia_code === (state.allPaycodeData[state.selectedCode]?.vhia_code)
+                );
+                if (!currentSelectedCodeData) {
+                    clearCodeSelection();
+                } else if (currentSelectedCodeData.key !== state.selectedCode) {
+                    // Update to the most recent version of the same VHIA code
+                    state.selectedCode = currentSelectedCodeData.key;
+                    state.codeComponents = currentSelectedCodeData.pay_components || [];
+                    // Re-select base pay component
+                    state.selectedComponents = [];
+                    const basePayComponent = state.codeComponents.find(c => 
+                        c.description.toLowerCase().includes('base pay') || 
+                        c.description.toLowerCase().includes('base rate')
+                    );
+                    if (basePayComponent) {
+                        state.selectedComponents.push(basePayComponent.description);
+                    }
+                    renderComponents();
+                }
+            }
+        }
+
+        function clearCodeSelection() {
+            state.selectedCode = '';
+            elements.codeSearch.value = '';
+            state.codeComponents = [];
+            state.selectedComponents = [];
+            elements.componentsContainer.classList.add('hidden');
+            calculatePay();
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            elements.effectiveDateInput.addEventListener('change', handleEffectiveDateChange);
+            elements.codeSearch.addEventListener('input', (e) => handleCodeSearch(e, 'primary'));
+            elements.hoursInput.addEventListener('input', handleHoursChange);
+
+            elements.existingOverAwardEnableCheckbox.addEventListener('change', handleExistingOverAwardEnableChange);
+            elements.existingOverAwardAmountInput.addEventListener('input', handleExistingOverAwardInputChange);
+            elements.existingOverAwardPeriodSelect.addEventListener('change', handleExistingOverAwardInputChange);
+
+            elements.higherDutiesEnableCheckbox.addEventListener('change', handleHigherDutiesEnableChange);
+            elements.higherDutiesTypeSelect.addEventListener('change', handleHigherDutiesTypeChange);
+
+            elements.higherDutiesTargetCodeSearch.addEventListener('input', (e) => handleCodeSearch(e, 'target'));
+            elements.higherDutiesPercentageInput.addEventListener('input', handleHigherDutiesInputChange);
+            elements.higherDutiesTotalRemunerationInput.addEventListener('input', handleHigherDutiesInputChange);
+            elements.higherDutiesSuperInclusionSelect.addEventListener('change', handleHigherDutiesInputChange);
+            
+            document.addEventListener('click', (e) => {
+                if (!elements.codeDropdown.contains(e.target) && e.target !== elements.codeSearch) {
+                    elements.codeDropdown.classList.add('hidden');
+                }
+                if (!elements.higherDutiesTargetCodeDropdown.contains(e.target) && e.target !== elements.higherDutiesTargetCodeSearch) {
+                    elements.higherDutiesTargetCodeDropdown.classList.add('hidden');
+                }
+            });
+
+            elements.toggleInputsBtn.addEventListener('click', () => {
+                const section = elements.calculationInputsSection;
+                const isHidden = section.classList.contains('hidden');
+                section.classList.toggle('hidden');
+                elements.toggleInputsBtn.textContent = isHidden ? 'Hide Calculation Inputs' : 'Show Calculation Inputs';
+            });
+        }
+
+        // --- HANDLERS & CALCULATIONS ---
+        function handleEffectiveDateChange() {
+            state.selectedEffectiveDate = elements.effectiveDateInput.value;
+            filterVhiaCodesByEffectiveDate();
+            calculatePay(); // Recalculate with potentially updated code data
+            updateSummary();
+        }
+
+        function handleCodeSearch(event, type) { 
+            const searchTerm = event.target.value.trim();
+            const dropdownElement = type === 'primary' ? elements.codeDropdown : elements.higherDutiesTargetCodeDropdown;
+            const searchData = type === 'primary' ? state.availableVhiaCodes : state.availableVhiaCodes;
+            
+            if (searchTerm) {
+                const filteredCodes = searchData.filter(codeData => 
+                    codeData.vhia_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    codeData.description.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                renderCodeDropdown(filteredCodes, dropdownElement, type);
+            } else {
+                dropdownElement.classList.add('hidden');
+            }
+        }
+
+        function renderCodeDropdown(codeDataArray, dropdownElement, type) {
+            dropdownElement.innerHTML = '';
+            const displayCodes = codeDataArray.slice(0, 50);
+            
+            displayCodes.forEach(codeData => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.innerHTML = `
+                    <div class="font-medium">${codeData.vhia_code}</div>
+                    <div class="text-xs text-gray-500">${codeData.description}</div>
+                    <div class="text-xs text-gray-400">Effective: ${new Date(codeData.effective_start_date).toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+                `;
+                item.addEventListener('click', () => selectCode(codeData, type));
+                dropdownElement.appendChild(item);
+            });
+            
+            if (codeDataArray.length > 50) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'dropdown-item text-gray-500 italic';
+                moreItem.textContent = `...and ${codeDataArray.length - 50} more matches`;
+                dropdownElement.appendChild(moreItem);
+            }
+            dropdownElement.classList.remove('hidden');
+        }
+
+        function selectCode(codeData, type) {
+            if (type === 'primary') {
+                state.selectedCode = codeData.key;
+                elements.codeSearch.value = codeData.vhia_code;
+                elements.codeDropdown.classList.add('hidden');
+                
+                // Use the exact components from the selected code data (already filtered to most recent)
+                state.codeComponents = [...(codeData.pay_components || [])]; // Create a copy to avoid reference issues
+                state.selectedComponents = []; 
+
+                // Auto-select Base Pay component if it exists
+                const basePayComponent = state.codeComponents.find(c => 
+                    c.description.toLowerCase().includes('base pay') || 
+                    c.description.toLowerCase().includes('base rate')
+                );
+                if (basePayComponent) {
+                    state.selectedComponents.push(basePayComponent.description);
+                }
+                
+                renderComponents();
+            } else { 
+                state.higherDutiesTargetCode = codeData.key;
+                elements.higherDutiesTargetCodeSearch.value = codeData.vhia_code;
+                elements.higherDutiesTargetCodeDropdown.classList.add('hidden');
+                
+                const baseRateComponent = getBaseRateFromComponents(codeData.pay_components || []);
+                state.higherDutiesTargetCodeBaseRate = baseRateComponent ? baseRateComponent.hourly_amount : 0;
+            }
+            calculatePay();
+        }
+
+        function getBaseRateFromComponents(components) {
+            return components.find(c => 
+                c.description.toLowerCase().includes('base pay') || 
+                c.description.toLowerCase().includes('base rate')
+            );
+        }
+
+        function renderComponents() {
+            elements.componentsList.innerHTML = '';
+            if (!state.selectedCode || state.codeComponents.length === 0) {
+                 elements.componentsContainer.classList.add('hidden');
+                return;
+            }
+            
+            state.codeComponents.forEach((component, index) => {
+                const componentName = component.description;
+                const hourlyAmount = component.hourly_amount;
+                
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between';
+                
+                const id = `component-${index}`;
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <input type="checkbox" id="${id}" class="form-checkbox h-4 w-4" ${state.selectedComponents.includes(componentName) ? 'checked' : ''}>
+                        <label for="${id}" class="ml-2 text-sm flex-grow cursor-pointer">${componentName}</label>
+                    </div>
+                    <span class="font-mono text-sm text-gray-600">$${hourlyAmount.toFixed(5)}/hr</span>
+                `;
+                item.querySelector('input').addEventListener('change', () => toggleComponent(componentName));
+                elements.componentsList.appendChild(item);
+            });
+            elements.componentsContainer.classList.remove('hidden');
+        }
+
+        function toggleComponent(componentName) {
+            const index = state.selectedComponents.indexOf(componentName);
+            if (index > -1) {
+                state.selectedComponents.splice(index, 1);
+            } else {
+                state.selectedComponents.push(componentName);
+            }
+            calculatePay();
+        }
+
+        function handleHoursChange(event) {
+            state.hoursPerWeek = parseFloat(event.target.value) || 0;
+            if (state.hoursPerWeek <= 0) { 
+                state.hoursPerWeek = 1; 
+                elements.hoursInput.value = 1;
+            }
+            calculateExistingOverAwardHourlyEquivalent(); 
+            calculatePay();
+        }
+
+        function handleExistingOverAwardEnableChange() {
+            state.existingOverAwardEnabled = elements.existingOverAwardEnableCheckbox.checked;
+            elements.existingOverAwardInputsContainer.classList.toggle('hidden', !state.existingOverAwardEnabled);
+            if (!state.existingOverAwardEnabled) {
+                state.existingOverAwardAmount = 0;
+                state.existingOverAwardPeriod = 'weekly'; 
+                state.existingOverAwardHourlyEquivalent = 0;
+                elements.existingOverAwardAmountInput.value = '';
+                elements.existingOverAwardPeriodSelect.value = 'weekly';
+            }
+            calculateExistingOverAwardHourlyEquivalent();
+            calculatePay();
+        }
+
+        function handleExistingOverAwardInputChange() {
+            state.existingOverAwardAmount = parseFloat(elements.existingOverAwardAmountInput.value) || 0;
+            state.existingOverAwardPeriod = elements.existingOverAwardPeriodSelect.value;
+            calculateExistingOverAwardHourlyEquivalent();
+            calculatePay();
+        }
+        
+        function calculateExistingOverAwardHourlyEquivalent() {
+            if (!state.existingOverAwardEnabled || state.existingOverAwardAmount === 0 || state.hoursPerWeek <= 0) {
+                state.existingOverAwardHourlyEquivalent = 0;
+                return;
+            }
+            const amount = state.existingOverAwardAmount;
+            const period = state.existingOverAwardPeriod;
+            const hours = state.hoursPerWeek;
+
+            switch (period) {
+                case 'hourly': state.existingOverAwardHourlyEquivalent = amount; break;
+                case 'weekly': state.existingOverAwardHourlyEquivalent = amount / hours; break;
+                case 'fortnightly': state.existingOverAwardHourlyEquivalent = amount / (hours * 2); break;
+                case 'monthly': state.existingOverAwardHourlyEquivalent = (amount * 12) / (52 * hours); break;
+                case 'annual': state.existingOverAwardHourlyEquivalent = amount / (52 * hours); break;
+                default: state.existingOverAwardHourlyEquivalent = 0;
+            }
+        }
+
+        function handleHigherDutiesEnableChange() {
+            state.higherDutiesEnabled = elements.higherDutiesEnableCheckbox.checked;
+            elements.higherDutiesOptionsContainer.classList.toggle('hidden', !state.higherDutiesEnabled);
+            if (!state.higherDutiesEnabled) {
+                state.higherDutiesType = '';
+                elements.higherDutiesTypeSelect.value = '';
+                toggleHigherDutiesSections(''); 
+                state.newOverAwardAllowanceHourly = 0; 
+                elements.higherDutiesTargetCodeSearch.value = '';
+                state.higherDutiesTargetCode = '';
+                state.higherDutiesTargetCodeBaseRate = 0;
+                elements.higherDutiesPercentageInput.value = '';
+                state.higherDutiesPercentage = 0;
+                elements.higherDutiesTotalRemunerationInput.value = '';
+                state.higherDutiesTotalRemuneration = 0;
+                elements.higherDutiesSuperInclusionSelect.value = 'excluding';
+                state.higherDutiesSuperInclusion = 'excluding';
+            }
+            calculatePay();
+        }
+
+        function handleHigherDutiesTypeChange() {
+            state.higherDutiesType = elements.higherDutiesTypeSelect.value;
+            toggleHigherDutiesSections(state.higherDutiesType);
+            calculatePay();
+        }
+        
+        function handleHigherDutiesInputChange() {
+            if (state.higherDutiesType === 'percentage') {
+                state.higherDutiesPercentage = parseFloat(elements.higherDutiesPercentageInput.value) || 0;
+            } else if (state.higherDutiesType === 'totalRemuneration') {
+                state.higherDutiesTotalRemuneration = parseFloat(elements.higherDutiesTotalRemunerationInput.value) || 0;
+                state.higherDutiesSuperInclusion = elements.higherDutiesSuperInclusionSelect.value;
+            }
+            calculatePay();
+        }
+
+        function toggleHigherDutiesSections(type) {
+            elements.classificationHigherDutiesSection.classList.toggle('hidden', type !== 'classification');
+            elements.percentageHigherDutiesSection.classList.toggle('hidden', type !== 'percentage');
+            elements.totalRemunerationHigherDutiesSection.classList.toggle('hidden', type !== 'totalRemuneration');
+        }
+
+        function getBaseRateForSelectedCode() {
+            if (!state.selectedCode) return null;
+            // Use the current components in state (already filtered to most recent)
+            return getBaseRateFromComponents(state.codeComponents);
+        }
+
+        function getBaseRateForTargetCode() {
+            if (!state.higherDutiesTargetCode) return null;
+            // Find the target code in available codes (already filtered to most recent)
+            const targetCodeData = state.availableVhiaCodes.find(code => code.key === state.higherDutiesTargetCode);
+            if (!targetCodeData) return null;
+            return getBaseRateFromComponents(targetCodeData.pay_components || []);
+        }
+
+        function calculateNewOverAwardAllowance() { 
+            let newAllowanceHourly = 0; 
+            if (!state.higherDutiesEnabled || !state.selectedCode) {
+                state.newOverAwardAllowanceHourly = 0;
+                return 0;
+            }
+
+            const substantiveBaseRateComponent = getBaseRateForSelectedCode();
+            const initialClassificationBaseHourlyRate = substantiveBaseRateComponent ? substantiveBaseRateComponent.hourly_amount : 0;
+
+            switch (state.higherDutiesType) {
+                case 'classification':
+                    if (state.higherDutiesTargetCode && initialClassificationBaseHourlyRate > 0) {
+                        const targetClassificationBaseComponent = getBaseRateForTargetCode();
+                        const targetClassificationBaseHourlyRate = targetClassificationBaseComponent ? targetClassificationBaseComponent.hourly_amount : 0;
+                        if (targetClassificationBaseHourlyRate > 0) {
+                            const currentTotalBaseHourly = initialClassificationBaseHourlyRate + state.existingOverAwardHourlyEquivalent;
+                            newAllowanceHourly = Math.max(0, targetClassificationBaseHourlyRate - currentTotalBaseHourly);
+                        }
+                    }
+                    break;
+                case 'percentage':
+                    const baseForPercentageHDA = initialClassificationBaseHourlyRate + state.existingOverAwardHourlyEquivalent;
+                    if (baseForPercentageHDA > 0 && state.higherDutiesPercentage > 0) {
+                        newAllowanceHourly = baseForPercentageHDA * (state.higherDutiesPercentage / 100);
+                    }
+                    break;
+                case 'totalRemuneration':
+                    const currentSubstantiveHourlyRateFromComponents = state.selectedComponents.reduce((sum, compName) => {
+                        const component = state.codeComponents.find(c => c.description === compName);
+                        return sum + (component ? component.hourly_amount : 0);
+                    }, 0);
+                    const currentTotalHourlyBeforeNewHDA = currentSubstantiveHourlyRateFromComponents + state.existingOverAwardHourlyEquivalent;
+                    const currentAnnualSalaryBeforeNewHDA = currentTotalHourlyBeforeNewHDA * state.hoursPerWeek * 52;
+                    
+                    const targetAnnualRemuneration = state.higherDutiesTotalRemuneration;
+                    if (targetAnnualRemuneration <= 0) break;
+
+                    let targetAnnualSalaryBeforeSuper; 
+                    if (state.higherDutiesSuperInclusion === 'excluding') {
+                        targetAnnualSalaryBeforeSuper = targetAnnualRemuneration;
+                    } else { 
+                        let estimatedSalaryIfSuperNotCapped = targetAnnualRemuneration / (1 + SUPER_RATE);
+                        if (estimatedSalaryIfSuperNotCapped * SUPER_RATE <= ANNUAL_SUPER_CAP) {
+                            targetAnnualSalaryBeforeSuper = estimatedSalaryIfSuperNotCapped;
+                        } else {
+                            targetAnnualSalaryBeforeSuper = targetAnnualRemuneration - ANNUAL_SUPER_CAP;
+                        }
+                    }
+                    
+                    const requiredTopUpAnnual = Math.max(0, targetAnnualSalaryBeforeSuper - currentAnnualSalaryBeforeNewHDA);
+                    newAllowanceHourly = (state.hoursPerWeek > 0) ? requiredTopUpAnnual / (state.hoursPerWeek * 52) : 0;
+                    break;
+            }
+            state.newOverAwardAllowanceHourly = newAllowanceHourly; 
+            return state.newOverAwardAllowanceHourly;
+        }
+
+        function calculatePay() {
+            if (!state.selectedCode) { 
+                renderBreakdown(0,0,0, true); 
+                updateSummary();
+                return;
+            }
+
+            calculateExistingOverAwardHourlyEquivalent(); 
+
+            const substantiveHourlyRateFromComponents = state.selectedComponents.reduce((sum, componentName) => {
+                const component = state.codeComponents.find(comp => comp.description === componentName);
+                return sum + (component ? component.hourly_amount : 0);
+            }, 0);
+
+            const newHDAHourly = calculateNewOverAwardAllowance(); 
+            
+            const finalTotalHourlyRate = substantiveHourlyRateFromComponents + state.existingOverAwardHourlyEquivalent + newHDAHourly;
+            const finalWeeklyPay = finalTotalHourlyRate * state.hoursPerWeek;
+            const finalAnnualSalary = finalWeeklyPay * 52;
+
+            let finalWeeklySuper = finalWeeklyPay * SUPER_RATE;
+            let finalAnnualSuperPreCap = finalWeeklySuper * 52;
+            let finalAnnualSuper = Math.min(finalAnnualSuperPreCap, ANNUAL_SUPER_CAP);
+            
+            if (finalAnnualSuperPreCap > ANNUAL_SUPER_CAP) { 
+                finalWeeklySuper = finalAnnualSuper / 52;
+            }
+
+            state.calculatedPay = {
+                hourly: finalTotalHourlyRate,
+                weekly: finalWeeklyPay,
+                fortnightly: finalWeeklyPay * 2,
+                annualSalary: finalAnnualSalary,
+                weeklySuper: finalWeeklySuper,
+                fortnightlySuper: finalWeeklySuper * 2,
+                annualSuper: finalAnnualSuper
+            };
+            
+            renderBreakdown(substantiveHourlyRateFromComponents, state.existingOverAwardHourlyEquivalent, newHDAHourly);
+            updateSummary();
+        }
+
+        // --- RENDER & UI FUNCTIONS ---
+        function updateSummary() {
+            const selectedCodeData = state.selectedCode ? state.availableVhiaCodes.find(code => code.key === state.selectedCode) : null;
+            
+            elements.summaryEffectiveDate.textContent = state.selectedEffectiveDate ? new Date(state.selectedEffectiveDate).toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Not Selected';
+            
+            if (selectedCodeData) {
+                const effectiveDate = new Date(selectedCodeData.effective_start_date).toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                elements.summarySubstantiveCode.textContent = `${selectedCodeData.vhia_code} (Effective: ${effectiveDate})`;
+            } else {
+                elements.summarySubstantiveCode.textContent = 'Not Selected';
+            }
+            
+            elements.summaryHours.textContent = state.hoursPerWeek;
+            elements.summaryEoa.textContent = state.existingOverAwardEnabled ? `Enabled ($${state.existingOverAwardAmount} ${state.existingOverAwardPeriod})` : 'None';
+            
+            // Higher Duties / New Over Award summary with details
+            if (state.higherDutiesEnabled && state.higherDutiesType) {
+                let hdaText = '';
+                switch (state.higherDutiesType) {
+                    case 'classification':
+                        if (state.higherDutiesTargetCode) {
+                            const targetCodeData = state.availableVhiaCodes.find(code => code.key === state.higherDutiesTargetCode);
+                            const targetCodeName = targetCodeData ? targetCodeData.vhia_code : 'Not Selected';
+                            hdaText = `New Classification: ${targetCodeName}`;
+                        } else {
+                            hdaText = 'Match to Classification (Not Selected)';
+                        }
+                        break;
+                    case 'percentage':
+                        if (state.higherDutiesPercentage > 0) {
+                            hdaText = `Percentage Increase: ${state.higherDutiesPercentage}%`;
+                        } else {
+                            hdaText = 'Percentage Increase (Not Set)';
+                        }
+                        break;
+                    case 'totalRemuneration':
+                        if (state.higherDutiesTotalRemuneration > 0) {
+                            const superText = state.higherDutiesSuperInclusion === 'excluding' ? 'Excludes Super' : 'Includes Super';
+                            hdaText = `Target Total Remuneration: $${state.higherDutiesTotalRemuneration.toLocaleString('en-AU')} (${superText})`;
+                        } else {
+                            hdaText = 'Target Total Remuneration (Not Set)';
+                        }
+                        break;
+                    default:
+                        hdaText = 'Method Not Selected';
+                }
+                elements.summaryHda.textContent = hdaText;
+            } else {
+                elements.summaryHda.textContent = 'None';
+            }
+        }
+
+        function renderBreakdown(substantiveComponentsRate, existingEOARate, newHDARate, clearTable = false) {
+            const body = elements.breakdownBody;
+            body.innerHTML = ''; 
+
+            if (clearTable || (state.selectedComponents.length === 0 && !state.existingOverAwardEnabled && (!state.higherDutiesEnabled || newHDARate === 0))) {
+                elements.breakdownContainer.classList.add('hidden');
+                elements.noResultsMessage.classList.remove('hidden');
+                return;
+            }
+            
+            elements.noResultsMessage.classList.add('hidden');
+            elements.breakdownContainer.classList.remove('hidden');
+
+            let totalSalaryHourly = 0; 
+            
+            state.selectedComponents.forEach(componentName => {
+                const component = state.codeComponents.find(comp => comp.description === componentName);
+                const hourly = component ? component.hourly_amount : 0;
+                totalSalaryHourly += hourly;
+                addBreakdownRow(body, componentName, hourly, state.hoursPerWeek);
+            });
+
+            if (state.existingOverAwardEnabled && existingEOARate > 0) {
+                totalSalaryHourly += existingEOARate;
+                addBreakdownRow(body, 'Existing Over Award', existingEOARate, state.hoursPerWeek, 'text-purple-700');
+            }
+
+            if (state.higherDutiesEnabled && newHDARate > 0) {
+                totalSalaryHourly += newHDARate; 
+                addBreakdownRow(body, 'New Over Award Allowance', newHDARate, state.hoursPerWeek, 'text-green-600');
+            }
+            
+            const totalOverAwardHourly = existingEOARate + newHDARate;
+            if (totalOverAwardHourly > 0 && (state.existingOverAwardEnabled || state.higherDutiesEnabled)) {
+                 addBreakdownRow(body, 'Total Over Award Allowance', totalOverAwardHourly, state.hoursPerWeek, 'font-semibold text-orange-600');
+            }
+
+            addBreakdownRow(body, 'Gross Salary', totalSalaryHourly, state.hoursPerWeek, 'font-bold bg-slate-100');
+            
+            const { weeklySuper, fortnightlySuper, annualSuper } = state.calculatedPay;
+            body.innerHTML += `
+                <tr class="border-t border-slate-300">
+                    <td class="p-3">Superannuation (${(SUPER_RATE * 100).toFixed(1)}%)</td>
+                    <td class="text-right p-3 font-mono">-</td> 
+                    <td class="text-right p-3 font-mono">$${weeklySuper.toFixed(5)}</td>
+                    <td class="text-right p-3 font-mono">$${fortnightlySuper.toFixed(5)}</td>
+                    <td class="text-right p-3 font-mono">$${annualSuper.toFixed(2)}</td>
+                </tr>`;
+
+            const totalPackageWeekly = totalSalaryHourly * state.hoursPerWeek + weeklySuper;
+            const totalPackageFortnightly = totalPackageWeekly * 2;
+            const totalPackageAnnual = totalPackageWeekly * 52;
+            
+            body.innerHTML += `
+                <tr class="font-bold bg-purple-100 text-brand-purple">
+                    <td class="p-3">Total Package (incl. Super)</td>
+                    <td class="text-right p-3 font-mono">-</td> 
+                    <td class="text-right p-3 font-mono">$${totalPackageWeekly.toFixed(5)}</td>
+                    <td class="text-right p-3 font-mono">$${totalPackageFortnightly.toFixed(5)}</td>
+                    <td class="text-right p-3 font-mono">$${totalPackageAnnual.toFixed(2)}</td>
+                </tr>`;
+        }
+        
+        function addBreakdownRow(tbody, name, hourly, hours, customClass = '') {
+            const weekly = hourly * hours;
+            const fortnightly = weekly * 2;
+            const annual = weekly * 52;
+            const row = document.createElement('tr');
+            row.className = customClass;
+            row.innerHTML = `
+                <td class="p-3">${name}</td>
+                <td class="text-right p-3 font-mono">$${hourly.toFixed(5)}</td>
+                <td class="text-right p-3 font-mono">$${weekly.toFixed(5)}</td>
+                <td class="text-right p-3 font-mono">$${fortnightly.toFixed(5)}</td>
+                <td class="text-right p-3 font-mono">$${annual.toFixed(5)}</td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function showError(message) {
+            elements.loadingMessage.classList.add('hidden');
+            elements.errorMessage.textContent = message;
+            elements.errorMessage.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
