@@ -377,14 +377,12 @@
                 </div>
                 <!-- Results Section -->
                 <div id="breakdown-container" class="hidden bg-slate-50 border-t border-slate-200 p-6 md:p-10">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i
-                                class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>Pay Breakdown </h3>
-                        <div
-                            class="inline-flex items-center gap-2 text-sm text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
-                            <span class="font-medium">HDA (Hourly):</span><span id="higher-duties-allowance-display"
-                                class="font-bold text-emerald-600 text-base">$0.00000</span>
+                    <div class="mb-6">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i
+                                    class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>Pay Breakdown </h3>
                         </div>
+                        <div id="pay-breakdown-description" class="text-sm text-slate-500 font-medium mt-1 ml-8"></div>
                     </div>
                     <div class="overflow-hidden rounded-xl shadow-sm border border-slate-200 bg-white">
                         <div class="overflow-x-auto">
@@ -181566,9 +181564,10 @@
 
             // Individual display elements from the old results table are also removed
             // as they are now part of the breakdown or directly above it.
-            higherDutiesAllowanceDisplay: document.getElementById('higher-duties-allowance-display'),
+
             breakdownContainer: document.getElementById('breakdown-container'),
             breakdownBody: document.getElementById('breakdown-body'),
+            payBreakdownDescription: document.getElementById('pay-breakdown-description'),
 
             higherDutiesEnableCheckbox: document.getElementById('higher-duties-enable'),
             higherDutiesOptionsContainer: document.getElementById('higher-duties-options-container'),
@@ -182321,14 +182320,15 @@
 
 
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(amount);
+            return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 5, maximumFractionDigits: 5 }).format(amount);
         }
 
         function calculatePay() {
             if (!state.selectedCode) {
                 // Clear all displayed values if no substantive code is selected
-                if (elements.higherDutiesAllowanceDisplay) elements.higherDutiesAllowanceDisplay.textContent = '$0.00000';
+
                 elements.breakdownBody.innerHTML = '';
+                if (elements.payBreakdownDescription) elements.payBreakdownDescription.textContent = '';
                 elements.breakdownContainer.classList.add('hidden');
                 return;
             }
@@ -182349,6 +182349,13 @@
 
             // Clear table
             elements.breakdownBody.innerHTML = '';
+
+            // Update Description
+            if (elements.payBreakdownDescription && state.vhiaCodes) {
+                const selectedCodeObj = state.vhiaCodes.find(c => c.code === state.selectedCode);
+                elements.payBreakdownDescription.textContent = selectedCodeObj ? selectedCodeObj.description : '';
+            }
+
 
             let substantiveTotalHourlyRate = 0;
 
