@@ -1,895 +1,1540 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UPN Workflow Builder</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-<style>
-  /* ── Design Tokens ─────────────────────────────────────────────────────── */
-  :root {
-    --vault-slate:    #2C3E50;
-    --vault-charcoal: #34495E;
-    --vault-silver:   #7F8C8D;
-    --vault-light:    #ECF0F1;
-    --vault-cream:    #FFFFFF;
-    --vault-eggshell: #FDFBF5;
-    --vault-tan:      #F5EFE0;
-    --vault-rule:     #D5C9B0;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPN Workflow Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design Tokens ─────────────────────────────────────────────────────── */
+    :root {
+      --vault-slate: #2C3E50;
+      --vault-charcoal: #34495E;
+      --vault-silver: #7F8C8D;
+      --vault-light: #ECF0F1;
+      --vault-cream: #FFFFFF;
+      --vault-eggshell: #FDFBF5;
+      --vault-tan: #F5EFE0;
+      --vault-rule: #D5C9B0;
 
-    --dept-teal:      #1ABC9C;
-    --dept-blue:      #3498DB;
-    --dept-red:       #E74C3C;
-    --dept-amber:     #F39C12;
-    --dept-green:     #27AE60;
+      --dept-teal: #1ABC9C;
+      /* Engineering/Normal */
+      --dept-blue: #3498DB;
+      /* Design */
+      --dept-red: #E74C3C;
+      /* Management/Urgent */
+      --dept-amber: #F39C12;
+      /* Role/HR/High */
+      --dept-green: #27AE60;
+      /* Quality/Success */
+      --dept-purple: #9B59B6;
+      /* Operations */
+      --dept-yellow: #F1C40F;
+      /* Warning */
 
-    --font-primary: 'Poppins', sans-serif;
+      --font-primary: 'Poppins', sans-serif;
 
-    --shadow-file:    0 2px 8px  rgba(44,62,80,0.12);
-    --shadow-drawer:  0 4px 16px rgba(44,62,80,0.18);
-    --shadow-cabinet: 0 8px 32px rgba(44,62,80,0.25);
+      --shadow-file: 0 2px 8px rgba(44, 62, 80, 0.12);
+      --shadow-drawer: 0 4px 16px rgba(44, 62, 80, 0.18);
+      --shadow-cabinet: 0 8px 32px rgba(44, 62, 80, 0.25);
 
-    --transition-quick:  150ms ease-out;
-    --transition-smooth: 300ms cubic-bezier(0.4,0,0.2,1);
-  }
+      --transition-quick: 150ms ease-out;
+      --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-  /* ── Reset ─────────────────────────────────────────────────────────────── */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* ── Reset ─────────────────────────────────────────────────────────────── */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  body {
-    font-family: var(--font-primary);
-    background: var(--vault-eggshell);
-    /* Fine crosshatch — classic ruled-paper texture */
-    background-image:
-      linear-gradient(rgba(44,62,80,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(44,62,80,0.06) 1px, transparent 1px);
-    background-size: 24px 24px;
-    color: var(--vault-slate);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+    body {
+      font-family: var(--font-primary);
+      background: var(--vault-eggshell);
+      /* Fine crosshatch — classic ruled-paper texture */
+      background-image:
+        linear-gradient(rgba(44, 62, 80, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(44, 62, 80, 0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: var(--vault-slate);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-  /* ── Toolbar / Control Panel ────────────────────────────────────────────── */
-  #toolbar {
-    background: var(--vault-slate);
-    border-bottom: 4px solid var(--vault-charcoal);
-    padding: 8px 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    z-index: 100;
-    flex-wrap: wrap;
-    /* Subtle inner top highlight — pressed-metal look */
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), var(--shadow-drawer);
-  }
+    /* ── Toolbar / Control Panel ────────────────────────────────────────────── */
+    #toolbar {
+      background: var(--vault-slate);
+      border-bottom: 4px solid var(--vault-charcoal);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      z-index: 100;
+      flex-wrap: wrap;
+      /* Subtle inner top highlight — pressed-metal look */
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), var(--shadow-drawer);
+    }
 
-  /* App wordmark */
-  #toolbar::before {
-    content: "UPN WORKFLOW";
-    font-family: var(--font-primary);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: rgba(255,255,255,0.35);
-    margin-right: 8px;
-    white-space: nowrap;
-  }
+    /* App wordmark */
+    #toolbar::before {
+      content: "UPN WORKFLOW";
+      font-family: var(--font-primary);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.35);
+      margin-right: 8px;
+      white-space: nowrap;
+    }
 
-  .tool-group { display: flex; gap: 6px; align-items: center; }
-  .tool-sep {
-    width: 1px;
-    height: 28px;
-    background: rgba(255,255,255,0.15);
-    margin: 0 6px;
-  }
+    .tool-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
 
-  /* Buttons — office-control style */
-  .btn {
-    background: var(--vault-cream);
-    color: var(--vault-slate);
-    border: 2px solid var(--vault-slate);
-    padding: 5px 13px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: var(--font-primary);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: all var(--transition-quick);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    box-shadow: var(--shadow-file);
-  }
-  .btn:hover {
-    background: var(--vault-slate);
-    color: var(--vault-cream);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-drawer);
-  }
-  .btn:active { transform: translateY(0); box-shadow: var(--shadow-file); }
-  .btn.danger {
-    background: var(--vault-cream);
-    color: #C0392B;
-    border-color: #C0392B;
-  }
-  .btn.danger:hover { background: #C0392B; color: var(--vault-cream); }
-  .btn.primary {
-    background: var(--dept-teal);
-    color: var(--vault-cream);
-    border-color: #16A085;
-  }
-  .btn.primary:hover { background: #16A085; border-color: #138D75; }
-  .btn svg { pointer-events: none; }
+    .tool-sep {
+      width: 1px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 0 6px;
+    }
 
-  /* ── Page Tabs — file-folder style ─────────────────────────────────────── */
-  #page-tabs {
-    display: flex;
-    gap: 3px;
-    align-items: flex-end;
-    flex: 1;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--vault-silver) transparent;
-  }
-  .page-tab {
-    background: var(--vault-charcoal);
-    border: 2px solid rgba(255,255,255,0.12);
-    border-bottom: none;
-    color: rgba(255,255,255,0.5);
-    padding: 5px 14px;
-    border-radius: 4px 4px 0 0;
-    cursor: pointer;
-    font-family: var(--font-primary);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all var(--transition-quick);
-    position: relative;
-  }
-  .page-tab:hover { background: var(--vault-silver); color: #fff; }
-  .page-tab.active {
-    background: var(--vault-eggshell);
-    color: var(--vault-slate);
-    border-color: var(--vault-rule);
-    box-shadow: 0 -2px 0 var(--dept-teal) inset;
-  }
-  .page-tab .tab-close {
-    opacity: 0.4;
-    font-size: 10px;
-    cursor: pointer;
-    padding: 1px 3px;
-    border-radius: 2px;
-    transition: opacity var(--transition-quick);
-  }
-  .page-tab .tab-close:hover { opacity: 1; background: rgba(0,0,0,0.15); }
+    /* Buttons — office-control style */
+    .btn {
+      background: var(--vault-cream);
+      color: var(--vault-slate);
+      border: 2px solid var(--vault-slate);
+      padding: 5px 13px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font-primary);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all var(--transition-quick);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: var(--shadow-file);
+    }
 
-  /* ── Canvas / Workspace ─────────────────────────────────────────────────── */
-  #workspace {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-    position: relative;
-  }
+    .btn:hover {
+      background: var(--vault-slate);
+      color: var(--vault-cream);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-drawer);
+    }
 
-  #canvas-container {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-    background-color: var(--vault-eggshell);
-    /* Ruled-paper grid — warm amber lines */
-    background-image:
-      linear-gradient(rgba(44,62,80,0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(44,62,80,0.07) 1px, transparent 1px);
-    background-size: 32px 32px;
-    cursor: default;
-  }
-  #canvas-container.panning { cursor: grabbing; }
-  #canvas-container.arrow-mode { cursor: crosshair; }
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-file);
+    }
 
-  #world {
-    position: absolute;
-    top: 0; left: 0;
-    width: 0; height: 0;
-    transform-origin: 0 0;
-  }
+    .btn.danger {
+      background: var(--vault-cream);
+      color: #C0392B;
+      border-color: #C0392B;
+    }
 
-  /* ── SVG Arrows ─────────────────────────────────────────────────────────── */
-  #arrows-svg {
-    position: absolute;
-    top: 0; left: 0;
-    width: 5000px; height: 5000px;
-    overflow: visible;
-    pointer-events: none;
-  }
-  #arrows-svg .arrow-path {
-    fill: none;
-    stroke: var(--vault-charcoal);
-    stroke-width: 2;
-    pointer-events: stroke;
-    cursor: pointer;
-  }
-  #arrows-svg .arrow-path:hover { stroke: var(--dept-blue); stroke-width: 2.5; }
-  #arrows-svg .arrow-path.selected { stroke: var(--dept-amber); }
-  #arrows-svg .arrow-label-bg { fill: var(--vault-tan); stroke: var(--vault-rule); stroke-width: 1; }
-  #arrows-svg .arrow-label {
-    fill: var(--vault-slate);
-    font-size: 10px;
-    font-family: var(--font-primary);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-  }
-  #arrows-svg .arrow-delete-zone { fill: transparent; cursor: pointer; }
+    .btn.danger:hover {
+      background: #C0392B;
+      color: var(--vault-cream);
+    }
 
-  /* Temp arrow while drawing */
-  #temp-arrow {
-    fill: none;
-    stroke: var(--dept-amber);
-    stroke-width: 2;
-    stroke-dasharray: 6 4;
-    pointer-events: none;
-  }
+    .btn.primary {
+      background: var(--dept-teal);
+      color: var(--vault-cream);
+      border-color: #16A085;
+    }
 
-  /* ── UPN Cards — index-card style ──────────────────────────────────────── */
-  .upn-card {
-    position: absolute;
-    width: 320px;
-    background: var(--vault-cream);
-    border-radius: 4px;
-    border: 2px solid var(--vault-slate);
-    /* Department indicator — 6px left border in teal */
-    border-left: 6px solid var(--dept-teal);
-    box-shadow: var(--shadow-drawer);
-    user-select: none;
-    transition: box-shadow var(--transition-smooth), transform var(--transition-smooth);
-    min-height: 140px;
-  }
-  .upn-card:hover {
-    box-shadow: var(--shadow-cabinet);
-    transform: translateY(-2px);
-  }
-  .upn-card.selected {
-    border-color: var(--dept-amber);
-    border-left-color: var(--dept-amber);
-    box-shadow: 0 0 0 3px rgba(243,156,18,0.25), var(--shadow-cabinet);
-  }
+    .btn.primary:hover {
+      background: #16A085;
+      border-color: #138D75;
+    }
 
-  /* Card header — dark control panel strip */
-  .card-header {
-    background: var(--vault-slate);
-    border-radius: 2px 2px 0 0;
-    padding: 8px 10px;
-    color: var(--vault-cream);
-    font-family: var(--font-primary);
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: move;
-    min-height: 34px;
-    word-break: break-word;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px;
-  }
-  .card-header .card-title-text { flex: 1; line-height: 1.3; }
+    .btn svg {
+      pointer-events: none;
+    }
 
-  .card-edit {
-    opacity: 0;
-    color: rgba(255,255,255,0.6);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 2px 5px;
-    border-radius: 3px;
-    transition: opacity var(--transition-quick), background var(--transition-quick);
-    flex-shrink: 0;
-  }
-  .upn-card:hover .card-edit { opacity: 1; }
-  .card-edit:hover { color: #fff; background: rgba(255,255,255,0.15); }
+    /* ── Page Tabs — file-folder style ─────────────────────────────────────── */
+    #page-tabs {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      flex: 1;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--vault-silver) transparent;
+    }
 
-  .card-delete {
-    opacity: 0;
-    color: rgba(231,76,60,0.8);
-    cursor: pointer;
-    font-size: 13px;
-    padding: 2px 5px;
-    border-radius: 3px;
-    transition: opacity var(--transition-quick), background var(--transition-quick);
-    flex-shrink: 0;
-  }
-  .upn-card:hover .card-delete { opacity: 1; }
-  .card-delete:hover { color: #fff; background: #C0392B; }
+    .page-tab {
+      background: var(--vault-charcoal);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-bottom: none;
+      color: rgba(255, 255, 255, 0.5);
+      padding: 5px 14px;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      font-family: var(--font-primary);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-quick);
+      position: relative;
+    }
 
-  /* Card body */
-  .card-body {
-    display: flex;
-    min-height: 80px;
-  }
+    .page-tab:hover {
+      background: var(--vault-silver);
+      color: #fff;
+    }
 
-  /* Side columns — ruled separator style */
-  .card-side {
-    width: 84px;
-    background: var(--vault-tan);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 8px 6px;
-    gap: 5px;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .card-side.left  { border-right: 2px solid var(--vault-rule); }
-  .card-side.right { border-left:  2px solid var(--vault-rule); }
+    .page-tab.active {
+      background: var(--vault-eggshell);
+      color: var(--vault-slate);
+      border-color: var(--vault-rule);
+      box-shadow: 0 -2px 0 var(--dept-teal) inset;
+    }
 
-  .side-label {
-    color: var(--vault-silver);
-    font-family: var(--font-primary);
-    font-size: 7px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    flex-shrink: 0;
-    text-align: center;
-  }
+    .page-tab .tab-close {
+      opacity: 0.4;
+      font-size: 10px;
+      cursor: pointer;
+      padding: 1px 3px;
+      border-radius: 2px;
+      transition: opacity var(--transition-quick);
+    }
 
-  .side-item {
-    font-family: var(--font-primary);
-    font-size: 9px;
-    font-weight: 500;
-    color: var(--vault-charcoal);
-    text-align: center;
-    word-break: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
-    width: 100%;
-    line-height: 1.4;
-    background: var(--vault-cream);
-    border: 1px solid var(--vault-rule);
-    border-radius: 3px;
-    padding: 3px 5px;
-  }
+    .page-tab .tab-close:hover {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.15);
+    }
 
-  /* Center description area */
-  .card-center {
-    flex: 1;
-    padding: 10px 8px;
-    font-family: var(--font-primary);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--vault-charcoal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    word-break: break-word;
-    min-height: 60px;
-    line-height: 1.5;
-  }
-  .card-center-hint {
-    color: var(--vault-silver) !important;
-    font-style: italic;
-    font-size: 10px !important;
-  }
+    /* ── Canvas / Workspace ─────────────────────────────────────────────────── */
+    #workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
 
-  /* Role badge — department indicator at foot of card */
-  .card-role {
-    background: var(--dept-amber);
-    border-top: 3px solid #d4870a;
-    padding: 6px 10px 6px 12px;
-    font-family: var(--font-primary);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #1a1a0a;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border-radius: 0 0 2px 0;
-    min-height: 26px;
-  }
-  .card-role-icon { font-size: 11px; opacity: 0.85; }
+    #canvas-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background-color: var(--vault-eggshell);
+      /* Ruled-paper grid — warm amber lines */
+      background-image:
+        linear-gradient(rgba(44, 62, 80, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(44, 62, 80, 0.07) 1px, transparent 1px);
+      background-size: 32px 32px;
+      cursor: default;
+    }
 
-  /* ── Connection Ports ───────────────────────────────────────────────────── */
-  .port {
-    position: absolute;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: var(--vault-cream);
-    border: 2px solid var(--vault-slate);
-    cursor: crosshair;
-    z-index: 10;
-    transition: transform var(--transition-quick), background var(--transition-quick), border-color var(--transition-quick);
-    box-shadow: var(--shadow-file);
-  }
-  .port:hover { transform: scale(1.5); background: var(--dept-teal); border-color: var(--dept-teal); }
-  .port.left   { left: -7px;  top: 50%;  transform: translateY(-50%); }
-  .port.left:hover  { transform: translateY(-50%) scale(1.5); }
-  .port.right  { right: -7px; top: 50%;  transform: translateY(-50%); }
-  .port.right:hover { transform: translateY(-50%) scale(1.5); }
-  .port.top    { top: -7px;   left: 50%; transform: translateX(-50%); }
-  .port.top:hover   { transform: translateX(-50%) scale(1.5); }
-  .port.bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
-  .port.bottom:hover { transform: translateX(-50%) scale(1.5); }
+    #canvas-container.panning {
+      cursor: grabbing;
+    }
 
-  /* ── Mini-map — overview panel ──────────────────────────────────────────── */
-  #minimap-container {
-    width: 190px;
-    flex-shrink: 0;
-    background: var(--vault-cream);
-    border-left: 4px solid var(--vault-slate);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: -2px 0 8px rgba(44,62,80,0.1);
-  }
-  #minimap-title {
-    padding: 7px 12px;
-    font-family: var(--font-primary);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--vault-silver);
-    background: var(--vault-tan);
-    border-bottom: 2px solid var(--vault-rule);
-  }
-  #minimap {
-    flex: 1;
-    display: block;
-    cursor: pointer;
-  }
+    #canvas-container.arrow-mode {
+      cursor: crosshair;
+    }
 
-  /* ── Modal — form-record style ──────────────────────────────────────────── */
-  #modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(44,62,80,0.55);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  #modal-overlay.open { display: flex; }
+    #world {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      transform-origin: 0 0;
+    }
 
-  #modal {
-    background: var(--vault-cream);
-    border: 4px solid var(--vault-slate);
-    border-top: 6px solid var(--dept-teal);
-    border-radius: 4px;
-    padding: 28px;
-    width: 500px;
-    max-width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-cabinet);
-    scrollbar-width: thin;
-    scrollbar-color: var(--vault-rule) var(--vault-cream);
-  }
+    /* ── SVG Arrows ─────────────────────────────────────────────────────────── */
+    #arrows-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5000px;
+      height: 5000px;
+      overflow: visible;
+      pointer-events: none;
+    }
 
-  #modal h2 {
-    font-family: var(--font-primary);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--vault-slate);
-    margin-bottom: 3px;
-  }
-  #modal .modal-subtitle {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--vault-silver);
-    margin-bottom: 20px;
-    padding-bottom: 14px;
-    border-bottom: 2px solid var(--vault-rule);
-  }
+    #arrows-svg .arrow-path {
+      fill: none;
+      stroke: var(--vault-charcoal);
+      stroke-width: 2;
+      pointer-events: stroke;
+      cursor: pointer;
+    }
 
-  .field-group { margin-bottom: 18px; }
-  .field-group .label-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-  .field-group label {
-    font-family: var(--font-primary);
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--vault-slate);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-  }
-  .field-group input, .field-group textarea {
-    width: 100%;
-    background: var(--vault-eggshell);
-    border: 2px solid var(--vault-light);
-    border-bottom: 2px solid var(--vault-rule);
-    color: var(--vault-slate);
-    padding: 9px 12px;
-    border-radius: 4px;
-    font-family: var(--font-primary);
-    font-size: 13px;
-    font-weight: 500;
-    resize: vertical;
-    transition: border-color var(--transition-quick), box-shadow var(--transition-quick);
-  }
-  .field-group input:focus, .field-group textarea:focus {
-    outline: none;
-    border-color: var(--dept-teal);
-    box-shadow: 0 0 0 3px rgba(26,188,156,0.15);
-  }
+    #arrows-svg .arrow-path:hover {
+      stroke: var(--dept-blue);
+      stroke-width: 2.5;
+    }
 
-  /* Info toggle button */
-  .info-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--vault-light);
-    border: 1.5px solid var(--vault-silver);
-    color: var(--vault-silver);
-    font-family: var(--font-primary);
-    font-size: 9px;
-    font-weight: 700;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all var(--transition-quick);
-    line-height: 1;
-    user-select: none;
-  }
-  .info-btn:hover {
-    background: var(--dept-teal);
-    border-color: var(--dept-teal);
-    color: #fff;
-  }
-  .info-btn.active {
-    background: var(--dept-teal);
-    border-color: #16A085;
-    color: #fff;
-  }
+    #arrows-svg .arrow-path.selected {
+      stroke: var(--dept-amber);
+    }
 
-  /* Info boxes — typed memo style, hidden by default */
-  .field-info {
-    margin-top: 7px;
-    background: var(--vault-tan);
-    border: 1px solid var(--vault-rule);
-    border-left: 4px solid var(--dept-teal);
-    border-radius: 0 4px 4px 0;
-    padding: 9px 12px;
-    display: none;
-    gap: 9px;
-    align-items: flex-start;
-  }
-  .field-info.open { display: flex; }
-  .field-info-icon {
-    font-size: 13px;
-    flex-shrink: 0;
-    margin-top: 1px;
-    opacity: 0.85;
-  }
-  .field-info-body { flex: 1; }
-  .field-info-desc {
-    font-family: var(--font-primary);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--vault-charcoal);
-    line-height: 1.55;
-    margin-bottom: 5px;
-  }
-  .field-info-example {
-    font-family: var(--font-primary);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--dept-green);
-    font-style: italic;
-    line-height: 1.4;
-  }
-  .field-info-example::before {
-    content: "e.g. ";
-    color: #1E8449;
-    font-style: normal;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
+    #arrows-svg .arrow-label-bg {
+      fill: var(--vault-tan);
+      stroke: var(--vault-rule);
+      stroke-width: 1;
+    }
 
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 22px;
-    padding-top: 16px;
-    border-top: 2px solid var(--vault-rule);
-  }
+    #arrows-svg .arrow-label {
+      fill: var(--vault-slate);
+      font-size: 10px;
+      font-family: var(--font-primary);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+    }
 
-  /* ── Arrow Label Inline Editor ──────────────────────────────────────────── */
-  #arrow-label-editor {
-    position: fixed;
-    display: none;
-    z-index: 500;
-    background: var(--vault-cream);
-    border: 2px solid var(--vault-slate);
-    border-radius: 4px;
-    padding: 4px 6px;
-    box-shadow: var(--shadow-drawer);
-  }
-  #arrow-label-editor input {
-    background: transparent;
-    border: none;
-    color: var(--vault-slate);
-    font-family: var(--font-primary);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    outline: none;
-    width: 130px;
-  }
+    #arrows-svg .arrow-delete-zone {
+      fill: transparent;
+      cursor: pointer;
+    }
 
-  /* ── Status Bar — filing cabinet footer ─────────────────────────────────── */
-  #status-bar {
-    padding: 4px 16px;
-    font-family: var(--font-primary);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--vault-silver);
-    background: var(--vault-slate);
-    border-top: 2px solid var(--vault-charcoal);
-    display: flex;
-    gap: 20px;
-    flex-shrink: 0;
-  }
-</style>
+    /* Temp arrow while drawing */
+    #temp-arrow {
+      fill: none;
+      stroke: var(--dept-amber);
+      stroke-width: 2;
+      stroke-dasharray: 6 4;
+      pointer-events: none;
+    }
+
+    /* ── UPN Cards — index-card style ──────────────────────────────────────── */
+    .upn-card {
+      position: absolute;
+      width: 320px;
+      background: var(--vault-cream);
+      border-radius: 4px;
+      border: 2px solid var(--vault-slate);
+      /* Department indicator — 6px left border in teal */
+      border-left: 6px solid var(--dept-teal);
+      box-shadow: var(--shadow-drawer);
+      user-select: none;
+      transition: box-shadow var(--transition-smooth), transform var(--transition-smooth);
+      min-height: 140px;
+    }
+
+    .upn-card:hover {
+      box-shadow: var(--shadow-cabinet);
+      transform: translateY(-2px);
+    }
+
+    .upn-card.selected {
+      border-color: var(--dept-amber);
+      border-left-color: var(--dept-amber);
+      box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.25), var(--shadow-cabinet);
+    }
+
+    /* Card header — dark control panel strip */
+    .card-header {
+      background: var(--vault-slate);
+      border-radius: 2px 2px 0 0;
+      padding: 8px 10px;
+      color: var(--vault-cream);
+      font-family: var(--font-primary);
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: move;
+      min-height: 34px;
+      word-break: break-word;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .card-header .card-title-text {
+      flex: 1;
+      line-height: 1.3;
+    }
+
+    .card-edit {
+      opacity: 0;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      transition: opacity var(--transition-quick), background var(--transition-quick);
+      flex-shrink: 0;
+    }
+
+    .upn-card:hover .card-edit {
+      opacity: 1;
+    }
+
+    .card-edit:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-delete {
+      opacity: 0;
+      color: rgba(231, 76, 60, 0.8);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      transition: opacity var(--transition-quick), background var(--transition-quick);
+      flex-shrink: 0;
+    }
+
+    .upn-card:hover .card-delete {
+      opacity: 1;
+    }
+
+    .card-delete:hover {
+      color: #fff;
+      background: #C0392B;
+    }
+
+    /* Card body */
+    .card-body {
+      display: flex;
+      min-height: 80px;
+    }
+
+    /* Side columns — ruled separator style */
+    .card-side {
+      width: 84px;
+      background: var(--vault-tan);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px 6px;
+      gap: 5px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .card-side.left {
+      border-right: 2px solid var(--vault-rule);
+    }
+
+    .card-side.right {
+      border-left: 2px solid var(--vault-rule);
+    }
+
+    .side-label {
+      color: var(--vault-silver);
+      font-family: var(--font-primary);
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .side-item {
+      font-family: var(--font-primary);
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--vault-charcoal);
+      text-align: center;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      width: 100%;
+      line-height: 1.4;
+      background: var(--vault-cream);
+      border: 1px solid var(--vault-rule);
+      border-radius: 3px;
+      padding: 3px 5px;
+    }
+
+    /* Center description area */
+    .card-center {
+      flex: 1;
+      padding: 10px 8px;
+      font-family: var(--font-primary);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--vault-charcoal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      word-break: break-word;
+      min-height: 60px;
+      line-height: 1.5;
+    }
+
+    .card-center-hint {
+      color: var(--vault-silver) !important;
+      font-style: italic;
+      font-size: 10px !important;
+    }
+
+    /* Role badge — department indicator at foot of card */
+    .card-role {
+      background: var(--dept-amber);
+      border-top: 3px solid #d4870a;
+      padding: 6px 10px 6px 12px;
+      font-family: var(--font-primary);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #1a1a0a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 0 0 2px 0;
+      min-height: 26px;
+    }
+
+    .card-role-icon {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    /* ── Connection Ports ───────────────────────────────────────────────────── */
+    .port {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--vault-cream);
+      border: 2px solid var(--vault-slate);
+      cursor: crosshair;
+      z-index: 10;
+      transition: transform var(--transition-quick), background var(--transition-quick), border-color var(--transition-quick);
+      box-shadow: var(--shadow-file);
+    }
+
+    .port:hover {
+      transform: scale(1.5);
+      background: var(--dept-teal);
+      border-color: var(--dept-teal);
+    }
+
+    .port.left {
+      left: -7px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .port.left:hover {
+      transform: translateY(-50%) scale(1.5);
+    }
+
+    .port.right {
+      right: -7px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .port.right:hover {
+      transform: translateY(-50%) scale(1.5);
+    }
+
+    .port.top {
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .port.top:hover {
+      transform: translateX(-50%) scale(1.5);
+    }
+
+    .port.bottom {
+      bottom: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .port.bottom:hover {
+      transform: translateX(-50%) scale(1.5);
+    }
+
+    /* ── Mini-map — overview panel ──────────────────────────────────────────── */
+    #minimap-container {
+      width: 190px;
+      flex-shrink: 0;
+      background: var(--vault-cream);
+      border-left: 4px solid var(--vault-slate);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: -2px 0 8px rgba(44, 62, 80, 0.1);
+    }
+
+    #minimap-title {
+      padding: 7px 12px;
+      font-family: var(--font-primary);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--vault-silver);
+      background: var(--vault-tan);
+      border-bottom: 2px solid var(--vault-rule);
+    }
+
+    #minimap {
+      flex: 1;
+      display: block;
+      cursor: pointer;
+    }
+
+    /* ── Modal — form-record style ──────────────────────────────────────────── */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44, 62, 80, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #modal-overlay.open {
+      display: flex;
+    }
+
+    #modal {
+      background: var(--vault-cream);
+      border: 4px solid var(--vault-slate);
+      border-top: 6px solid var(--dept-teal);
+      border-radius: 4px;
+      padding: 28px;
+      width: 500px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-cabinet);
+      scrollbar-width: thin;
+      scrollbar-color: var(--vault-rule) var(--vault-cream);
+    }
+
+    #modal h2 {
+      font-family: var(--font-primary);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--vault-slate);
+      margin-bottom: 3px;
+    }
+
+    #modal .modal-subtitle {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--vault-silver);
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--vault-rule);
+    }
+
+    .field-group {
+      margin-bottom: 18px;
+    }
+
+    .field-group .label-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .field-group label {
+      font-family: var(--font-primary);
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--vault-slate);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .field-group input,
+    .field-group textarea {
+      width: 100%;
+      background: var(--vault-eggshell);
+      border: 2px solid var(--vault-light);
+      border-bottom: 2px solid var(--vault-rule);
+      color: var(--vault-slate);
+      padding: 9px 12px;
+      border-radius: 4px;
+      font-family: var(--font-primary);
+      font-size: 13px;
+      font-weight: 500;
+      resize: vertical;
+      transition: border-color var(--transition-quick), box-shadow var(--transition-quick);
+    }
+
+    .field-group input:focus,
+    .field-group textarea:focus {
+      outline: none;
+      border-color: var(--dept-teal);
+      box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.15);
+    }
+
+    /* Info toggle button */
+    .info-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--vault-light);
+      border: 1.5px solid var(--vault-silver);
+      color: var(--vault-silver);
+      font-family: var(--font-primary);
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all var(--transition-quick);
+      line-height: 1;
+      user-select: none;
+    }
+
+    .info-btn:hover {
+      background: var(--dept-teal);
+      border-color: var(--dept-teal);
+      color: #fff;
+    }
+
+    .info-btn.active {
+      background: var(--dept-teal);
+      border-color: #16A085;
+      color: #fff;
+    }
+
+    /* Info boxes — typed memo style, hidden by default */
+    .field-info {
+      margin-top: 7px;
+      background: var(--vault-tan);
+      border: 1px solid var(--vault-rule);
+      border-left: 4px solid var(--dept-teal);
+      border-radius: 0 4px 4px 0;
+      padding: 9px 12px;
+      display: none;
+      gap: 9px;
+      align-items: flex-start;
+    }
+
+    .field-info.open {
+      display: flex;
+    }
+
+    .field-info-icon {
+      font-size: 13px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      opacity: 0.85;
+    }
+
+    .field-info-body {
+      flex: 1;
+    }
+
+    .field-info-desc {
+      font-family: var(--font-primary);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--vault-charcoal);
+      line-height: 1.55;
+      margin-bottom: 5px;
+    }
+
+    .field-info-example {
+      font-family: var(--font-primary);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--dept-green);
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    .field-info-example::before {
+      content: "e.g. ";
+      color: #1E8449;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 2px solid var(--vault-rule);
+    }
+
+    /* ── CSV Import Modal ───────────────────────────────────────────────────── */
+    #import-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44, 62, 80, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #import-modal-overlay.open {
+      display: flex;
+    }
+
+    #import-modal {
+      background: var(--vault-cream);
+      border: 4px solid var(--vault-slate);
+      border-top: 6px solid var(--dept-amber);
+      border-radius: 4px;
+      padding: 28px;
+      width: 560px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-cabinet);
+      scrollbar-width: thin;
+      scrollbar-color: var(--vault-rule) var(--vault-cream);
+    }
+
+    #import-modal h2 {
+      font-family: var(--font-primary);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--vault-slate);
+      margin-bottom: 3px;
+    }
+
+    #import-modal .modal-subtitle {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--vault-silver);
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--vault-rule);
+    }
+
+    .import-format-box {
+      background: var(--vault-tan);
+      border: 1px solid var(--vault-rule);
+      border-left: 4px solid var(--dept-amber);
+      border-radius: 0 4px 4px 0;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .import-format-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-primary);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--vault-slate);
+      margin-bottom: 10px;
+    }
+
+    .import-cols {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .import-col {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .import-col-name {
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--vault-slate);
+      background: var(--vault-eggshell);
+      border: 1px solid var(--vault-rule);
+      border-radius: 3px;
+      padding: 1px 5px;
+      min-width: 90px;
+      display: inline-block;
+    }
+
+    .import-col-desc {
+      font-size: 11px;
+      color: var(--vault-silver);
+    }
+
+    .import-example-row {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .import-example-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--vault-silver);
+    }
+
+    .import-example-code {
+      font-family: monospace;
+      font-size: 10px;
+      color: var(--vault-charcoal);
+      background: var(--vault-eggshell);
+      border: 1px solid var(--vault-rule);
+      border-radius: 3px;
+      padding: 6px 8px;
+      display: block;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .import-template-btn {
+      font-size: 10px !important;
+      padding: 5px 10px !important;
+      gap: 5px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .import-drop-zone {
+      border: 2px dashed var(--vault-rule);
+      border-radius: 6px;
+      background: var(--vault-eggshell);
+      padding: 28px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all var(--transition-quick);
+      margin-bottom: 16px;
+    }
+
+    .import-drop-zone:hover,
+    .import-drop-zone.drag-over {
+      border-color: var(--dept-amber);
+      background: #FFFBF0;
+    }
+
+    .import-drop-icon {
+      color: var(--vault-silver);
+      opacity: 0.6;
+    }
+
+    .import-drop-zone:hover .import-drop-icon {
+      opacity: 1;
+      color: var(--dept-amber);
+    }
+
+    .import-drop-text {
+      font-family: var(--font-primary);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--vault-slate);
+    }
+
+    .import-drop-hint {
+      font-size: 10px;
+      color: var(--vault-silver);
+    }
+
+    .import-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--vault-rule);
+    }
+
+    #import-preview-count {
+      font-family: var(--font-primary);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--dept-teal);
+    }
+
+    .import-preview-hint {
+      font-size: 10px;
+      color: var(--vault-silver);
+      font-style: italic;
+    }
+
+    #import-preview-list {
+      max-height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--vault-rule) var(--vault-cream);
+    }
+
+    .import-preview-card {
+      background: var(--vault-tan);
+      border: 1px solid var(--vault-rule);
+      border-left: 4px solid var(--dept-teal);
+      border-radius: 0 4px 4px 0;
+      padding: 8px 12px;
+    }
+
+    .import-preview-title {
+      font-family: var(--font-primary);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--vault-slate);
+      margin-bottom: 3px;
+    }
+
+    .import-preview-meta {
+      font-size: 10px;
+      color: var(--vault-silver);
+      line-height: 1.4;
+    }
+
+    .import-error {
+      background: #FDECEA;
+      border: 1px solid #E74C3C;
+      border-left: 4px solid #E74C3C;
+      border-radius: 0 4px 4px 0;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #922B21;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    /* ── Arrow Label Inline Editor ──────────────────────────────────────────── */
+    #arrow-label-editor {
+      position: fixed;
+      display: none;
+      z-index: 500;
+      background: var(--vault-cream);
+      border: 2px solid var(--vault-slate);
+      border-radius: 4px;
+      padding: 4px 6px;
+      box-shadow: var(--shadow-drawer);
+    }
+
+    #arrow-label-editor input {
+      background: transparent;
+      border: none;
+      color: var(--vault-slate);
+      font-family: var(--font-primary);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      outline: none;
+      width: 130px;
+    }
+
+    /* ── Status Bar — filing cabinet footer ─────────────────────────────────── */
+    #status-bar {
+      padding: 4px 16px;
+      font-family: var(--font-primary);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--vault-silver);
+      background: var(--vault-slate);
+      border-top: 2px solid var(--vault-charcoal);
+      display: flex;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+
+    /* ── Color Picker ───────────────────────────────────────────────────────── */
+    .color-picker-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: var(--vault-eggshell);
+      padding: 8px;
+      border: 2px solid var(--vault-light);
+      border-radius: 4px;
+      border-bottom: 2px solid var(--vault-rule);
+    }
+
+    .color-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 4px 8px 4px 4px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      transition: all var(--transition-quick);
+    }
+
+    .color-option:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .color-option input {
+      display: none;
+    }
+
+    .color-swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .color-option input:checked+.color-swatch {
+      box-shadow: 0 0 0 2px var(--vault-cream), 0 0 0 4px var(--vault-slate);
+    }
+
+    .color-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--vault-slate);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="toolbar">
-  <div class="tool-group">
-    <button class="btn primary" onclick="addCard()">
-      <svg width="14" height="14" viewBox="0 0 14 14"><rect x="6" y="1" width="2" height="12" fill="currentColor"/><rect x="1" y="6" width="12" height="2" fill="currentColor"/></svg>
-      Add Card
-    </button>
-  </div>
-  <div class="tool-sep"></div>
-  <div class="tool-group">
-    <button class="btn" onclick="zoomIn()">
-      <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="5" y1="6" x2="7" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="5" x2="6" y2="7" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="13" y2="13" stroke="currentColor" stroke-width="1.5"/></svg>
-      Zoom In
-    </button>
-    <button class="btn" onclick="zoomOut()">
-      <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="4" y1="6" x2="8" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="13" y2="13" stroke="currentColor" stroke-width="1.5"/></svg>
-      Zoom Out
-    </button>
-    <button class="btn" onclick="resetView()">Reset View</button>
-  </div>
-  <div class="tool-sep"></div>
-  <div id="page-tabs"></div>
-  <button class="btn" onclick="addPage()" title="Add new page">
-    <svg width="12" height="12" viewBox="0 0 12 12"><rect x="5" y="0" width="2" height="12" fill="currentColor"/><rect x="0" y="5" width="12" height="2" fill="currentColor"/></svg>
-    Page
-  </button>
-  <div class="tool-sep"></div>
-  <button class="btn primary" onclick="exportPNG()">
-    <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 10v2h10v-2M7 2v7M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Export PNG
-  </button>
-</div>
-
-<div id="workspace">
-  <div id="canvas-container">
-    <div id="world">
-      <svg id="arrows-svg">
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#34495E"/>
-          </marker>
-          <marker id="arrowhead-selected" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#F39C12"/>
-          </marker>
-          <marker id="arrowhead-hover" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#3498DB"/>
-          </marker>
-        </defs>
-        <path id="temp-arrow" d="" />
+  <div id="toolbar">
+    <div class="tool-group">
+      <button class="btn primary" onclick="addCard()">
+        <svg width="14" height="14" viewBox="0 0 14 14">
+          <rect x="6" y="1" width="2" height="12" fill="currentColor" />
+          <rect x="1" y="6" width="12" height="2" fill="currentColor" />
+        </svg>
+        Add Card
+      </button>
+    </div>
+    <div class="tool-sep"></div>
+    <div class="tool-group">
+      <button class="btn" onclick="zoomIn()">
+        <svg width="14" height="14" viewBox="0 0 14 14">
+          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" fill="none" />
+          <line x1="5" y1="6" x2="7" y2="6" stroke="currentColor" stroke-width="1.5" />
+          <line x1="6" y1="5" x2="6" y2="7" stroke="currentColor" stroke-width="1.5" />
+          <line x1="10" y1="10" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+        Zoom In
+      </button>
+      <button class="btn" onclick="zoomOut()">
+        <svg width="14" height="14" viewBox="0 0 14 14">
+          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" fill="none" />
+          <line x1="4" y1="6" x2="8" y2="6" stroke="currentColor" stroke-width="1.5" />
+          <line x1="10" y1="10" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+        Zoom Out
+      </button>
+      <button class="btn" onclick="resetView()">Reset View</button>
+    </div>
+    <div class="tool-sep"></div>
+    <div id="page-tabs"></div>
+    <button class="btn" onclick="addPage()" title="Add new page">
+      <svg width="12" height="12" viewBox="0 0 12 12">
+        <rect x="5" y="0" width="2" height="12" fill="currentColor" />
+        <rect x="0" y="5" width="12" height="2" fill="currentColor" />
       </svg>
+      Page
+    </button>
+    <div class="tool-sep"></div>
+    <button class="btn" onclick="openImportModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        <path d="M2 10v2h10v-2M7 8V1M4 4l3-3 3 3" stroke="currentColor" stroke-width="1.5" fill="none"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Import CSV
+    </button>
+    <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleCSVFile(event)" />
+    <div class="tool-sep"></div>
+    <button class="btn" onclick="saveProject()">
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        <path d="M2 2h8l2 2v8H2V2zM3 3v3h6V3M3 10v2h8v-2" stroke="currentColor" stroke-width="1.5" fill="none" />
+      </svg>
+      Save
+    </button>
+    <button class="btn" onclick="document.getElementById('json-file-input').click()">
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        <path d="M2 10v2h10v-2M7 8V1M4 4l3-3 3 3" stroke="currentColor" stroke-width="1.5" fill="none" />
+      </svg>
+      Load
+    </button>
+    <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="loadProject(event)" />
+    <div class="tool-sep"></div>
+    <button class="btn primary" onclick="exportPNG()">
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        <path d="M2 10v2h10v-2M7 2v7M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Export PNG
+    </button>
+  </div>
+
+  <div id="workspace">
+    <div id="canvas-container">
+      <div id="world">
+        <svg id="arrows-svg">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#34495E" />
+            </marker>
+            <marker id="arrowhead-selected" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#F39C12" />
+            </marker>
+            <marker id="arrowhead-hover" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#3498DB" />
+            </marker>
+          </defs>
+          <path id="temp-arrow" d="" />
+        </svg>
+      </div>
+    </div>
+    <div id="minimap-container">
+      <div id="minimap-title">Overview</div>
+      <canvas id="minimap"></canvas>
     </div>
   </div>
-  <div id="minimap-container">
-    <div id="minimap-title">Overview</div>
-    <canvas id="minimap"></canvas>
+
+  <div id="status-bar">
+    <span id="status-zoom">Zoom: 100%</span>
+    <span id="status-cards">Cards: 0</span>
+    <span id="status-arrows">Arrows: 0</span>
+    <span id="status-mode">Mode: Select</span>
   </div>
-</div>
 
-<div id="status-bar">
-  <span id="status-zoom">Zoom: 100%</span>
-  <span id="status-cards">Cards: 0</span>
-  <span id="status-arrows">Arrows: 0</span>
-  <span id="status-mode">Mode: Select</span>
-</div>
+  <!-- CSV Import modal -->
+  <div id="import-modal-overlay">
+    <div id="import-modal">
+      <h2>Import Cards from CSV</h2>
+      <p class="modal-subtitle">Each row in your CSV becomes one card on the canvas. Cards are stacked for you to
+        arrange.</p>
 
-<!-- Edit card modal -->
-<div id="modal-overlay">
-  <div id="modal">
-    <h2>Edit Card</h2>
-    <p class="modal-subtitle">Each card represents one process step in your workflow.</p>
-
-    <div class="field-group">
-      <div class="label-row">
-        <label>Title — Process Step Name</label>
-        <span class="info-btn" title="What goes here?">i</span>
-      </div>
-      <input type="text" id="edit-title" placeholder="e.g. Review Application, Send Invoice, Approve Request…" />
-      <div class="field-info">
-        <div class="field-info-icon">🏷️</div>
-        <div class="field-info-body">
-          <div class="field-info-desc">A short, active-verb phrase naming exactly what happens in this step. Keep it concise — aim for 2–5 words. It appears as the card header.</div>
-          <div class="field-info-example">"Approve Purchase Order" · "Notify Customer" · "Validate Form"</div>
+      <div class="import-format-box">
+        <div class="import-format-title">
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.5" fill="none" />
+            <line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" stroke-width="1" />
+            <line x1="3" y1="6" x2="9" y2="6" stroke="currentColor" stroke-width="1" />
+            <line x1="3" y1="8" x2="7" y2="8" stroke="currentColor" stroke-width="1" />
+          </svg>
+          Required CSV Column Headers
         </div>
-      </div>
-    </div>
-
-    <div class="field-group">
-      <div class="label-row">
-        <label>Responsible — Who Does This</label>
-        <span class="info-btn" title="What goes here?">i</span>
-      </div>
-      <input type="text" id="edit-role" placeholder="e.g. HR Advisor, Finance Manager, Sales Team…" />
-      <div class="field-info">
-        <div class="field-info-icon">👤</div>
-        <div class="field-info-body">
-          <div class="field-info-desc">The person, team, or role responsible for carrying out this step. Use a job title or team name — not a specific person's name. Shown as a badge on the card.</div>
-          <div class="field-info-example">"HR Advisor" · "Line Manager" · "Finance Team" · "Customer Service"</div>
+        <div class="import-cols">
+          <div class="import-col"><span class="import-col-name">title</span><span class="import-col-desc">Process step
+              name</span></div>
+          <div class="import-col"><span class="import-col-name">responsible</span><span class="import-col-desc">Role /
+              owner (optional)</span></div>
+          <div class="import-col"><span class="import-col-name">description</span><span class="import-col-desc">What
+              happens in this step (optional)</span></div>
+          <div class="import-col"><span class="import-col-name">inputs</span><span class="import-col-desc">Items coming
+              in — separate with | (optional)</span></div>
+          <div class="import-col"><span class="import-col-name">outputs</span><span class="import-col-desc">Items going
+              out — separate with | (optional)</span></div>
         </div>
-      </div>
-    </div>
-
-    <div class="field-group">
-      <div class="label-row">
-        <label>Description — What Happens Here</label>
-        <span class="info-btn" title="What goes here?">i</span>
-      </div>
-      <textarea id="edit-desc" rows="3" placeholder="e.g. The finance team checks the order against the budget limit and either approves or rejects it…"></textarea>
-      <div class="field-info">
-        <div class="field-info-icon">📝</div>
-        <div class="field-info-body">
-          <div class="field-info-desc">A plain-English explanation of what is done in this step, who does it, and any key rules or decisions made. This is the body text of the card.</div>
-          <div class="field-info-example">"Manager reviews the submitted timesheet and confirms hours are correct before passing to payroll."</div>
+        <div class="import-example-row">
+          <span class="import-example-label">Example row:</span>
+          <code
+            class="import-example-code">Review Invoice,Finance Team,Check invoice matches PO,Purchase Order|Supplier Invoice,Approved Invoice|Rejection Notice</code>
         </div>
+        <button class="btn import-template-btn" onclick="downloadCSVTemplate()">
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <path d="M1 9v2h10V9M6 1v7M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Download Template CSV
+        </button>
       </div>
-    </div>
 
-    <div class="field-group">
-      <div class="label-row">
-        <label>Inputs — What Comes In</label>
-        <span class="info-btn" title="What goes here?">i</span>
-      </div>
-      <textarea id="edit-inputs" rows="2" placeholder="e.g. Customer request&#10;Completed form&#10;Invoice PDF"></textarea>
-      <div class="field-info">
-        <div class="field-info-icon">📥</div>
-        <div class="field-info-body">
-          <div class="field-info-desc">The information, documents, or items this step <strong style="color:#1A6B4A">needs to begin</strong>. These are the triggers or materials that feed into this process step. One item per line — they appear on the left side of the card.</div>
-          <div class="field-info-example">"Signed contract" · "Customer ID" · "Completed order form"</div>
+      <div class="import-drop-zone" id="import-drop-zone" onclick="document.getElementById('csv-file-input').click()">
+        <div class="import-drop-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32">
+            <path d="M4 24v4h24v-4M16 4v16M8 12l8-8 8 8" stroke="currentColor" stroke-width="2" fill="none"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </div>
+        <div class="import-drop-text">Click to choose a CSV file</div>
+        <div class="import-drop-hint">or drag and drop here</div>
       </div>
-    </div>
 
-    <div class="field-group">
-      <div class="label-row">
-        <label>Outputs — What Goes Out</label>
-        <span class="info-btn" title="What goes here?">i</span>
-      </div>
-      <textarea id="edit-outputs" rows="2" placeholder="e.g. Approved order&#10;Rejection notice&#10;Updated record"></textarea>
-      <div class="field-info">
-        <div class="field-info-icon">📤</div>
-        <div class="field-info-body">
-          <div class="field-info-desc">The information, decisions, or items this step <strong style="color:#1A6B4A">produces when done</strong>. These become the inputs for downstream steps. One item per line — they appear on the right side of the card.</div>
-          <div class="field-info-example">"Approved invoice" · "Confirmation email" · "Updated database record"</div>
+      <div id="import-preview" style="display:none">
+        <div class="import-preview-header">
+          <span id="import-preview-count"></span>
+          <span class="import-preview-hint">Review below — click Import to add to canvas</span>
         </div>
+        <div id="import-preview-list"></div>
       </div>
-    </div>
 
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveModal()">Save</button>
+      <div id="import-error" style="display:none" class="import-error"></div>
+
+      <div class="modal-actions">
+        <button class="btn" onclick="closeImportModal()">Cancel</button>
+        <button class="btn primary" id="import-confirm-btn" onclick="confirmImport()" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          Import Cards
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Arrow label editor -->
-<div id="arrow-label-editor">
-  <input type="text" id="arrow-label-input" placeholder="Label..." />
-</div>
+  <!-- Edit card modal -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <h2>Edit Card</h2>
+      <p class="modal-subtitle">Each card represents one process step in your workflow.</p>
 
-<script>
-// ─── State ────────────────────────────────────────────────────────────────────
-let state = {
-  pages: [{ id: 'page-1', name: 'Page 1', cards: [], arrows: [] }],
-  activePage: 0,
-  zoom: 1,
-  panX: 0,
-  panY: 0,
-};
+      <div class="field-group">
+        <div class="label-row">
+          <label>Title — Process Step Name</label>
+          <span class="info-btn" title="What goes here?">i</span>
+        </div>
+        <input type="text" id="edit-title" placeholder="e.g. Review Application, Send Invoice, Approve Request…" />
+        <div class="field-info">
+          <div class="field-info-icon">🏷️</div>
+          <div class="field-info-body">
+            <div class="field-info-desc">A short, active-verb phrase naming exactly what happens in this step. Keep it
+              concise — aim for 2–5 words. It appears as the card header.</div>
+            <div class="field-info-example">"Approve Purchase Order" · "Notify Customer" · "Validate Form"</div>
+          </div>
+        </div>
+      </div>
 
-let nextId = 1;
-const getId = () => `id-${nextId++}`;
+      <div class="field-group">
+        <div class="label-row">
+          <label>Responsible — Who Does This</label>
+          <span class="info-btn" title="What goes here?">i</span>
+        </div>
+        <input type="text" id="edit-role" placeholder="e.g. HR Advisor, Finance Manager, Sales Team…" />
 
-// Interaction state
-let dragging = null; // { cardId, startX, startY, origX, origY }
-let panning = false;
-let panStart = { x: 0, y: 0, panX: 0, panY: 0 };
-let arrowMode = false; // drawing arrow
-let arrowFrom = null; // { cardId, port: 'left'|'right'|'top'|'bottom' }
-let selectedCard = null;
-let selectedArrow = null;
-let editingCardId = null;
-let editingArrowId = null;
-let spaceDown = false;
-let mouseWorldPos = { x: 0, y: 0 };
+        <!-- Color Picker -->
+        <div class="color-picker-row" id="edit-color-row"
+          style="border:none; background:transparent; padding:4px 0 0 0; margin-top:4px;">
+          <label class="color-option" title="Amber">
+            <input type="radio" name="card-color" value="amber" checked>
+            <span class="color-swatch" style="background:var(--dept-amber)"></span>
+          </label>
+          <label class="color-option" title="Teal">
+            <input type="radio" name="card-color" value="teal">
+            <span class="color-swatch" style="background:var(--dept-teal)"></span>
+          </label>
+          <label class="color-option" title="Blue">
+            <input type="radio" name="card-color" value="blue">
+            <span class="color-swatch" style="background:var(--dept-blue)"></span>
+          </label>
+          <label class="color-option" title="Red">
+            <input type="radio" name="card-color" value="red">
+            <span class="color-swatch" style="background:var(--dept-red)"></span>
+          </label>
+          <label class="color-option" title="Purple">
+            <input type="radio" name="card-color" value="purple">
+            <span class="color-swatch" style="background:var(--dept-purple)"></span>
+          </label>
+          <label class="color-option" title="Green">
+            <input type="radio" name="card-color" value="green">
+            <span class="color-swatch" style="background:var(--dept-green)"></span>
+          </label>
+          <label class="color-option" title="Yellow">
+            <input type="radio" name="card-color" value="yellow">
+            <span class="color-swatch" style="background:var(--dept-yellow)"></span>
+          </label>
+        </div>
 
-// DOM refs
-const canvasEl = document.getElementById('canvas-container');
-const worldEl = document.getElementById('world');
-const arrowsSvg = document.getElementById('arrows-svg');
-const tempArrow = document.getElementById('temp-arrow');
-const minimap = document.getElementById('minimap');
-const minimapCtx = minimap.getContext('2d');
+        <div class="field-info">
+          <div class="field-info-icon">👤</div>
+          <div class="field-info-body">
+            <div class="field-info-desc">The person, team, or role responsible for carrying out this step. Use a job
+              title or team name — not a specific person's name. Shown as a badge on the card.</div>
+            <div class="field-info-example">"HR Advisor" · "Line Manager" · "Finance Team" · "Customer Service"</div>
+          </div>
+        </div>
+      </div>
 
-// ─── Page helpers ─────────────────────────────────────────────────────────────
-const getPage = () => state.pages[state.activePage];
+      <div class="field-group">
+        <div class="label-row">
+          <label>Description — What Happens Here</label>
+          <span class="info-btn" title="What goes here?">i</span>
+        </div>
+        <textarea id="edit-desc" rows="3"
+          placeholder="e.g. The finance team checks the order against the budget limit and either approves or rejects it…"></textarea>
+        <div class="field-info">
+          <div class="field-info-icon">📝</div>
+          <div class="field-info-body">
+            <div class="field-info-desc">A plain-English explanation of what is done in this step, who does it, and any
+              key rules or decisions made. This is the body text of the card.</div>
+            <div class="field-info-example">"Manager reviews the submitted timesheet and confirms hours are correct
+              before passing to payroll."</div>
+          </div>
+        </div>
+      </div>
 
-// ─── Render ───────────────────────────────────────────────────────────────────
-function render() {
-  renderWorld();
-  renderTabs();
-  renderMinimap();
-  updateStatus();
-}
+      <div class="field-group">
+        <div class="label-row">
+          <label>Inputs — What Comes In</label>
+          <span class="info-btn" title="What goes here?">i</span>
+        </div>
+        <textarea id="edit-inputs" rows="2"
+          placeholder="e.g. Customer request&#10;Completed form&#10;Invoice PDF"></textarea>
+        <div class="field-info">
+          <div class="field-info-icon">📥</div>
+          <div class="field-info-body">
+            <div class="field-info-desc">The information, documents, or items this step <strong
+                style="color:#1A6B4A">needs to begin</strong>. These are the triggers or materials that feed into this
+              process step. One item per line — they appear on the left side of the card.</div>
+            <div class="field-info-example">"Signed contract" · "Customer ID" · "Completed order form"</div>
+          </div>
+        </div>
+      </div>
 
-function renderWorld() {
-  worldEl.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+      <div class="field-group">
+        <div class="label-row">
+          <label>Outputs — What Goes Out</label>
+          <span class="info-btn" title="What goes here?">i</span>
+        </div>
+        <textarea id="edit-outputs" rows="2"
+          placeholder="e.g. Approved order&#10;Rejection notice&#10;Updated record"></textarea>
+        <div class="field-info">
+          <div class="field-info-icon">📤</div>
+          <div class="field-info-body">
+            <div class="field-info-desc">The information, decisions, or items this step <strong
+                style="color:#1A6B4A">produces when done</strong>. These become the inputs for downstream steps. One
+              item per line — they appear on the right side of the card.</div>
+            <div class="field-info-example">"Approved invoice" · "Confirmation email" · "Updated database record"</div>
+          </div>
+        </div>
+      </div>
 
-  const page = getPage();
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn primary" onclick="saveModal()">Save</button>
+      </div>
+    </div>
+  </div>
 
-  // Remove old cards
-  worldEl.querySelectorAll('.upn-card').forEach(el => el.remove());
-  // Remove old arrow elements (but keep defs and temp-arrow)
-  arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
+  <!-- Arrow label editor -->
+  <div id="arrow-label-editor">
+    <input type="text" id="arrow-label-input" placeholder="Label..." />
+  </div>
 
-  // Render arrows
-  page.arrows.forEach(arr => renderArrow(arr));
+  <script>
+    // ─── State ────────────────────────────────────────────────────────────────────
+    let state = {
+      pages: [{ id: 'page-1', name: 'Page 1', cards: [], arrows: [] }],
+      activePage: 0,
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+    };
 
-  // Render cards
-  page.cards.forEach(card => renderCard(card));
-}
+    let nextId = 1;
+    const getId = () => `id-${nextId++}`;
 
-function renderCard(card) {
-  const el = document.createElement('div');
-  el.className = 'upn-card' + (selectedCard === card.id ? ' selected' : '');
-  el.dataset.cardId = card.id;
-  el.style.left = card.x + 'px';
-  el.style.top = card.y + 'px';
+    // Interaction state
+    let dragging = null; // { cardId, startX, startY, origX, origY }
+    let panning = false;
+    let panStart = { x: 0, y: 0, panX: 0, panY: 0 };
+    let arrowMode = false; // drawing arrow
+    let arrowFrom = null; // { cardId, port: 'left'|'right'|'top'|'bottom' }
+    let selectedCard = null;
+    let selectedArrow = null;
+    let editingCardId = null;
+    let editingArrowId = null;
+    let spaceDown = false;
+    let mouseWorldPos = { x: 0, y: 0 };
 
-  const inputs = card.inputs || [];
-  const outputs = card.outputs || [];
+    // DOM refs
+    const canvasEl = document.getElementById('canvas-container');
+    const worldEl = document.getElementById('world');
+    const arrowsSvg = document.getElementById('arrows-svg');
+    const tempArrow = document.getElementById('temp-arrow');
+    const minimap = document.getElementById('minimap');
+    const minimapCtx = minimap.getContext('2d');
 
-  el.innerHTML = `
+    // ─── Page helpers ─────────────────────────────────────────────────────────────
+    const getPage = () => state.pages[state.activePage];
+
+    // ─── Render ───────────────────────────────────────────────────────────────────
+    function render() {
+      renderWorld();
+      renderTabs();
+      renderMinimap();
+      updateStatus();
+    }
+
+    function renderWorld() {
+      worldEl.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+
+      const page = getPage();
+
+      // Remove old cards
+      worldEl.querySelectorAll('.upn-card').forEach(el => el.remove());
+
+      // Render cards FIRST so we can measure exact dimensions (text wrapping etc)
+      page.cards.forEach(card => renderCard(card));
+
+      // Measure and update card heights
+      worldEl.querySelectorAll('.upn-card').forEach(el => {
+        const card = page.cards.find(c => c.id === el.dataset.cardId);
+        if (card) {
+          card._h = el.offsetHeight;
+          card._w = el.offsetWidth; // Should be 320, but good to know
+        }
+      });
+
+      // Remove old arrow elements (but keep defs and temp-arrow)
+      arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
+
+      // Render arrows using measured dimensions
+      page.arrows.forEach(arr => renderArrow(arr));
+    }
+
+    function renderCard(card) {
+      const el = document.createElement('div');
+      el.className = 'upn-card' + (selectedCard === card.id ? ' selected' : '');
+      el.dataset.cardId = card.id;
+      el.style.left = card.x + 'px';
+      el.style.top = card.y + 'px';
+
+      const inputs = card.inputs || [];
+      const outputs = card.outputs || [];
+
+      el.innerHTML = `
     <div class="card-header">
       <span class="card-title-text">${escHtml(card.title || 'Untitled')}</span>
       <span class="card-edit" title="Edit card">✎</span>
@@ -906,965 +1551,1440 @@ function renderCard(card) {
         ${outputs.map(o => `<div class="side-item">${escHtml(o)}</div>`).join('')}
       </div>
     </div>
-    ${card.role ? `<div class="card-role"><span class="card-role-icon">👤</span>${escHtml(card.role)}</div>` : ''}
+    ${card.role ? `<div class="card-role" style="background: var(--dept-${card.color || 'amber'}); border-top-color: rgba(0,0,0,0.15);"><span class="card-role-icon">👤</span>${escHtml(card.role)}</div>` : ''}
     <div class="port left" data-card="${card.id}" data-port="left"></div>
     <div class="port right" data-card="${card.id}" data-port="right"></div>
     <div class="port top" data-card="${card.id}" data-port="top"></div>
     <div class="port bottom" data-card="${card.id}" data-port="bottom"></div>
   `;
 
-  worldEl.appendChild(el);
+      worldEl.appendChild(el);
 
-  // Header drag — only start drag if not clicking edit/delete buttons
-  const header = el.querySelector('.card-header');
-  header.addEventListener('mousedown', e => {
-    if (e.target.classList.contains('card-edit') || e.target.classList.contains('card-delete') || e.target.dataset.del) return;
-    e.stopPropagation();
-    startDrag(e, card.id);
-  });
+      // Header drag — only start drag if not clicking edit/delete buttons
+      const header = el.querySelector('.card-header');
+      header.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('card-edit') || e.target.classList.contains('card-delete') || e.target.dataset.del) return;
+        e.stopPropagation();
+        startDrag(e, card.id);
+      });
 
-  // Double-click card body/header to edit (does not re-render, so dblclick is safe now)
-  el.addEventListener('dblclick', e => {
-    if (e.target.classList.contains('port')) return;
-    if (e.target.classList.contains('card-delete') || e.target.dataset.del) return;
-    openModal(card.id);
-  });
+      // Double-click card body/header to edit (does not re-render, so dblclick is safe now)
+      el.addEventListener('dblclick', e => {
+        if (e.target.classList.contains('port')) return;
+        if (e.target.classList.contains('card-delete') || e.target.dataset.del) return;
+        openModal(card.id);
+      });
 
-  // Edit button (single click)
-  el.querySelector('.card-edit').addEventListener('click', e => {
-    e.stopPropagation();
-    openModal(card.id);
-  });
+      // Edit button (single click)
+      el.querySelector('.card-edit').addEventListener('click', e => {
+        e.stopPropagation();
+        openModal(card.id);
+      });
 
-  // Delete button
-  el.querySelector('.card-delete').addEventListener('click', e => {
-    e.stopPropagation();
-    deleteCard(card.id);
-  });
+      // Delete button
+      el.querySelector('.card-delete').addEventListener('click', e => {
+        e.stopPropagation();
+        deleteCard(card.id);
+      });
 
-  // Ports
-  el.querySelectorAll('.port').forEach(port => {
-    port.addEventListener('mousedown', e => {
-      e.stopPropagation();
-      handlePortClick(e, card.id, port.dataset.port);
-    });
-  });
+      // Ports
+      el.querySelectorAll('.port').forEach(port => {
+        port.addEventListener('mousedown', e => {
+          e.stopPropagation();
+          handlePortClick(e, card.id, port.dataset.port);
+        });
+      });
 
-  // Select on click
-  el.addEventListener('mousedown', e => {
-    if (e.target.classList.contains('port')) return;
-    if (e.target.dataset.del) return;
-    selectCard(card.id);
-  });
-}
-
-function getPortPos(card, port) {
-  const W = 320;
-  const H = getCardHeight(card);
-  switch(port) {
-    case 'left':   return { x: card.x,       y: card.y + H/2 };
-    case 'right':  return { x: card.x + W,   y: card.y + H/2 };
-    case 'top':    return { x: card.x + W/2, y: card.y };
-    case 'bottom': return { x: card.x + W/2, y: card.y + H };
-  }
-}
-
-function getCardHeight(card) {
-  // 24px per item (3px padding top+bottom + 14px line-height + 5px gap + 2px border)
-  const inputs = (card.inputs || []).length;
-  const outputs = (card.outputs || []).length;
-  const sideItems = Math.max(inputs, outputs);
-  const roleBar = card.role ? 24 : 0;
-  return Math.max(140, 96 + sideItems * 24 + roleBar);
-}
-
-function renderArrow(arr) {
-  const page = getPage();
-  const fromCard = page.cards.find(c => c.id === arr.fromCard);
-  const toCard = page.cards.find(c => c.id === arr.toCard);
-  if (!fromCard || !toCard) return;
-
-  const from = getPortPos(fromCard, arr.fromPort || 'right');
-  const to = getPortPos(toCard, arr.toPort || 'left');
-
-  const pathD = bezierPath(from, to);
-  const mid = pathMidpoint(from, to);
-
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.classList.add('arrow-group');
-  g.dataset.arrowId = arr.id;
-
-  // Invisible wide hit area
-  const hitPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  hitPath.setAttribute('d', pathD);
-  hitPath.setAttribute('fill', 'none');
-  hitPath.setAttribute('stroke', 'transparent');
-  hitPath.setAttribute('stroke-width', '16');
-  hitPath.style.cursor = 'pointer';
-  hitPath.style.pointerEvents = 'stroke';
-
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', pathD);
-  path.classList.add('arrow-path');
-  if (selectedArrow === arr.id) path.classList.add('selected');
-  path.setAttribute('marker-end', selectedArrow === arr.id ? 'url(#arrowhead-selected)' : 'url(#arrowhead)');
-  path.style.pointerEvents = 'none';
-
-  g.appendChild(hitPath);
-  g.appendChild(path);
-
-  // Label
-  if (arr.label) {
-    const lw = Math.max(40, arr.label.length * 7 + 16);
-    const lh = 18;
-
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', mid.x - lw/2);
-    rect.setAttribute('y', mid.y - lh/2);
-    rect.setAttribute('width', lw);
-    rect.setAttribute('height', lh);
-    rect.setAttribute('rx', 4);
-    rect.classList.add('arrow-label-bg');
-
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', mid.x);
-    text.setAttribute('y', mid.y + 4);
-    text.setAttribute('text-anchor', 'middle');
-    text.classList.add('arrow-label');
-    text.textContent = arr.label;
-    text.style.pointerEvents = 'auto';
-
-    g.appendChild(rect);
-    g.appendChild(text);
-
-    text.addEventListener('dblclick', e => {
-      e.stopPropagation();
-      openArrowLabelEditor(arr.id, e.clientX, e.clientY);
-    });
-  } else {
-    // Invisible label click zone
-    const lw = 40; const lh = 18;
-    const zone = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    zone.setAttribute('x', mid.x - lw/2);
-    zone.setAttribute('y', mid.y - lh/2);
-    zone.setAttribute('width', lw);
-    zone.setAttribute('height', lh);
-    zone.classList.add('arrow-delete-zone');
-    zone.style.pointerEvents = 'auto';
-    zone.addEventListener('dblclick', e => {
-      e.stopPropagation();
-      openArrowLabelEditor(arr.id, e.clientX, e.clientY);
-    });
-    g.appendChild(zone);
-  }
-
-  // Click to select arrow
-  hitPath.addEventListener('mousedown', e => {
-    e.stopPropagation();
-    selectArrow(arr.id);
-  });
-
-  arrowsSvg.appendChild(g);
-}
-
-function bezierPath(from, to) {
-  const dx = Math.abs(to.x - from.x);
-  const cp = Math.max(60, dx * 0.5);
-  return `M ${from.x} ${from.y} C ${from.x + cp} ${from.y}, ${to.x - cp} ${to.y}, ${to.x} ${to.y}`;
-}
-
-function pathMidpoint(from, to) {
-  return { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
-}
-
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
-function renderTabs() {
-  const tabs = document.getElementById('page-tabs');
-  tabs.innerHTML = '';
-  state.pages.forEach((page, i) => {
-    const tab = document.createElement('div');
-    tab.className = 'page-tab' + (i === state.activePage ? ' active' : '');
-    tab.innerHTML = `<span class="tab-name" data-page="${i}">${escHtml(page.name)}</span>${state.pages.length > 1 ? `<span class="tab-close" data-del-page="${i}">✕</span>` : ''}`;
-    tab.addEventListener('click', e => {
-      if (e.target.dataset.delPage !== undefined) {
-        deletePage(+e.target.dataset.delPage);
-      } else {
-        switchPage(i);
-      }
-    });
-    tab.addEventListener('dblclick', e => {
-      if (e.target.classList.contains('tab-name')) {
-        const name = prompt('Rename page:', page.name);
-        if (name) { page.name = name; renderTabs(); }
-      }
-    });
-    tabs.appendChild(tab);
-  });
-}
-
-function addPage() {
-  const id = getId();
-  state.pages.push({ id, name: `Page ${state.pages.length + 1}`, cards: [], arrows: [] });
-  switchPage(state.pages.length - 1);
-}
-
-function switchPage(i) {
-  state.activePage = i;
-  selectedCard = null;
-  selectedArrow = null;
-  render();
-}
-
-function deletePage(i) {
-  if (state.pages.length === 1) return;
-  if (!confirm(`Delete "${state.pages[i].name}"?`)) return;
-  state.pages.splice(i, 1);
-  state.activePage = Math.min(state.activePage, state.pages.length - 1);
-  render();
-}
-
-// ─── Cards ────────────────────────────────────────────────────────────────────
-function addCard() {
-  const page = getPage();
-  const cx = (canvasEl.clientWidth / 2 - state.panX) / state.zoom;
-  const cy = (canvasEl.clientHeight / 2 - state.panY) / state.zoom;
-  page.cards.push({
-    id: getId(),
-    x: cx - 160,
-    y: cy - 70,
-    title: 'Process Step',
-    role: '',
-    description: '',
-    inputs: [],
-    outputs: [],
-  });
-  render();
-}
-
-function deleteCard(id) {
-  const page = getPage();
-  page.cards = page.cards.filter(c => c.id !== id);
-  page.arrows = page.arrows.filter(a => a.fromCard !== id && a.toCard !== id);
-  if (selectedCard === id) selectedCard = null;
-  render();
-}
-
-function selectCard(id) {
-  selectedCard = id;
-  selectedArrow = null;
-  // Update selection visuals in-place — do NOT call render() here,
-  // because re-building the DOM breaks dblclick (element replaced mid-gesture).
-  worldEl.querySelectorAll('.upn-card').forEach(el => {
-    el.classList.toggle('selected', el.dataset.cardId === id);
-  });
-  arrowsSvg.querySelectorAll('.arrow-path').forEach(p => {
-    p.classList.remove('selected');
-    p.setAttribute('marker-end', 'url(#arrowhead)');
-  });
-  updateStatus();
-}
-
-function selectArrow(id) {
-  selectedArrow = id;
-  selectedCard = null;
-  arrowsSvg.querySelectorAll('.arrow-path').forEach(p => {
-    const isSelected = p.closest('.arrow-group')?.dataset.arrowId === id;
-    p.classList.toggle('selected', isSelected);
-    p.setAttribute('marker-end', isSelected ? 'url(#arrowhead-selected)' : 'url(#arrowhead)');
-  });
-  worldEl.querySelectorAll('.upn-card').forEach(el => el.classList.remove('selected'));
-  updateStatus();
-}
-
-// ─── Drag ─────────────────────────────────────────────────────────────────────
-function startDrag(e, cardId) {
-  if (arrowMode) return;
-  const page = getPage();
-  const card = page.cards.find(c => c.id === cardId);
-  const worldPos = screenToWorld(e.clientX, e.clientY);
-  dragging = {
-    cardId,
-    startWorldX: worldPos.x,
-    startWorldY: worldPos.y,
-    origX: card.x,
-    origY: card.y,
-  };
-  selectCard(cardId);
-  e.preventDefault();
-}
-
-// ─── Arrow drawing ────────────────────────────────────────────────────────────
-function handlePortClick(e, cardId, port) {
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (!arrowFrom) {
-    arrowFrom = { cardId, port };
-    arrowMode = true;
-    canvasEl.classList.add('arrow-mode');
-    document.getElementById('status-mode').textContent = 'Mode: Drawing Arrow (click target port)';
-  } else {
-    // Complete arrow
-    if (arrowFrom.cardId !== cardId) {
-      const page = getPage();
-      page.arrows.push({
-        id: getId(),
-        fromCard: arrowFrom.cardId,
-        fromPort: arrowFrom.port,
-        toCard: cardId,
-        toPort: port,
-        label: '',
+      // Select on click
+      el.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('port')) return;
+        if (e.target.dataset.del) return;
+        selectCard(card.id);
       });
     }
-    cancelArrowMode();
-  }
-}
 
-function cancelArrowMode() {
-  arrowFrom = null;
-  arrowMode = false;
-  canvasEl.classList.remove('arrow-mode');
-  tempArrow.setAttribute('d', '');
-  document.getElementById('status-mode').textContent = 'Mode: Select';
-  render();
-}
+    function getPortPos(card, port) {
+      const W = card._w || 320;
+      // Use measured height if available (from DOM), otherwise fallback to estimate
+      const H = card._h || getCardHeight(card);
 
-// ─── Info button toggles ──────────────────────────────────────────────────────
-document.querySelectorAll('.info-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const fieldGroup = btn.closest('.field-group');
-    const infoBox = fieldGroup.querySelector('.field-info');
-    const isOpen = infoBox.classList.toggle('open');
-    btn.classList.toggle('active', isOpen);
-  });
-});
+      // Ports are 11x11 circles located -7px from edge. Center is roughly -1.5px from edge relative to card box model.
+      // Actually, visual center of 11px circle at -7px offset:
+      // Left: -7px + 5.5px = -1.5px
+      // So let's push it out a bit more to be clearly "connected" to the dot center.
+      // Visual tweaks for exact alignment with the circle center:
+      const offset = 2;
+      switch (port) {
+        case 'left': return { x: card.x - offset, y: card.y + H / 2 };
+        case 'right': return { x: card.x + W + offset, y: card.y + H / 2 };
+        case 'top': return { x: card.x + W / 2, y: card.y - offset };
+        case 'bottom': return { x: card.x + W / 2, y: card.y + H + offset };
+      }
+    }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-function openModal(cardId) {
-  const page = getPage();
-  const card = page.cards.find(c => c.id === cardId);
-  editingCardId = cardId;
-  document.getElementById('edit-title').value = card.title || '';
-  document.getElementById('edit-role').value = card.role || '';
-  document.getElementById('edit-desc').value = card.description || '';
-  document.getElementById('edit-inputs').value = (card.inputs || []).join('\n');
-  document.getElementById('edit-outputs').value = (card.outputs || []).join('\n');
-  // Close any open info boxes when modal opens
-  document.querySelectorAll('.field-info.open').forEach(el => el.classList.remove('open'));
-  document.querySelectorAll('.info-btn.active').forEach(el => el.classList.remove('active'));
-  document.getElementById('modal-overlay').classList.add('open');
-  document.getElementById('edit-title').focus();
-}
+    function getCardHeight(card) {
+      // 24px per item (3px padding top+bottom + 14px line-height + 5px gap + 2px border)
+      const inputs = (card.inputs || []).length;
+      const outputs = (card.outputs || []).length;
+      const sideItems = Math.max(inputs, outputs);
+      const roleBar = card.role ? 24 : 0;
+      return Math.max(140, 96 + sideItems * 24 + roleBar);
+    }
 
-function closeModal() {
-  editingCardId = null;
-  document.getElementById('modal-overlay').classList.remove('open');
-}
-
-function saveModal() {
-  if (!editingCardId) return;
-  const page = getPage();
-  const card = page.cards.find(c => c.id === editingCardId);
-  card.title = document.getElementById('edit-title').value.trim() || 'Untitled';
-  card.role = document.getElementById('edit-role').value.trim();
-  card.description = document.getElementById('edit-desc').value.trim();
-  card.inputs = document.getElementById('edit-inputs').value.split('\n').map(s => s.trim()).filter(Boolean);
-  card.outputs = document.getElementById('edit-outputs').value.split('\n').map(s => s.trim()).filter(Boolean);
-  closeModal();
-  render();
-}
-
-// ─── Arrow label editor ───────────────────────────────────────────────────────
-function openArrowLabelEditor(arrowId, clientX, clientY) {
-  editingArrowId = arrowId;
-  const page = getPage();
-  const arr = page.arrows.find(a => a.id === arrowId);
-  const ed = document.getElementById('arrow-label-editor');
-  const inp = document.getElementById('arrow-label-input');
-  inp.value = arr.label || '';
-  ed.style.display = 'block';
-  ed.style.left = clientX + 'px';
-  ed.style.top = (clientY - 28) + 'px';
-  inp.focus();
-  inp.select();
-}
-
-function closeArrowLabelEditor() {
-  if (!editingArrowId) return;
-  const page = getPage();
-  const arr = page.arrows.find(a => a.id === editingArrowId);
-  if (arr) arr.label = document.getElementById('arrow-label-input').value.trim();
-  editingArrowId = null;
-  document.getElementById('arrow-label-editor').style.display = 'none';
-  render();
-}
-
-document.getElementById('arrow-label-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') closeArrowLabelEditor();
-  if (e.key === 'Escape') {
-    editingArrowId = null;
-    document.getElementById('arrow-label-editor').style.display = 'none';
-  }
-});
-
-// ─── Zoom & Pan ───────────────────────────────────────────────────────────────
-function screenToWorld(sx, sy) {
-  const rect = canvasEl.getBoundingClientRect();
-  return {
-    x: (sx - rect.left - state.panX) / state.zoom,
-    y: (sy - rect.top - state.panY) / state.zoom,
-  };
-}
-
-function zoomAt(cx, cy, factor) {
-  const rect = canvasEl.getBoundingClientRect();
-  const sx = cx - rect.left;
-  const sy = cy - rect.top;
-  const wx = (sx - state.panX) / state.zoom;
-  const wy = (sy - state.panY) / state.zoom;
-  state.zoom = Math.max(0.15, Math.min(4, state.zoom * factor));
-  state.panX = sx - wx * state.zoom;
-  state.panY = sy - wy * state.zoom;
-  applyTransform();
-  renderMinimap();
-  updateStatus();
-}
-
-function zoomIn() { zoomAt(canvasEl.clientWidth/2, canvasEl.clientHeight/2, 1.2); }
-function zoomOut() { zoomAt(canvasEl.clientWidth/2, canvasEl.clientHeight/2, 1/1.2); }
-function resetView() { state.zoom = 1; state.panX = 40; state.panY = 40; applyTransform(); renderMinimap(); updateStatus(); }
-
-function applyTransform() {
-  worldEl.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
-  document.getElementById('status-zoom').textContent = `Zoom: ${Math.round(state.zoom * 100)}%`;
-}
-
-// ─── Events ───────────────────────────────────────────────────────────────────
-canvasEl.addEventListener('wheel', e => {
-  e.preventDefault();
-  const factor = e.deltaY < 0 ? 1.1 : 1/1.1;
-  zoomAt(e.clientX, e.clientY, factor);
-}, { passive: false });
-
-canvasEl.addEventListener('mousedown', e => {
-  if (arrowMode && !e.target.classList.contains('port')) {
-    cancelArrowMode();
-    return;
-  }
-  if (e.button === 1 || spaceDown) {
-    panning = true;
-    panStart = { x: e.clientX, y: e.clientY, panX: state.panX, panY: state.panY };
-    canvasEl.classList.add('panning');
-    e.preventDefault();
-    return;
-  }
-  if (e.target === canvasEl || e.target === worldEl || e.target === arrowsSvg) {
-    selectedCard = null;
-    selectedArrow = null;
-    closeArrowLabelEditor();
-    // Don't re-render the whole thing just for deselect — just update visuals
-    worldEl.querySelectorAll('.upn-card.selected').forEach(el => el.classList.remove('selected'));
-    arrowsSvg.querySelectorAll('.arrow-path.selected').forEach(el => {
-      el.classList.remove('selected');
-      el.setAttribute('marker-end', 'url(#arrowhead)');
-    });
-  }
-});
-
-document.addEventListener('mousemove', e => {
-  const rect = canvasEl.getBoundingClientRect();
-  mouseWorldPos = screenToWorld(e.clientX, e.clientY);
-
-  if (panning) {
-    state.panX = panStart.panX + (e.clientX - panStart.x);
-    state.panY = panStart.panY + (e.clientY - panStart.y);
-    applyTransform();
-    renderMinimap();
-    return;
-  }
-
-  if (dragging) {
-    const worldPos = screenToWorld(e.clientX, e.clientY);
-    const page = getPage();
-    const card = page.cards.find(c => c.id === dragging.cardId);
-    card.x = dragging.origX + (worldPos.x - dragging.startWorldX);
-    card.y = dragging.origY + (worldPos.y - dragging.startWorldY);
-    // Move card element directly for performance
-    const el = worldEl.querySelector(`[data-card-id="${dragging.cardId}"]`);
-    if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
-    // Re-render arrows
-    arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
-    page.arrows.forEach(arr => renderArrow(arr));
-    renderMinimap();
-    return;
-  }
-
-  if (arrowFrom) {
-    const page = getPage();
-    const fromCard = page.cards.find(c => c.id === arrowFrom.cardId);
-    const from = getPortPos(fromCard, arrowFrom.port);
-    const to = mouseWorldPos;
-    tempArrow.setAttribute('d', bezierPath(from, to));
-  }
-});
-
-document.addEventListener('mouseup', e => {
-  if (panning) {
-    panning = false;
-    canvasEl.classList.remove('panning');
-  }
-  if (dragging) {
-    dragging = null;
-    renderMinimap();
-  }
-});
-
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space' && !e.target.matches('input,textarea')) {
-    spaceDown = true;
-    e.preventDefault();
-  }
-  if (e.key === 'Escape') {
-    cancelArrowMode();
-    closeModal();
-    closeArrowLabelEditor();
-  }
-  if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.matches('input,textarea')) {
-    if (selectedCard) { deleteCard(selectedCard); selectedCard = null; }
-    if (selectedArrow) {
+    function renderArrow(arr) {
       const page = getPage();
-      page.arrows = page.arrows.filter(a => a.id !== selectedArrow);
+      const fromCard = page.cards.find(c => c.id === arr.fromCard);
+      const toCard = page.cards.find(c => c.id === arr.toCard);
+      if (!fromCard || !toCard) return;
+
+      const validFromPort = arr.fromPort || 'right';
+      const validToPort = arr.toPort || 'left';
+
+      const from = getPortPos(fromCard, validFromPort);
+      const to = getPortPos(toCard, validToPort);
+
+      const hasCustomMid = arr.mx !== undefined && arr.my !== undefined;
+      const mid = hasCustomMid ? { x: arr.mx, y: arr.my } : null;
+
+      // Use smart routing based on port direction
+      const pathD = smartBezierPath(from, to, validFromPort, validToPort, mid);
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.classList.add('arrow-group');
+      g.dataset.arrowId = arr.id;
+
+      // Invisible wide hit area
+      const hitPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      hitPath.setAttribute('d', pathD);
+      hitPath.setAttribute('fill', 'none');
+      hitPath.setAttribute('stroke', 'transparent');
+      hitPath.setAttribute('stroke-width', '16');
+      hitPath.style.cursor = 'pointer';
+      hitPath.style.pointerEvents = 'stroke';
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathD);
+      path.classList.add('arrow-path');
+      if (selectedArrow === arr.id) path.classList.add('selected');
+      path.setAttribute('marker-end', selectedArrow === arr.id ? 'url(#arrowhead-selected)' : 'url(#arrowhead)');
+      path.style.pointerEvents = 'none';
+
+      g.appendChild(hitPath);
+      g.appendChild(path);
+
+      // Calculate label position - roughly middle of curve
+      // Simple approximation: midpoint of the cubic bezier is hard to calculate exactly without splitting,
+      // but (from + to)/2 is usually "good enough" for the visual center of the bounding box.
+      // Better: evaluate Bezier at t=0.5
+      // We'll use a simplified midpoint calculation that respects the control points for better placement.
+      const labelPos = hasCustomMid ? mid : getCubicBezierPoint(0.5, from, to, validFromPort, validToPort);
+
+      // Label
+      if (arr.label) {
+        const lw = Math.max(40, arr.label.length * 7 + 16);
+        const lh = 18;
+
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', labelPos.x - lw / 2);
+        rect.setAttribute('y', labelPos.y - lh / 2);
+        rect.setAttribute('width', lw);
+        rect.setAttribute('height', lh);
+        rect.setAttribute('rx', 4);
+        rect.classList.add('arrow-label-bg');
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', labelPos.x);
+        text.setAttribute('y', labelPos.y + 4);
+        text.setAttribute('text-anchor', 'middle');
+        text.classList.add('arrow-label');
+        text.textContent = arr.label;
+        text.style.pointerEvents = 'auto';
+
+        g.appendChild(rect);
+        g.appendChild(text);
+
+        text.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          openArrowLabelEditor(arr.id, e.clientX, e.clientY);
+        });
+      } else {
+        // Invisible label click zone
+        const lw = 40; const lh = 18;
+        const zone = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        zone.setAttribute('x', labelPos.x - lw / 2);
+        zone.setAttribute('y', labelPos.y - lh / 2);
+        zone.setAttribute('width', lw);
+        zone.setAttribute('height', lh);
+        zone.classList.add('arrow-delete-zone');
+        zone.style.pointerEvents = 'auto';
+        zone.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          openArrowLabelEditor(arr.id, e.clientX, e.clientY);
+        });
+        g.appendChild(zone);
+      }
+
+      // Click to select arrow
+      hitPath.addEventListener('mousedown', e => {
+        e.stopPropagation();
+        selectArrow(arr.id);
+      });
+
+      // Draggable mid-point handle — only shown when arrow is selected
+      // We place it at the t=0.5 point if no custom mid exists yet
+      const handlePos = hasCustomMid ? mid : labelPos;
+
+      if (selectedArrow === arr.id) {
+        // Dashed guide lines
+        const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line1.setAttribute('x1', from.x); line1.setAttribute('y1', from.y);
+        line1.setAttribute('x2', handlePos.x); line1.setAttribute('y2', handlePos.y);
+        line1.setAttribute('stroke', '#1ABC9C'); line1.setAttribute('stroke-width', '1');
+        line1.setAttribute('stroke-dasharray', '4 3'); line1.setAttribute('opacity', '0.5');
+        line1.style.pointerEvents = 'none';
+
+        const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line2.setAttribute('x1', handlePos.x); line2.setAttribute('y1', handlePos.y);
+        line2.setAttribute('x2', to.x); line2.setAttribute('y2', to.y);
+        line2.setAttribute('stroke', '#1ABC9C'); line2.setAttribute('stroke-width', '1');
+        line2.setAttribute('stroke-dasharray', '4 3'); line2.setAttribute('opacity', '0.5');
+        line2.style.pointerEvents = 'none';
+
+        g.appendChild(line1);
+        g.appendChild(line2);
+
+        // The handle circle
+        const handle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        handle.setAttribute('cx', handlePos.x);
+        handle.setAttribute('cy', handlePos.y);
+        handle.setAttribute('r', 7);
+        handle.setAttribute('fill', '#1ABC9C');
+        handle.setAttribute('stroke', '#0E8A72');
+        handle.setAttribute('stroke-width', '2');
+        handle.style.cursor = 'grab';
+        handle.style.pointerEvents = 'all';
+        handle.title = 'Drag to reroute · Double-click to reset';
+
+        handle.addEventListener('mousedown', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          startArrowHandleDrag(arr.id, e);
+        });
+
+        handle.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          const page = getPage();
+          const a = page.arrows.find(x => x.id === arr.id);
+          if (a) { delete a.mx; delete a.my; }
+          render();
+        });
+
+        g.appendChild(handle);
+      }
+
+      arrowsSvg.appendChild(g);
+    }
+
+    function smartBezierPath(from, to, fromDir, toDir, mid) {
+      // If we have a custom midpoint, route through it
+      if (mid) {
+        // Treat as two segments? No, simple quad/cubic through point.
+        // For smooth routing, we effectively treat the midpoint as an anchor.
+        // We can just curve to it. 
+        // Simplified: Standard cubic with CPs pulled toward the mid.
+        return `M ${from.x} ${from.y} Q ${mid.x} ${mid.y} ${to.x} ${to.y}`;
+      }
+
+      // Calculate Control Points based on direction
+      const dist = Math.hypot(to.x - from.x, to.y - from.y);
+      // Control point distance. For close items, reduce it.
+      const cpDist = Math.max(40, Math.min(dist * 0.5, 150));
+
+      const cp1 = { x: from.x, y: from.y };
+      const cp2 = { x: to.x, y: to.y };
+
+      // Adjust CP1 based on exit direction
+      switch (fromDir) {
+        case 'left': cp1.x -= cpDist; break;
+        case 'right': cp1.x += cpDist; break;
+        case 'top': cp1.y -= cpDist; break;
+        case 'bottom': cp1.y += cpDist; break;
+      }
+
+      // Adjust CP2 based on entry direction
+      switch (toDir) {
+        case 'left': cp2.x -= cpDist; break;
+        case 'right': cp2.x += cpDist; break;
+        case 'top': cp2.y -= cpDist; break;
+        case 'bottom': cp2.y += cpDist; break;
+      }
+
+      return `M ${from.x} ${from.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${to.x} ${to.y}`;
+    }
+
+    // Helper to find a point on the bezier curve for label placement
+    function getCubicBezierPoint(t, from, to, fromDir, toDir) {
+      const dist = Math.hypot(to.x - from.x, to.y - from.y);
+      const cpDist = Math.max(40, Math.min(dist * 0.5, 150));
+
+      let cp1x = from.x, cp1y = from.y, cp2x = to.x, cp2y = to.y;
+
+      switch (fromDir) {
+        case 'left': cp1x -= cpDist; break;
+        case 'right': cp1x += cpDist; break;
+        case 'top': cp1y -= cpDist; break;
+        case 'bottom': cp1y += cpDist; break;
+      }
+      switch (toDir) {
+        case 'left': cp2x -= cpDist; break;
+        case 'right': cp2x += cpDist; break;
+        case 'top': cp2y -= cpDist; break;
+        case 'bottom': cp2y += cpDist; break;
+      }
+
+      // Cubic Bezier formula
+      // B(t) = (1-t)^3 P0 + 3(1-t)^2 t P1 + 3(1-t) t^2 P2 + t^3 P3
+      const mt = 1 - t;
+      const mt2 = mt * mt;
+      const t2 = t * t;
+
+      const x = mt2 * mt * from.x + 3 * mt2 * t * cp1x + 3 * mt * t2 * cp2x + t2 * t * to.x;
+      const y = mt2 * mt * from.y + 3 * mt2 * t * cp1y + 3 * mt * t2 * cp2y + t2 * t * to.y;
+
+      return { x, y };
+    }
+
+    function getArrowMid(arr, from, to) {
+      // This is used for the drag handle start position relative to mouse
+      if (arr.mx !== undefined && arr.my !== undefined) return { x: arr.mx, y: arr.my };
+      // Default to curve center
+      return getCubicBezierPoint(0.5, from, to, arr.fromPort || 'right', arr.toPort || 'left');
+    }
+
+    // ─── Tabs ─────────────────────────────────────────────────────────────────────
+    function renderTabs() {
+      const tabs = document.getElementById('page-tabs');
+      tabs.innerHTML = '';
+      state.pages.forEach((page, i) => {
+        const tab = document.createElement('div');
+        tab.className = 'page-tab' + (i === state.activePage ? ' active' : '');
+        tab.innerHTML = `<span class="tab-name" data-page="${i}">${escHtml(page.name)}</span>${state.pages.length > 1 ? `<span class="tab-close" data-del-page="${i}">✕</span>` : ''}`;
+        tab.addEventListener('click', e => {
+          if (e.target.dataset.delPage !== undefined) {
+            deletePage(+e.target.dataset.delPage);
+          } else {
+            switchPage(i);
+          }
+        });
+        tab.addEventListener('dblclick', e => {
+          if (e.target.classList.contains('tab-name')) {
+            const name = prompt('Rename page:', page.name);
+            if (name) { page.name = name; renderTabs(); }
+          }
+        });
+        tabs.appendChild(tab);
+      });
+    }
+
+    function addPage() {
+      const id = getId();
+      state.pages.push({ id, name: `Page ${state.pages.length + 1}`, cards: [], arrows: [] });
+      switchPage(state.pages.length - 1);
+    }
+
+    function switchPage(i) {
+      state.activePage = i;
+      selectedCard = null;
       selectedArrow = null;
       render();
     }
-  }
-});
 
-document.addEventListener('keyup', e => {
-  if (e.code === 'Space') spaceDown = false;
-});
+    function deletePage(i) {
+      if (state.pages.length === 1) return;
+      if (!confirm(`Delete "${state.pages[i].name}"?`)) return;
+      state.pages.splice(i, 1);
+      state.activePage = Math.min(state.activePage, state.pages.length - 1);
+      render();
+    }
 
-document.getElementById('modal-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-});
+    // ─── Cards ────────────────────────────────────────────────────────────────────
+    function addCard() {
+      const page = getPage();
+      const cx = (canvasEl.clientWidth / 2 - state.panX) / state.zoom;
+      const cy = (canvasEl.clientHeight / 2 - state.panY) / state.zoom;
+      page.cards.push({
+        id: getId(),
+        x: cx - 160,
+        y: cy - 70,
+        title: 'Process Step',
+        role: '',
+        description: '',
+        inputs: [],
+        outputs: [],
+      });
+      render();
+    }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('open')) {
-    if (!e.target.matches('textarea')) saveModal();
-  }
-});
+    function deleteCard(id) {
+      const page = getPage();
+      page.cards = page.cards.filter(c => c.id !== id);
+      page.arrows = page.arrows.filter(a => a.fromCard !== id && a.toCard !== id);
+      if (selectedCard === id) selectedCard = null;
+      render();
+    }
 
-// ─── Minimap ──────────────────────────────────────────────────────────────────
-function renderMinimap() {
-  const container = document.getElementById('minimap-container');
-  const W = container.clientWidth - 4;
-  const H = container.clientHeight - 30;
-  if (W <= 0 || H <= 0) return;
-  minimap.width = W;
-  minimap.height = H;
+    function selectCard(id) {
+      selectedCard = id;
+      selectedArrow = null;
+      // Update selection visuals in-place — do NOT call render() here,
+      // because re-building the DOM breaks dblclick (element replaced mid-gesture).
+      worldEl.querySelectorAll('.upn-card').forEach(el => {
+        el.classList.toggle('selected', el.dataset.cardId === id);
+      });
+      arrowsSvg.querySelectorAll('.arrow-path').forEach(p => {
+        p.classList.remove('selected');
+        p.setAttribute('marker-end', 'url(#arrowhead)');
+      });
+      updateStatus();
+    }
 
-  minimapCtx.clearRect(0, 0, W, H);
-  // Eggshell background with faint grid
-  minimapCtx.fillStyle = '#FDFBF5';
-  minimapCtx.fillRect(0, 0, W, H);
-  minimapCtx.strokeStyle = 'rgba(44,62,80,0.07)';
-  minimapCtx.lineWidth = 0.5;
-  for (let x = 0; x < W; x += 8) { minimapCtx.beginPath(); minimapCtx.moveTo(x, 0); minimapCtx.lineTo(x, H); minimapCtx.stroke(); }
-  for (let y = 0; y < H; y += 8) { minimapCtx.beginPath(); minimapCtx.moveTo(0, y); minimapCtx.lineTo(W, y); minimapCtx.stroke(); }
+    function selectArrow(id) {
+      selectedArrow = id;
+      selectedCard = null;
+      // Re-render arrows so the draggable handle circle appears on the selected arrow
+      const page = getPage();
+      arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
+      page.arrows.forEach(arr => renderArrow(arr));
+      worldEl.querySelectorAll('.upn-card').forEach(el => el.classList.remove('selected'));
+      updateStatus();
+    }
 
-  const page = getPage();
-  if (!page.cards.length) return;
+    // ─── Drag ─────────────────────────────────────────────────────────────────────
+    function startDrag(e, cardId) {
+      if (arrowMode) return;
+      const page = getPage();
+      const card = page.cards.find(c => c.id === cardId);
+      const worldPos = screenToWorld(e.clientX, e.clientY);
+      dragging = {
+        cardId,
+        startWorldX: worldPos.x,
+        startWorldY: worldPos.y,
+        origX: card.x,
+        origY: card.y,
+      };
+      selectCard(cardId);
+      e.preventDefault();
+    }
 
-  // Bounds of all cards
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  page.cards.forEach(c => {
-    minX = Math.min(minX, c.x);
-    minY = Math.min(minY, c.y);
-    maxX = Math.max(maxX, c.x + 320);
-    maxY = Math.max(maxY, c.y + getCardHeight(c));
-  });
+    // ─── Arrow drawing ────────────────────────────────────────────────────────────
+    function handlePortClick(e, cardId, port) {
+      e.preventDefault();
+      e.stopPropagation();
 
-  const pad = 20;
-  const contentW = maxX - minX + pad*2;
-  const contentH = maxY - minY + pad*2;
-  const scale = Math.min(W / contentW, H / contentH, 1);
-  const ox = (W - contentW * scale) / 2 - (minX - pad) * scale;
-  const oy = (H - contentH * scale) / 2 - (minY - pad) * scale;
+      if (!arrowFrom) {
+        arrowFrom = { cardId, port };
+        arrowMode = true;
+        canvasEl.classList.add('arrow-mode');
+        document.getElementById('status-mode').textContent = 'Mode: Drawing Arrow (click target port)';
+      } else {
+        // Complete arrow
+        if (arrowFrom.cardId !== cardId) {
+          const page = getPage();
+          page.arrows.push({
+            id: getId(),
+            fromCard: arrowFrom.cardId,
+            fromPort: arrowFrom.port,
+            toCard: cardId,
+            toPort: port,
+            label: '',
+          });
+        }
+        cancelArrowMode();
+      }
+    }
 
-  // Draw arrows
-  minimapCtx.strokeStyle = '#34495E';
-  minimapCtx.lineWidth = 1;
-  page.arrows.forEach(arr => {
-    const fc = page.cards.find(c => c.id === arr.fromCard);
-    const tc = page.cards.find(c => c.id === arr.toCard);
-    if (!fc || !tc) return;
-    const from = getPortPos(fc, arr.fromPort || 'right');
-    const to = getPortPos(tc, arr.toPort || 'left');
-    minimapCtx.beginPath();
-    minimapCtx.moveTo(ox + from.x * scale, oy + from.y * scale);
-    minimapCtx.lineTo(ox + to.x * scale, oy + to.y * scale);
-    minimapCtx.stroke();
-  });
+    function cancelArrowMode() {
+      arrowFrom = null;
+      arrowMode = false;
+      canvasEl.classList.remove('arrow-mode');
+      tempArrow.setAttribute('d', '');
+      document.getElementById('status-mode').textContent = 'Mode: Select';
+      render();
+    }
 
-  // Draw cards — slate header + cream body + teal left border
-  page.cards.forEach(c => {
-    const x = ox + c.x * scale;
-    const y = oy + c.y * scale;
-    const w = 320 * scale;
-    const h = getCardHeight(c) * scale;
-    const headerH = Math.max(2, h * 0.25);
-    // Left accent
-    minimapCtx.fillStyle = '#1ABC9C';
-    minimapCtx.fillRect(x, y, Math.max(1, 3 * scale), h);
-    // Header
-    minimapCtx.fillStyle = '#2C3E50';
-    minimapCtx.fillRect(x + Math.max(1, 3 * scale), y, w - Math.max(1, 3 * scale), headerH);
-    // Body
-    minimapCtx.fillStyle = '#FFFFFF';
-    minimapCtx.fillRect(x + Math.max(1, 3 * scale), y + headerH, w - Math.max(1, 3 * scale), h - headerH);
-    // Border
-    minimapCtx.strokeStyle = '#2C3E50';
-    minimapCtx.lineWidth = 0.5;
-    minimapCtx.strokeRect(x, y, w, h);
-  });
+    // ─── Info button toggles ──────────────────────────────────────────────────────
+    document.querySelectorAll('.info-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fieldGroup = btn.closest('.field-group');
+        const infoBox = fieldGroup.querySelector('.field-info');
+        const isOpen = infoBox.classList.toggle('open');
+        btn.classList.toggle('active', isOpen);
+      });
+    });
 
-  // Draw viewport indicator — amber dashed rectangle
-  const vpX = (-state.panX / state.zoom);
-  const vpY = (-state.panY / state.zoom);
-  const vpW = canvasEl.clientWidth / state.zoom;
-  const vpH = canvasEl.clientHeight / state.zoom;
-  minimapCtx.strokeStyle = 'rgba(243,156,18,0.85)';
-  minimapCtx.lineWidth = 1.5;
-  minimapCtx.setLineDash([3, 2]);
-  minimapCtx.strokeRect(
-    ox + vpX * scale, oy + vpY * scale,
-    vpW * scale, vpH * scale
-  );
-  minimapCtx.setLineDash([]);
-}
+    // ─── Modal ────────────────────────────────────────────────────────────────────
+    function openModal(cardId) {
+      const page = getPage();
+      const card = page.cards.find(c => c.id === cardId);
+      editingCardId = cardId;
+      document.getElementById('edit-title').value = card.title || '';
+      document.getElementById('edit-role').value = card.role || '';
+      document.getElementById('edit-desc').value = card.description || '';
+      document.getElementById('edit-inputs').value = (card.inputs || []).join('\n');
+      document.getElementById('edit-outputs').value = (card.outputs || []).join('\n');
 
-// Click minimap to navigate
-minimap.addEventListener('click', e => {
-  const page = getPage();
-  if (!page.cards.length) return;
-  const W = minimap.width, H = minimap.height;
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  page.cards.forEach(c => {
-    minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-    maxX = Math.max(maxX, c.x + 320); maxY = Math.max(maxY, c.y + getCardHeight(c));
-  });
-  const pad = 20;
-  const contentW = maxX - minX + pad*2, contentH = maxY - minY + pad*2;
-  const scale = Math.min(W / contentW, H / contentH, 1);
-  const ox = (W - contentW * scale) / 2 - (minX - pad) * scale;
-  const oy = (H - contentH * scale) / 2 - (minY - pad) * scale;
-  const rect = minimap.getBoundingClientRect();
-  const wx = (e.clientX - rect.left - ox) / scale;
-  const wy = (e.clientY - rect.top - oy) / scale;
-  state.panX = canvasEl.clientWidth/2 - wx * state.zoom;
-  state.panY = canvasEl.clientHeight/2 - wy * state.zoom;
-  applyTransform();
-  renderMinimap();
-});
+      // Set color
+      const color = card.color || 'amber';
+      const radio = document.querySelector(`input[name="card-color"][value="${color}"]`);
+      if (radio) radio.checked = true;
 
-// ─── Export PNG ───────────────────────────────────────────────────────────────
-async function exportPNG() {
-  const page = getPage();
-  if (!page.cards.length) { alert('Add some cards first!'); return; }
+      // Close any open info boxes when modal opens
+      document.querySelectorAll('.field-info.open').forEach(el => el.classList.remove('open'));
+      document.querySelectorAll('.info-btn.active').forEach(el => el.classList.remove('active'));
+      document.getElementById('modal-overlay').classList.add('open');
+      document.getElementById('edit-title').focus();
+    }
 
-  // Find bounding box
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  page.cards.forEach(c => {
-    minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-    maxX = Math.max(maxX, c.x + 320); maxY = Math.max(maxY, c.y + getCardHeight(c));
-  });
-  const pad = 40;
-  minX -= pad; minY -= pad; maxX += pad; maxY += pad;
-  const W = maxX - minX, H = maxY - minY;
-  const SCALE = 2; // retina
+    function closeModal() {
+      editingCardId = null;
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
 
-  const canvas = document.createElement('canvas');
-  canvas.width = W * SCALE;
-  canvas.height = H * SCALE;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(SCALE, SCALE);
+    function saveModal() {
+      if (!editingCardId) return;
+      const page = getPage();
+      const card = page.cards.find(c => c.id === editingCardId);
+      card.title = document.getElementById('edit-title').value.trim() || 'Untitled';
+      card.role = document.getElementById('edit-role').value.trim();
+      card.description = document.getElementById('edit-desc').value.trim();
+      card.inputs = document.getElementById('edit-inputs').value.split('\n').map(s => s.trim()).filter(Boolean);
+      card.outputs = document.getElementById('edit-outputs').value.split('\n').map(s => s.trim()).filter(Boolean);
+      const checkedColor = document.querySelector('input[name="card-color"]:checked');
+      card.color = checkedColor ? checkedColor.value : 'amber';
+      closeModal();
+      render();
+    }
 
-  // Background
-  // Export background — eggshell with crosshatch
-  ctx.fillStyle = '#FDFBF5';
-  ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(44,62,80,0.07)';
-  ctx.lineWidth = 0.5;
-  for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
-  for (let gy = 0; gy < H; gy += 32) { ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+    // ─── Arrow handle drag ────────────────────────────────────────────────────────
+    let arrowHandleDrag = null;
 
-  // Draw arrows
-  ctx.strokeStyle = '#34495E';
-  ctx.lineWidth = 2;
-  ctx.fillStyle = '#34495E';
-  page.arrows.forEach(arr => {
-    const fc = page.cards.find(c => c.id === arr.fromCard);
-    const tc = page.cards.find(c => c.id === arr.toCard);
-    if (!fc || !tc) return;
-    const from = getPortPos(fc, arr.fromPort || 'right');
-    const to = getPortPos(tc, arr.toPort || 'left');
-    const dx = Math.abs(to.x - from.x);
-    const cp = Math.max(60, dx * 0.5);
-    ctx.beginPath();
-    ctx.moveTo(from.x - minX, from.y - minY);
-    ctx.bezierCurveTo(from.x - minX + cp, from.y - minY, to.x - minX - cp, to.y - minY, to.x - minX, to.y - minY);
-    ctx.stroke();
-    // Arrowhead
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    drawArrowhead(ctx, to.x - minX, to.y - minY, angle);
-    // Label
-    if (arr.label) {
-      const mid = { x: (from.x + to.x)/2 - minX, y: (from.y + to.y)/2 - minY };
-      ctx.font = '600 11px Poppins, sans-serif';
-      const tw = ctx.measureText(arr.label).width;
-      ctx.fillStyle = '#F5EFE0';
-      ctx.fillRect(mid.x - tw/2 - 6, mid.y - 9, tw + 12, 18);
-      ctx.strokeStyle = '#D5C9B0';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(mid.x - tw/2 - 6, mid.y - 9, tw + 12, 18);
-      ctx.fillStyle = '#2C3E50';
-      ctx.textAlign = 'center';
-      ctx.fillText(arr.label, mid.x, mid.y + 4);
+    function startArrowHandleDrag(arrowId, e) {
+      const page = getPage();
+      const arr = page.arrows.find(a => a.id === arrowId);
+      const rect = canvasEl.getBoundingClientRect();
+      // Current handle world position
+      const fromCard = page.cards.find(c => c.id === arr.fromCard);
+      const toCard = page.cards.find(c => c.id === arr.toCard);
+      const from = getPortPos(fromCard, arr.fromPort || 'right');
+      const to = getPortPos(toCard, arr.toPort || 'left');
+      const mid = getArrowMid(arr, from, to);
+      // Mouse world position at grab moment
+      const mouseWx = (e.clientX - rect.left - state.panX) / state.zoom;
+      const mouseWy = (e.clientY - rect.top - state.panY) / state.zoom;
+      // Offset so the handle doesn't jump on first move
+      arrowHandleDrag = { arrowId, offX: mid.x - mouseWx, offY: mid.y - mouseWy };
+      document.addEventListener('mousemove', onArrowHandleMove);
+      document.addEventListener('mouseup', onArrowHandleUp);
+    }
+
+    function onArrowHandleMove(e) {
+      if (!arrowHandleDrag) return;
+      const page = getPage();
+      const arr = page.arrows.find(a => a.id === arrowHandleDrag.arrowId);
+      if (!arr) return;
+
+      const rect = canvasEl.getBoundingClientRect();
+      arr.mx = (e.clientX - rect.left - state.panX) / state.zoom + arrowHandleDrag.offX;
+      arr.my = (e.clientY - rect.top - state.panY) / state.zoom + arrowHandleDrag.offY;
+
+      // Live redraw: just replace arrow SVG elements without full render
+      arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
+      page.arrows.forEach(a => renderArrow(a));
+    }
+
+    function onArrowHandleUp() {
+      arrowHandleDrag = null;
+      document.removeEventListener('mousemove', onArrowHandleMove);
+      document.removeEventListener('mouseup', onArrowHandleUp);
+    }
+
+    // ─── Arrow label editor ───────────────────────────────────────────────────────
+    function openArrowLabelEditor(arrowId, clientX, clientY) {
+      editingArrowId = arrowId;
+      const page = getPage();
+      const arr = page.arrows.find(a => a.id === arrowId);
+      const ed = document.getElementById('arrow-label-editor');
+      const inp = document.getElementById('arrow-label-input');
+      inp.value = arr.label || '';
+      ed.style.display = 'block';
+      ed.style.left = clientX + 'px';
+      ed.style.top = (clientY - 28) + 'px';
+      inp.focus();
+      inp.select();
+    }
+
+    function closeArrowLabelEditor() {
+      if (!editingArrowId) return;
+      const page = getPage();
+      const arr = page.arrows.find(a => a.id === editingArrowId);
+      if (arr) arr.label = document.getElementById('arrow-label-input').value.trim();
+      editingArrowId = null;
+      document.getElementById('arrow-label-editor').style.display = 'none';
+      render();
+    }
+
+    document.getElementById('arrow-label-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') closeArrowLabelEditor();
+      if (e.key === 'Escape') {
+        editingArrowId = null;
+        document.getElementById('arrow-label-editor').style.display = 'none';
+      }
+    });
+
+    // ─── Zoom & Pan ───────────────────────────────────────────────────────────────
+    function screenToWorld(sx, sy) {
+      const rect = canvasEl.getBoundingClientRect();
+      return {
+        x: (sx - rect.left - state.panX) / state.zoom,
+        y: (sy - rect.top - state.panY) / state.zoom,
+      };
+    }
+
+    function zoomAt(cx, cy, factor) {
+      const rect = canvasEl.getBoundingClientRect();
+      const sx = cx - rect.left;
+      const sy = cy - rect.top;
+      const wx = (sx - state.panX) / state.zoom;
+      const wy = (sy - state.panY) / state.zoom;
+      state.zoom = Math.max(0.15, Math.min(4, state.zoom * factor));
+      state.panX = sx - wx * state.zoom;
+      state.panY = sy - wy * state.zoom;
+      applyTransform();
+      renderMinimap();
+      updateStatus();
+    }
+
+    function zoomIn() { zoomAt(canvasEl.clientWidth / 2, canvasEl.clientHeight / 2, 1.2); }
+    function zoomOut() { zoomAt(canvasEl.clientWidth / 2, canvasEl.clientHeight / 2, 1 / 1.2); }
+    function resetView() { state.zoom = 1; state.panX = 40; state.panY = 40; applyTransform(); renderMinimap(); updateStatus(); }
+
+    function applyTransform() {
+      worldEl.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+      document.getElementById('status-zoom').textContent = `Zoom: ${Math.round(state.zoom * 100)}%`;
+    }
+
+    // ─── Events ───────────────────────────────────────────────────────────────────
+    canvasEl.addEventListener('wheel', e => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+      zoomAt(e.clientX, e.clientY, factor);
+    }, { passive: false });
+
+    canvasEl.addEventListener('mousedown', e => {
+      if (arrowMode && !e.target.classList.contains('port')) {
+        cancelArrowMode();
+        return;
+      }
+      if (e.button === 1 || spaceDown) {
+        panning = true;
+        panStart = { x: e.clientX, y: e.clientY, panX: state.panX, panY: state.panY };
+        canvasEl.classList.add('panning');
+        e.preventDefault();
+        return;
+      }
+      if (e.target === canvasEl || e.target === worldEl || e.target === arrowsSvg) {
+        selectedCard = null;
+        selectedArrow = null;
+        closeArrowLabelEditor();
+        // Don't re-render the whole thing just for deselect — just update visuals
+        worldEl.querySelectorAll('.upn-card.selected').forEach(el => el.classList.remove('selected'));
+        arrowsSvg.querySelectorAll('.arrow-path.selected').forEach(el => {
+          el.classList.remove('selected');
+          el.setAttribute('marker-end', 'url(#arrowhead)');
+        });
+      }
+    });
+
+    document.addEventListener('mousemove', e => {
+      const rect = canvasEl.getBoundingClientRect();
+      mouseWorldPos = screenToWorld(e.clientX, e.clientY);
+
+      if (panning) {
+        state.panX = panStart.panX + (e.clientX - panStart.x);
+        state.panY = panStart.panY + (e.clientY - panStart.y);
+        applyTransform();
+        renderMinimap();
+        return;
+      }
+
+      if (dragging) {
+        const worldPos = screenToWorld(e.clientX, e.clientY);
+        const page = getPage();
+        const card = page.cards.find(c => c.id === dragging.cardId);
+        card.x = dragging.origX + (worldPos.x - dragging.startWorldX);
+        card.y = dragging.origY + (worldPos.y - dragging.startWorldY);
+        // Move card element directly for performance
+        const el = worldEl.querySelector(`[data-card-id="${dragging.cardId}"]`);
+        if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
+        // Re-render arrows
+        arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
+        page.arrows.forEach(arr => renderArrow(arr));
+        renderMinimap();
+        return;
+      }
+
+      if (arrowFrom) {
+        const fromCard = page.cards.find(c => c.id === arrowFrom.cardId);
+        const from = getPortPos(fromCard, arrowFrom.port);
+        const to = mouseWorldPos;
+        // Guess entry direction for temp arrow - assume opposite of exit
+        let toDir = 'left';
+        if (arrowFrom.port === 'left') toDir = 'right';
+        if (arrowFrom.port === 'top') toDir = 'bottom';
+        if (arrowFrom.port === 'bottom') toDir = 'top';
+
+        tempArrow.setAttribute('d', smartBezierPath(from, to, arrowFrom.port, toDir));
+      }
+    });
+
+    document.addEventListener('mouseup', e => {
+      if (panning) {
+        panning = false;
+        canvasEl.classList.remove('panning');
+      }
+      if (dragging) {
+        dragging = null;
+        renderMinimap();
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && !e.target.matches('input,textarea')) {
+        spaceDown = true;
+        e.preventDefault();
+      }
+      if (e.key === 'Escape') {
+        cancelArrowMode();
+        closeModal();
+        closeArrowLabelEditor();
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.matches('input,textarea')) {
+        if (selectedCard) { deleteCard(selectedCard); selectedCard = null; }
+        if (selectedArrow) {
+          const page = getPage();
+          page.arrows = page.arrows.filter(a => a.id !== selectedArrow);
+          selectedArrow = null;
+          render();
+        }
+      }
+    });
+
+    document.addEventListener('keyup', e => {
+      if (e.code === 'Space') spaceDown = false;
+    });
+
+    document.getElementById('modal-overlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal-overlay')) closeModal();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('open')) {
+        if (!e.target.matches('textarea')) saveModal();
+      }
+    });
+
+    // ─── Minimap ──────────────────────────────────────────────────────────────────
+    function renderMinimap() {
+      const container = document.getElementById('minimap-container');
+      const W = container.clientWidth - 4;
+      const H = container.clientHeight - 30;
+      if (W <= 0 || H <= 0) return;
+      minimap.width = W;
+      minimap.height = H;
+
+      minimapCtx.clearRect(0, 0, W, H);
+      // Eggshell background with faint grid
+      minimapCtx.fillStyle = '#FDFBF5';
+      minimapCtx.fillRect(0, 0, W, H);
+      minimapCtx.strokeStyle = 'rgba(44,62,80,0.07)';
+      minimapCtx.lineWidth = 0.5;
+      for (let x = 0; x < W; x += 8) { minimapCtx.beginPath(); minimapCtx.moveTo(x, 0); minimapCtx.lineTo(x, H); minimapCtx.stroke(); }
+      for (let y = 0; y < H; y += 8) { minimapCtx.beginPath(); minimapCtx.moveTo(0, y); minimapCtx.lineTo(W, y); minimapCtx.stroke(); }
+
+      const page = getPage();
+      if (!page.cards.length) return;
+
+      // Bounds of all cards
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      page.cards.forEach(c => {
+        const w = c._w || 320;
+        const h = c._h || getCardHeight(c);
+        minX = Math.min(minX, c.x);
+        minY = Math.min(minY, c.y);
+        maxX = Math.max(maxX, c.x + w);
+        maxY = Math.max(maxY, c.y + h);
+      });
+
+      const pad = 20;
+      const contentW = maxX - minX + pad * 2;
+      const contentH = maxY - minY + pad * 2;
+      const scale = Math.min(W / contentW, H / contentH, 1);
+      const ox = (W - contentW * scale) / 2 - (minX - pad) * scale;
+      const oy = (H - contentH * scale) / 2 - (minY - pad) * scale;
+
+      // Draw arrows
+      minimapCtx.strokeStyle = '#34495E';
+      minimapCtx.lineWidth = 1;
+      page.arrows.forEach(arr => {
+        const fc = page.cards.find(c => c.id === arr.fromCard);
+        const tc = page.cards.find(c => c.id === arr.toCard);
+        if (!fc || !tc) return;
+        const from = getPortPos(fc, arr.fromPort || 'right');
+        const to = getPortPos(tc, arr.toPort || 'left');
+        minimapCtx.beginPath();
+        minimapCtx.moveTo(ox + from.x * scale, oy + from.y * scale);
+        minimapCtx.lineTo(ox + to.x * scale, oy + to.y * scale);
+        minimapCtx.stroke();
+      });
+
+      // Draw cards — slate header + cream body + teal left border
+      page.cards.forEach(c => {
+        const x = ox + c.x * scale;
+        const y = oy + c.y * scale;
+        const w = (c._w || 320) * scale;
+        const h = (c._h || getCardHeight(c)) * scale;
+        const headerH = Math.max(2, h * 0.25);
+        // Left accent
+        minimapCtx.fillStyle = '#1ABC9C';
+        minimapCtx.fillRect(x, y, Math.max(1, 3 * scale), h);
+        // Header
+        minimapCtx.fillStyle = '#2C3E50';
+        minimapCtx.fillRect(x + Math.max(1, 3 * scale), y, w - Math.max(1, 3 * scale), headerH);
+        // Body
+        minimapCtx.fillStyle = '#FFFFFF';
+        minimapCtx.fillRect(x + Math.max(1, 3 * scale), y + headerH, w - Math.max(1, 3 * scale), h - headerH);
+        // Border
+        minimapCtx.strokeStyle = '#2C3E50';
+        minimapCtx.lineWidth = 0.5;
+        minimapCtx.strokeRect(x, y, w, h);
+      });
+
+      // Draw viewport indicator — amber dashed rectangle
+      const vpX = (-state.panX / state.zoom);
+      const vpY = (-state.panY / state.zoom);
+      const vpW = canvasEl.clientWidth / state.zoom;
+      const vpH = canvasEl.clientHeight / state.zoom;
+      minimapCtx.strokeStyle = 'rgba(243,156,18,0.85)';
+      minimapCtx.lineWidth = 1.5;
+      minimapCtx.setLineDash([3, 2]);
+      minimapCtx.strokeRect(
+        ox + vpX * scale, oy + vpY * scale,
+        vpW * scale, vpH * scale
+      );
+      minimapCtx.setLineDash([]);
+    }
+
+    // Click minimap to navigate
+    minimap.addEventListener('click', e => {
+      const page = getPage();
+      if (!page.cards.length) return;
+      const W = minimap.width, H = minimap.height;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      page.cards.forEach(c => {
+        minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+        maxX = Math.max(maxX, c.x + 320); maxY = Math.max(maxY, c.y + getCardHeight(c));
+      });
+      const pad = 20;
+      const contentW = maxX - minX + pad * 2, contentH = maxY - minY + pad * 2;
+      const scale = Math.min(W / contentW, H / contentH, 1);
+      const ox = (W - contentW * scale) / 2 - (minX - pad) * scale;
+      const oy = (H - contentH * scale) / 2 - (minY - pad) * scale;
+      const rect = minimap.getBoundingClientRect();
+      const wx = (e.clientX - rect.left - ox) / scale;
+      const wy = (e.clientY - rect.top - oy) / scale;
+      state.panX = canvasEl.clientWidth / 2 - wx * state.zoom;
+      state.panY = canvasEl.clientHeight / 2 - wy * state.zoom;
+      applyTransform();
+      renderMinimap();
+    });
+
+    // ─── CSV Import ───────────────────────────────────────────────────────────────
+    let parsedImportRows = [];
+
+    function openImportModal() {
+      parsedImportRows = [];
+      document.getElementById('import-preview').style.display = 'none';
+      document.getElementById('import-preview-list').innerHTML = '';
+      document.getElementById('import-error').style.display = 'none';
+      document.getElementById('import-error').textContent = '';
+      document.getElementById('import-confirm-btn').style.display = 'none';
+      // Reset file input so same file can be re-selected
+      document.getElementById('csv-file-input').value = '';
+      document.getElementById('import-modal-overlay').classList.add('open');
+    }
+
+    function closeImportModal() {
+      document.getElementById('import-modal-overlay').classList.remove('open');
+    }
+
+    function downloadCSVTemplate() {
+      const header = 'title,responsible,description,inputs,outputs';
+      const example = 'Review Invoice,Finance Team,Check invoice matches purchase order,Purchase Order|Supplier Invoice,Approved Invoice|Rejection Notice';
+      const csv = header + '\n' + example;
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'upn-template.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function handleCSVFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => parseAndPreviewCSV(e.target.result);
+      reader.readAsText(file);
+    }
+
+    // Drag-and-drop on the drop zone
+    (function setupImportDrop() {
+      const zone = document.getElementById('import-drop-zone');
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (!file || !file.name.endsWith('.csv')) {
+          showImportError('Please drop a .csv file.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = ev => parseAndPreviewCSV(ev.target.result);
+        reader.readAsText(file);
+      });
+    })();
+
+    function parseCSVLine(line) {
+      // Handles quoted fields (including commas inside quotes)
+      const result = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (ch === ',' && !inQuotes) {
+          result.push(cur.trim());
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      result.push(cur.trim());
+      return result;
+    }
+
+    function parseAndPreviewCSV(text) {
+      const errorEl = document.getElementById('import-error');
+      const previewEl = document.getElementById('import-preview');
+      const listEl = document.getElementById('import-preview-list');
+      const confirmBtn = document.getElementById('import-confirm-btn');
+
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+      previewEl.style.display = 'none';
+      confirmBtn.style.display = 'none';
+      listEl.innerHTML = '';
+      parsedImportRows = [];
+
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (lines.length < 2) {
+        showImportError('The CSV file must have a header row and at least one data row.');
+        return;
+      }
+
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const titleIdx = headers.indexOf('title');
+      const responsibleIdx = headers.indexOf('responsible');
+      const descIdx = headers.indexOf('description');
+      const inputsIdx = headers.indexOf('inputs');
+      const outputsIdx = headers.indexOf('outputs');
+
+      if (titleIdx === -1) {
+        showImportError('Missing required column: "title". Check your CSV headers match exactly: title, responsible, description, inputs, outputs');
+        return;
+      }
+
+      const rows = [];
+      const warnings = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCSVLine(lines[i]);
+        const title = titleIdx !== -1 ? (cols[titleIdx] || '').trim() : '';
+        if (!title) { warnings.push(`Row ${i + 1} skipped — no title.`); continue; }
+        rows.push({
+          title,
+          role: responsibleIdx !== -1 ? (cols[responsibleIdx] || '').trim() : '',
+          description: descIdx !== -1 ? (cols[descIdx] || '').trim() : '',
+          inputs: inputsIdx !== -1 ? (cols[inputsIdx] || '').split('|').map(s => s.trim()).filter(Boolean) : [],
+          outputs: outputsIdx !== -1 ? (cols[outputsIdx] || '').split('|').map(s => s.trim()).filter(Boolean) : [],
+        });
+      }
+
+      if (rows.length === 0) {
+        showImportError('No valid rows found. Make sure each row has a value in the "title" column.' + (warnings.length ? '\n' + warnings.join('\n') : ''));
+        return;
+      }
+
+      parsedImportRows = rows;
+
+      // Build preview
+      document.getElementById('import-preview-count').textContent = `${rows.length} card${rows.length !== 1 ? 's' : ''} ready to import`;
+      rows.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'import-preview-card';
+        const metaParts = [];
+        if (r.role) metaParts.push(`👤 ${r.role}`);
+        if (r.inputs.length) metaParts.push(`📥 ${r.inputs.join(', ')}`);
+        if (r.outputs.length) metaParts.push(`📤 ${r.outputs.join(', ')}`);
+        div.innerHTML = `<div class="import-preview-title">${escHtml(r.title)}</div>` +
+          (metaParts.length ? `<div class="import-preview-meta">${metaParts.map(escHtml).join(' &nbsp;·&nbsp; ')}</div>` : '');
+        listEl.appendChild(div);
+      });
+
+      if (warnings.length) {
+        showImportError('Note: ' + warnings.join(' '));
+      }
+
+      previewEl.style.display = 'block';
+      confirmBtn.style.display = 'inline-flex';
+    }
+
+    function showImportError(msg) {
+      const el = document.getElementById('import-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function confirmImport() {
+      if (!parsedImportRows.length) return;
+      const page = getPage();
+
+      // Stack cards in a grid starting near top-left of current view
+      const startX = (80 - state.panX) / state.zoom;
+      const startY = (80 - state.panY) / state.zoom;
+      const colWidth = 340;
+      const rowHeight = 180;
+      const cardsPerRow = 4;
+
+      parsedImportRows.forEach((r, i) => {
+        const col = i % cardsPerRow;
+        const row = Math.floor(i / cardsPerRow);
+        page.cards.push({
+          id: getId(),
+          x: startX + col * colWidth,
+          y: startY + row * rowHeight,
+          title: r.title,
+          role: r.role,
+          description: r.description,
+          inputs: r.inputs,
+          outputs: r.outputs,
+        });
+      });
+
+      render();
+      renderMinimap();
+      closeImportModal();
+      parsedImportRows = [];
+    }
+
+    // ─── Export PNG ───────────────────────────────────────────────────────────────
+    async function exportPNG() {
+      const page = getPage();
+      if (!page.cards.length) { alert('Add some cards first!'); return; }
+
+      // Find bounding box
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      page.cards.forEach(c => {
+        minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+        maxX = Math.max(maxX, c.x + 320); maxY = Math.max(maxY, c.y + getCardHeight(c));
+      });
+      const pad = 80;
+      minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+      const W = maxX - minX, H = maxY - minY;
+      const SCALE = 2; // retina
+
+      const canvas = document.createElement('canvas');
+      canvas.width = W * SCALE;
+      canvas.height = H * SCALE;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(SCALE, SCALE);
+
+      // Background
+      // Export background — eggshell with crosshatch
+      ctx.fillStyle = '#FDFBF5';
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(44,62,80,0.07)';
+      ctx.lineWidth = 0.5;
+      for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+      for (let gy = 0; gy < H; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+      // Draw arrows
       ctx.strokeStyle = '#34495E';
       ctx.lineWidth = 2;
       ctx.fillStyle = '#34495E';
-    }
-  });
+      page.arrows.forEach(arr => {
+        const fc = page.cards.find(c => c.id === arr.fromCard);
+        const tc = page.cards.find(c => c.id === arr.toCard);
+        if (!fc || !tc) return;
+        const from = getPortPos(fc, arr.fromPort || 'right');
+        const to = getPortPos(tc, arr.toPort || 'left');
 
-  // Draw cards
-  page.cards.forEach(c => {
-    const x = c.x - minX, y = c.y - minY;
-    const W2 = 320, H2 = getCardHeight(c);
-    const headerH = 36;
-    const sideW = 84;
+        // Smart routing calculation for canvas
+        const dist = Math.hypot(to.x - from.x, to.y - from.y);
+        const cpDist = Math.max(40, Math.min(dist * 0.5, 150));
 
-    // Shadow — subtle warm drop shadow
-    ctx.shadowColor = 'rgba(44,62,80,0.2)';
-    ctx.shadowBlur = 14;
-    ctx.shadowOffsetY = 5;
+        let cp1 = { x: from.x, y: from.y };
+        let cp2 = { x: to.x, y: to.y };
 
-    // Card background
-    roundRect(ctx, x, y, W2, H2, 4);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fill();
+        // Adjust based on directions
+        const fromDir = arr.fromPort || 'right';
+        const toDir = arr.toPort || 'left';
 
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
+        switch (fromDir) {
+          case 'left': cp1.x -= cpDist; break;
+          case 'right': cp1.x += cpDist; break;
+          case 'top': cp1.y -= cpDist; break;
+          case 'bottom': cp1.y += cpDist; break;
+        }
+        switch (toDir) {
+          case 'left': cp2.x -= cpDist; break;
+          case 'right': cp2.x += cpDist; break;
+          case 'top': cp2.y -= cpDist; break;
+          case 'bottom': cp2.y += cpDist; break;
+        }
 
-    // Teal left accent border (6px)
-    ctx.fillStyle = '#1ABC9C';
-    ctx.fillRect(x, y, 6, H2);
+        // Handle custom midpoint if it exists
+        if (arr.mx !== undefined && arr.my !== undefined) {
+          ctx.beginPath();
+          // Quadratic through mid
+          ctx.moveTo(from.x - minX, from.y - minY);
+          ctx.quadraticCurveTo(arr.mx - minX, arr.my - minY, to.x - minX, to.y - minY);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(from.x - minX, from.y - minY);
+          ctx.bezierCurveTo(cp1.x - minX, cp1.y - minY, cp2.x - minX, cp2.y - minY, to.x - minX, to.y - minY);
+          ctx.stroke();
+        }
+        // Arrowhead
+        const angle = Math.atan2(to.y - from.y, to.x - from.x);
+        drawArrowhead(ctx, to.x - minX, to.y - minY, angle);
+        // Label
+        if (arr.label) {
+          const mid = { x: (from.x + to.x) / 2 - minX, y: (from.y + to.y) / 2 - minY };
+          ctx.font = '600 11px Poppins, sans-serif';
+          const tw = ctx.measureText(arr.label).width;
+          ctx.fillStyle = '#F5EFE0';
+          ctx.fillRect(mid.x - tw / 2 - 6, mid.y - 9, tw + 12, 18);
+          ctx.strokeStyle = '#D5C9B0';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(mid.x - tw / 2 - 6, mid.y - 9, tw + 12, 18);
+          ctx.fillStyle = '#2C3E50';
+          ctx.textAlign = 'center';
+          ctx.fillText(arr.label, mid.x, mid.y + 4);
+          ctx.strokeStyle = '#34495E';
+          ctx.lineWidth = 2;
+          ctx.fillStyle = '#34495E';
+        }
+      });
 
-    // Header — slate
-    roundRect(ctx, x + 6, y, W2 - 6, headerH, 4, true);
-    ctx.fillStyle = '#2C3E50';
-    ctx.fill();
+      // Draw cards
+      page.cards.forEach(c => {
+        const x = c.x - minX, y = c.y - minY;
+        const W2 = c._w || 320, H2 = c._h || getCardHeight(c);
+        const headerH = 36;
+        const sideW = 84;
 
-    // Side panels — tan
-    ctx.fillStyle = '#F5EFE0';
-    ctx.fillRect(x + 6, y + headerH, sideW - 6, H2 - headerH);
-    ctx.fillRect(x + W2 - sideW, y + headerH, sideW, H2 - headerH);
+        // Shadow — subtle warm drop shadow
+        ctx.shadowColor = 'rgba(44,62,80,0.2)';
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetY = 5;
 
-    // Card border
-    roundRect(ctx, x, y, W2, H2, 4);
-    ctx.strokeStyle = '#2C3E50';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+        // Card background
+        roundRect(ctx, x, y, W2, H2, 4);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
 
-    // Side dividers — ruled line style
-    ctx.beginPath();
-    ctx.moveTo(x + sideW, y + headerH);
-    ctx.lineTo(x + sideW, y + H2);
-    ctx.moveTo(x + W2 - sideW, y + headerH);
-    ctx.lineTo(x + W2 - sideW, y + H2);
-    ctx.strokeStyle = '#D5C9B0';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
 
-    // Title — ALL CAPS white Poppins
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 10px Poppins, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.letterSpacing = '1.5px';
-    ctx.fillText((c.title || 'UNTITLED').toUpperCase(), x + 6 + (W2 - 6)/2, y + headerH/2 + 4);
-    ctx.letterSpacing = '0px';
+        // Teal left accent border (6px)
+        ctx.fillStyle = '#1ABC9C';
+        ctx.fillRect(x, y, 6, H2);
 
-    // Description
-    if (c.description) {
-      ctx.fillStyle = '#34495E';
-      ctx.font = '500 11px Poppins, sans-serif';
-      ctx.textAlign = 'center';
-      wrapText(ctx, c.description, x + sideW + 4, y + headerH + 16, W2 - sideW*2 - 8, 15);
-    }
+        // Header — slate
+        roundRect(ctx, x + 6, y, W2 - 6, headerH, 4, true);
+        ctx.fillStyle = '#2C3E50';
+        ctx.fill();
 
-    // IN label (horizontal)
-    ctx.fillStyle = '#7F8C8D';
-    ctx.font = 'bold 7px Poppins, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.letterSpacing = '2px';
-    ctx.fillText('IN', x + sideW/2, y + headerH + 9);
+        // Side panels — tan
+        ctx.fillStyle = '#F5EFE0';
+        ctx.fillRect(x + 6, y + headerH, sideW - 6, H2 - headerH);
+        ctx.fillRect(x + W2 - sideW, y + headerH, sideW, H2 - headerH);
 
-    // OUT label (horizontal)
-    ctx.fillText('OUT', x + W2 - sideW/2, y + headerH + 9);
-    ctx.letterSpacing = '0px';
+        // Card border
+        roundRect(ctx, x, y, W2, H2, 4);
+        ctx.strokeStyle = '#2C3E50';
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-    // Input item pills — start below the IN/OUT label
-    const inputStartY = y + headerH + 26;
-    (c.inputs || []).forEach((inp, i) => {
-      const iy = inputStartY + i * 22;
-      ctx.fillStyle = '#FFFFFF';
-      ctx.strokeStyle = '#D5C9B0';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.roundRect(x + 8, iy - 10, sideW - 14, 18, 3);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#34495E';
-      ctx.font = '500 9px Poppins, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(inp.length > 13 ? inp.substring(0, 12) + '…' : inp, x + sideW/2, iy + 4);
-    });
+        // Side dividers — ruled line style
+        ctx.beginPath();
+        ctx.moveTo(x + sideW, y + headerH);
+        ctx.lineTo(x + sideW, y + H2);
+        ctx.moveTo(x + W2 - sideW, y + headerH);
+        ctx.lineTo(x + W2 - sideW, y + H2);
+        ctx.strokeStyle = '#D5C9B0';
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-    // Output item pills
-    (c.outputs || []).forEach((out, i) => {
-      const oy2 = inputStartY + i * 22;
-      ctx.fillStyle = '#FFFFFF';
-      ctx.strokeStyle = '#D5C9B0';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.roundRect(x + W2 - sideW + 6, oy2 - 10, sideW - 14, 18, 3);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#34495E';
-      ctx.font = '500 9px Poppins, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(out.length > 13 ? out.substring(0, 12) + '…' : out, x + W2 - sideW/2, oy2 + 4);
-    });
+        // Title — ALL CAPS white Poppins
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 10px Poppins, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '1.5px';
+        ctx.fillText((c.title || 'UNTITLED').toUpperCase(), x + 6 + (W2 - 6) / 2, y + headerH / 2 + 4);
+        ctx.letterSpacing = '0px';
 
-    // Role badge footer — amber background, dark text
-    if (c.role) {
-      const roleBarH = 26;
-      ctx.fillStyle = '#F39C12';
-      ctx.fillRect(x + 6, y + H2 - roleBarH, W2 - 6, roleBarH);
-      ctx.beginPath();
-      ctx.moveTo(x + 6, y + H2 - roleBarH);
-      ctx.lineTo(x + W2, y + H2 - roleBarH);
-      ctx.strokeStyle = '#d4870a';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.fillStyle = '#1a1a0a';
+        // Description
+        if (c.description) {
+          ctx.fillStyle = '#34495E';
+          ctx.font = '500 11px Poppins, sans-serif';
+          ctx.textAlign = 'center';
+          wrapText(ctx, c.description, x + sideW + 4, y + headerH + 16, W2 - sideW * 2 - 8, 15);
+        }
+
+        // IN label (horizontal)
+        ctx.fillStyle = '#7F8C8D';
+        ctx.font = 'bold 7px Poppins, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '2px';
+        ctx.fillText('IN', x + sideW / 2, y + headerH + 9);
+
+        // OUT label (horizontal)
+        ctx.fillText('OUT', x + W2 - sideW / 2, y + headerH + 9);
+        ctx.letterSpacing = '0px';
+
+        // Input item pills — start below the IN/OUT label
+        const inputStartY = y + headerH + 26;
+        (c.inputs || []).forEach((inp, i) => {
+          const iy = inputStartY + i * 22;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.strokeStyle = '#D5C9B0';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(x + 8, iy - 10, sideW - 14, 18, 3);
+          ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#34495E';
+          ctx.font = '500 9px Poppins, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(inp.length > 13 ? inp.substring(0, 12) + '…' : inp, x + sideW / 2, iy + 4);
+        });
+
+        // Output item pills
+        (c.outputs || []).forEach((out, i) => {
+          const oy2 = inputStartY + i * 22;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.strokeStyle = '#D5C9B0';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(x + W2 - sideW + 6, oy2 - 10, sideW - 14, 18, 3);
+          ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#34495E';
+          ctx.fillStyle = '#34495E';
+          ctx.font = '500 9px Poppins, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(out.length > 13 ? out.substring(0, 12) + '…' : out, x + W2 - sideW / 2, oy2 + 4);
+        });
+
+        // Role badge footer
+        if (c.role) {
+          const roleBarH = 26;
+
+          const colors = {
+            amber: '#F39C12',
+            teal: '#1ABC9C',
+            blue: '#3498DB',
+            red: '#E74C3C',
+            purple: '#9B59B6',
+            green: '#27AE60',
+            yellow: '#F1C40F'
+          };
+          const color = colors[c.color || 'amber'] || colors.amber;
+
+          ctx.fillStyle = color;
+          ctx.fillRect(x + 6, y + H2 - roleBarH, W2 - 6, roleBarH);
+          ctx.beginPath();
+          ctx.moveTo(x + 6, y + H2 - roleBarH);
+          ctx.lineTo(x + W2, y + H2 - roleBarH);
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)'; // simple dark overlay for border
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.fillStyle = '#1a1a0a';
+          ctx.font = 'bold 9px Poppins, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('👤  ' + c.role.toUpperCase(), x + 14, y + H2 - 9);
+        }
+      });
+
+      // Watermark — subtle slate text
+      ctx.fillStyle = 'rgba(44,62,80,0.2)';
       ctx.font = 'bold 9px Poppins, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('👤  ' + c.role.toUpperCase(), x + 14, y + H2 - 9);
+      ctx.letterSpacing = '2px';
+      ctx.textAlign = 'right';
+      ctx.fillText('UPN WORKFLOW BUILDER', W - 12, H - 10);
+      ctx.letterSpacing = '0px';
+
+      // Download
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `${page.name.replace(/\s+/g, '_')}_workflow.png`;
+      a.click();
     }
-  });
 
-  // Watermark — subtle slate text
-  ctx.fillStyle = 'rgba(44,62,80,0.2)';
-  ctx.font = 'bold 9px Poppins, sans-serif';
-  ctx.letterSpacing = '2px';
-  ctx.textAlign = 'right';
-  ctx.fillText('UPN WORKFLOW BUILDER', W - 12, H - 10);
-  ctx.letterSpacing = '0px';
-
-  // Download
-  const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/png');
-  a.download = `${page.name.replace(/\s+/g, '_')}_workflow.png`;
-  a.click();
-}
-
-function drawArrowhead(ctx, x, y, angle) {
-  const size = 10;
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(-size, -size/2.5);
-  ctx.lineTo(-size, size/2.5);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-function roundRect(ctx, x, y, w, h, r, topOnly = false) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  if (topOnly) {
-    ctx.lineTo(x + w, y + h);
-    ctx.lineTo(x, y + h);
-  } else {
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  }
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(' ');
-  let line = '';
-  for (let i = 0; i < words.length; i++) {
-    const test = line + words[i] + ' ';
-    if (ctx.measureText(test).width > maxWidth && i > 0) {
-      ctx.fillText(line, x + maxWidth/2, y);
-      line = words[i] + ' ';
-      y += lineHeight;
-    } else {
-      line = test;
+    function drawArrowhead(ctx, x, y, angle) {
+      const size = 10;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-size, -size / 2.5);
+      ctx.lineTo(-size, size / 2.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
     }
-  }
-  ctx.fillText(line, x + maxWidth/2, y);
-}
 
-// ─── Status ───────────────────────────────────────────────────────────────────
-function updateStatus() {
-  const page = getPage();
-  document.getElementById('status-cards').textContent = `Cards: ${page.cards.length}`;
-  document.getElementById('status-arrows').textContent = `Arrows: ${page.arrows.length}`;
-  document.getElementById('status-zoom').textContent = `Zoom: ${Math.round(state.zoom * 100)}%`;
-}
+    function roundRect(ctx, x, y, w, h, r, topOnly = false) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      if (topOnly) {
+        ctx.lineTo(x + w, y + h);
+        ctx.lineTo(x, y + h);
+      } else {
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      }
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
 
-// ─── Utility ──────────────────────────────────────────────────────────────────
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      for (let i = 0; i < words.length; i++) {
+        const test = line + words[i] + ' ';
+        if (ctx.measureText(test).width > maxWidth && i > 0) {
+          ctx.fillText(line, x + maxWidth / 2, y);
+          line = words[i] + ' ';
+          y += lineHeight;
+        } else {
+          line = test;
+        }
+      }
+      ctx.fillText(line, x + maxWidth / 2, y);
+    }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-state.panX = 40;
-state.panY = 40;
+    // ─── Status ───────────────────────────────────────────────────────────────────
+    function updateStatus() {
+      const page = getPage();
+      document.getElementById('status-cards').textContent = `Cards: ${page.cards.length}`;
+      document.getElementById('status-arrows').textContent = `Arrows: ${page.arrows.length}`;
+      document.getElementById('status-zoom').textContent = `Zoom: ${Math.round(state.zoom * 100)}%`;
+    }
 
-// Add a sample card to get started
-const page = getPage();
-page.cards.push({
-  id: getId(),
-  x: 80,
-  y: 80,
-  title: 'Start Process',
-  role: 'Process Owner',
-  description: 'Begin the workflow here',
-  inputs: ['Request'],
-  outputs: ['Task'],
-});
+    // ─── Utility ──────────────────────────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
 
-render();
-applyTransform();
+    // ─── Init ─────────────────────────────────────────────────────────────────────
+    state.panX = 40;
+    state.panY = 40;
 
-// Resize handler
-window.addEventListener('resize', () => { renderMinimap(); });
-</script>
+    // Add a sample card to get started
+    const page = getPage();
+    page.cards.push({
+      id: getId(),
+      x: 80,
+      y: 80,
+      title: 'Start Process',
+      role: 'Process Owner',
+      description: 'Begin the workflow here',
+      inputs: ['Request'],
+      outputs: ['Task'],
+    });
+
+    render();
+    applyTransform();
+
+    // Resize handler
+    window.addEventListener('resize', () => { renderMinimap(); });
+    // ─── Save / Load ─────────────────────────────────────────────────────────────
+    function saveProject() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "workflow_project.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    function loadProject(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const newState = JSON.parse(e.target.result);
+          // Basic validation
+          if (!newState.pages || !Array.isArray(newState.pages)) {
+            alert("Invalid project file");
+            return;
+          }
+          state = newState;
+          // Ensure we have reasonable defaults for new features if loading old file
+          if (state.zoom === undefined) state.zoom = 1;
+          if (state.panX === undefined) state.panX = 0;
+          if (state.panY === undefined) state.panY = 0;
+
+          // Re-render
+          render();
+        } catch (err) {
+          console.error(err);
+          alert("Error loading project file");
+        }
+      };
+      reader.readAsText(file);
+      // Reset input so same file can be loaded again if needed
+      event.target.value = '';
+    }
+
+  </script>
 </body>
+
 </html>
