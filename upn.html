@@ -1127,6 +1127,59 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+
+    /* ── Swim Lanes ────────────────────────────────────────────────────────── */
+    .swim-lane {
+      position: absolute;
+      background: rgba(245, 239, 224, 0.4);
+      /* F5EFE0 with opacity */
+      border: 2px dashed rgba(44, 62, 80, 0.2);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+      /* Allow interaction */
+      user-select: none;
+      z-index: 0;
+      /* Behind cards (z-index 10) */
+    }
+
+    .swim-lane:hover {
+      border-color: rgba(44, 62, 80, 0.4);
+    }
+
+    .swim-lane.selected {
+      border-color: var(--dept-teal);
+      border-style: solid;
+    }
+
+    .swim-lane-header {
+      height: 30px;
+      background: rgba(44, 62, 80, 0.1);
+      border-bottom: 1px solid rgba(44, 62, 80, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--vault-slate);
+      cursor: grab;
+    }
+
+    .swim-lane-header:active {
+      cursor: grabbing;
+    }
+
+    .swim-lane-resize {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 16px;
+      height: 16px;
+      cursor: nwse-resize;
+      background: linear-gradient(135deg, transparent 50%, rgba(44, 62, 80, 0.3) 50%);
+    }
   </style>
 </head>
 
@@ -1140,6 +1193,13 @@
           <rect x="1" y="6" width="12" height="2" fill="currentColor" />
         </svg>
         Add Card
+      </button>
+      <button class="btn" onclick="addSwimlane()" title="Add Swimlane">
+        <svg width="14" height="14" viewBox="0 0 14 14">
+          <rect x="2" y="2" width="10" height="10" stroke="currentColor" stroke-width="1.5" fill="none" />
+          <line x1="2" y1="5" x2="12" y2="5" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+        Add Lane
       </button>
     </div>
     <div class="tool-sep"></div>
@@ -1455,7 +1515,13 @@
   <script>
     // ─── State ────────────────────────────────────────────────────────────────────
     let state = {
-      pages: [{ id: 'page-1', name: 'Page 1', cards: [], arrows: [] }],
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      activePageId: 'page-1',
+      pages: [
+        { id: 'page-1', name: 'Main Flow', cards: [], arrows: [], swimlanes: [] }
+      ],
       activePage: 0,
       zoom: 1,
       panX: 0,
@@ -1487,7 +1553,54 @@
     const minimapCtx = minimap.getContext('2d');
 
     // ─── Page helpers ─────────────────────────────────────────────────────────────
-    const getPage = () => state.pages[state.activePage];
+    const getPage = () => state.pages.find(p => p.id === state.activePageId);
+
+    function addPage() {
+      const id = 'page-' + getId();
+      state.pages.push({ id, name: 'Page ' + state.pages.length, cards: [], arrows: [], swimlanes: [] });
+      state.activePageId = id;
+      render();
+    }
+
+    function addSwimlane() {
+      const page = getPage();
+      // Ensure specific page has swimlanes array (for old saves)
+      if (!page.swimlanes) page.swimlanes = [];
+
+      let newLane = {
+        id: getId(),
+        x: 0,
+        y: 0,
+        w: 600,
+        h: 250,
+        label: 'Lane ' + (page.swimlanes.length + 1)
+      };
+
+      if (page.swimlanes.length > 0) {
+        // Snap to bottom of last lane
+        // Find the lane with the highest Y + H
+        // Actually, let's just look at the last one added, or sort by Y?
+        // Sorting by Y seems safest to find the "visual bottom"
+        const sorted = [...page.swimlanes].sort((a, b) => (a.y + a.h) - (b.y + b.h));
+        const last = sorted[sorted.length - 1];
+
+        newLane.x = last.x;
+        newLane.y = last.y + last.h + 0; // 0px gap creates a unified "pool" look, or 10px for separate?
+        // User asked for "under the existing lane", often implying adjacent.
+        // Let's do 0 gap but borders distinguish them.
+        newLane.w = last.w;
+        newLane.h = last.h; // match height
+      } else {
+        // Center in view
+        const cx = (canvasEl.clientWidth / 2 - state.panX) / state.zoom;
+        const cy = (canvasEl.clientHeight / 2 - state.panY) / state.zoom;
+        newLane.x = cx - 300; // center of 600w
+        newLane.y = cy - 125; // center of 250h
+      }
+
+      page.swimlanes.push(newLane);
+      render();
+    }
 
     // ─── Render ───────────────────────────────────────────────────────────────────
     function render() {
@@ -1502,8 +1615,58 @@
 
       const page = getPage();
 
-      // Remove old cards
+      // Ensure swimlanes array exists
+      if (!page.swimlanes) page.swimlanes = [];
+
+      // Remove old elements
       worldEl.querySelectorAll('.upn-card').forEach(el => el.remove());
+      worldEl.querySelectorAll('.swim-lane').forEach(el => el.remove());
+
+      // Render Swimlanes FIRST (bottom layer)
+      page.swimlanes.forEach(lane => {
+        const el = document.createElement('div');
+        el.className = 'swim-lane';
+        el.dataset.laneId = lane.id;
+        el.style.left = lane.x + 'px';
+        el.style.top = lane.y + 'px';
+        el.style.width = lane.w + 'px';
+        el.style.height = lane.h + 'px';
+
+        const header = document.createElement('div');
+        header.className = 'swim-lane-header';
+        header.textContent = lane.label;
+        header.addEventListener('mousedown', (e) => startLaneDrag(e, lane.id));
+        header.addEventListener('dblclick', (e) => {
+          e.stopPropagation();
+          const newLabel = prompt('Rename Swimlane:', lane.label);
+          if (newLabel) {
+            lane.label = newLabel;
+            render();
+          }
+        });
+        el.appendChild(header);
+
+        const resize = document.createElement('div');
+        resize.className = 'swim-lane-resize';
+        resize.addEventListener('mousedown', (e) => startLaneResize(e, lane.id));
+        el.appendChild(resize);
+
+        // Delete button (small X)
+        const delBtn = document.createElement('div');
+        delBtn.textContent = '×';
+        delBtn.style.cssText = 'margin-left:auto; cursor:pointer; font-size:16px; padding:0 5px; color:#c0392b;';
+        delBtn.title = 'Delete Lane';
+        delBtn.onclick = (e) => {
+          e.stopPropagation(); // prevent drag start
+          if (confirm('Delete this swimlane?')) {
+            page.swimlanes = page.swimlanes.filter(l => l.id !== lane.id);
+            render();
+          }
+        };
+        header.appendChild(delBtn);
+
+        worldEl.appendChild(el);
+      });
 
       // Render cards FIRST so we can measure exact dimensions (text wrapping etc)
       page.cards.forEach(card => renderCard(card));
@@ -1514,6 +1677,13 @@
         if (card) {
           card._h = el.offsetHeight;
           card._w = el.offsetWidth; // Should be 320, but good to know
+
+          // Measure individual side items for accurate PNG export
+          const leftItems = el.querySelectorAll('.card-side.left .side-item');
+          card._inputsH = Array.from(leftItems).map(item => item.offsetHeight);
+
+          const rightItems = el.querySelectorAll('.card-side.right .side-item');
+          card._outputsH = Array.from(rightItems).map(item => item.offsetHeight);
         }
       });
 
@@ -1867,13 +2037,13 @@
       tabs.innerHTML = '';
       state.pages.forEach((page, i) => {
         const tab = document.createElement('div');
-        tab.className = 'page-tab' + (i === state.activePage ? ' active' : '');
-        tab.innerHTML = `<span class="tab-name" data-page="${i}">${escHtml(page.name)}</span>${state.pages.length > 1 ? `<span class="tab-close" data-del-page="${i}">✕</span>` : ''}`;
+        tab.className = 'page-tab' + (page.id === state.activePageId ? ' active' : '');
+        tab.innerHTML = `<span class="tab-name" data-page-id="${page.id}">${escHtml(page.name)}</span>${state.pages.length > 1 ? `<span class="tab-close" data-del-page-id="${page.id}">✕</span>` : ''}`;
         tab.addEventListener('click', e => {
-          if (e.target.dataset.delPage !== undefined) {
-            deletePage(+e.target.dataset.delPage);
+          if (e.target.dataset.delPageId) {
+            deletePage(e.target.dataset.delPageId);
           } else {
-            switchPage(i);
+            switchPage(page.id);
           }
         });
         tab.addEventListener('dblclick', e => {
@@ -1886,24 +2056,35 @@
       });
     }
 
-    function addPage() {
-      const id = getId();
-      state.pages.push({ id, name: `Page ${state.pages.length + 1}`, cards: [], arrows: [] });
-      switchPage(state.pages.length - 1);
-    }
+    // Note: addPage is defined earlier (line ~1550)
 
-    function switchPage(i) {
-      state.activePage = i;
+    function switchPage(pageId) {
+      // If switching to an index (legacy call), find ID
+      if (typeof pageId === 'number') {
+        if (state.pages[pageId]) pageId = state.pages[pageId].id;
+        else return;
+      }
+
+      state.activePageId = pageId;
       selectedCard = null;
       selectedArrow = null;
       render();
     }
 
-    function deletePage(i) {
+    function deletePage(pageId) {
       if (state.pages.length === 1) return;
-      if (!confirm(`Delete "${state.pages[i].name}"?`)) return;
-      state.pages.splice(i, 1);
-      state.activePage = Math.min(state.activePage, state.pages.length - 1);
+      const pageName = state.pages.find(p => p.id === pageId)?.name || 'Page';
+      if (!confirm(`Delete "${pageName}"?`)) return;
+
+      const index = state.pages.findIndex(p => p.id === pageId);
+      state.pages = state.pages.filter(p => p.id !== pageId);
+
+      // If we deleted the active page, switch to another
+      if (state.activePageId === pageId) {
+        // Switch to previous, or first
+        const newIndex = Math.max(0, index - 1);
+        state.activePageId = state.pages[newIndex].id;
+      }
       render();
     }
 
@@ -1960,21 +2141,153 @@
     }
 
     // ─── Drag ─────────────────────────────────────────────────────────────────────
+    let laneDragging = null;
+    let laneResizing = null;
+
     function startDrag(e, cardId) {
       if (arrowMode) return;
       const page = getPage();
-      const card = page.cards.find(c => c.id === cardId);
       const worldPos = screenToWorld(e.clientX, e.clientY);
-      dragging = {
-        cardId,
+
+      // Check for swim lane interaction FIRST (resize handle or header)
+      // Actually, standard event bubbling means we can attach listeners to the elements?
+      // But we are using a global mousemove.
+      // Let's attach listeners to the swim lane elements in renderSwimlanes? 
+      // No, let's keep it centralized if possible, OR use the specific element listeners.
+      // In renderSwimlanes we attached click handlers.
+      // Let's rely on specific mousedown handlers on the lane elements.
+
+      // Card drag logic
+      if (cardId) {
+        const card = page.cards.find(c => c.id === cardId);
+        dragging = {
+          cardId,
+          startWorldX: worldPos.x,
+          startWorldY: worldPos.y,
+          origX: card.x,
+          origY: card.y,
+        };
+        selectCard(cardId);
+        e.preventDefault();
+      }
+    }
+
+    // Lane interaction helper (attached to elements in renderWorld)
+    function startLaneDrag(e, laneId) {
+      e.stopPropagation();
+      const page = getPage();
+      const lane = page.swimlanes.find(l => l.id === laneId);
+      const worldPos = screenToWorld(e.clientX, e.clientY);
+      laneDragging = {
+        laneId,
         startWorldX: worldPos.x,
         startWorldY: worldPos.y,
-        origX: card.x,
-        origY: card.y,
+        origX: lane.x,
+        origY: lane.y
       };
-      selectCard(cardId);
-      e.preventDefault();
     }
+
+    function startLaneResize(e, laneId) {
+      e.stopPropagation();
+      const page = getPage();
+      const lane = page.swimlanes.find(l => l.id === laneId);
+      const worldPos = screenToWorld(e.clientX, e.clientY);
+      laneResizing = {
+        laneId,
+        startWorldX: worldPos.x,
+        startWorldY: worldPos.y,
+        origW: lane.w,
+        origH: lane.h
+      };
+    }
+
+    // ─── Events (Global move/up) ──────────────────────────────────────────────────
+    document.addEventListener('mousemove', e => {
+      const rect = canvasEl.getBoundingClientRect();
+      mouseWorldPos = screenToWorld(e.clientX, e.clientY);
+
+      if (panning) {
+        state.panX = panStart.panX + (e.clientX - panStart.x);
+        state.panY = panStart.panY + (e.clientY - panStart.y);
+        applyTransform();
+        renderMinimap();
+        return;
+      }
+
+      if (dragging) {
+        const worldPos = screenToWorld(e.clientX, e.clientY);
+        const page = getPage();
+        const card = page.cards.find(c => c.id === dragging.cardId);
+        if (card) {
+          card.x = dragging.origX + (worldPos.x - dragging.startWorldX);
+          card.y = dragging.origY + (worldPos.y - dragging.startWorldY);
+          const el = worldEl.querySelector(`[data-card-id="${dragging.cardId}"]`);
+          if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
+          arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
+          page.arrows.forEach(arr => renderArrow(arr));
+          renderMinimap();
+        }
+        return;
+      }
+
+      if (laneDragging) {
+        const worldPos = screenToWorld(e.clientX, e.clientY);
+        const page = getPage();
+        const lane = page.swimlanes.find(l => l.id === laneDragging.laneId);
+        if (lane) {
+          lane.x = laneDragging.origX + (worldPos.x - laneDragging.startWorldX);
+          lane.y = laneDragging.origY + (worldPos.y - laneDragging.startWorldY);
+          const el = worldEl.querySelector(`.swim-lane[data-lane-id="${laneDragging.laneId}"]`);
+          if (el) { el.style.left = lane.x + 'px'; el.style.top = lane.y + 'px'; }
+        }
+        return;
+      }
+
+      if (laneResizing) {
+        const worldPos = screenToWorld(e.clientX, e.clientY);
+        const page = getPage();
+        const lane = page.swimlanes.find(l => l.id === laneResizing.laneId);
+        if (lane) {
+          lane.w = Math.max(100, laneResizing.origW + (worldPos.x - laneResizing.startWorldX));
+          lane.h = Math.max(50, laneResizing.origH + (worldPos.y - laneResizing.startWorldY));
+          const el = worldEl.querySelector(`.swim-lane[data-lane-id="${laneResizing.laneId}"]`);
+          if (el) { el.style.width = lane.w + 'px'; el.style.height = lane.h + 'px'; }
+        }
+        return;
+      }
+
+      if (arrowFrom) {
+        // ... (existing arrow logic)
+        const page = getPage();
+        const fromCard = page.cards.find(c => c.id === arrowFrom.cardId);
+        if (fromCard) {
+          const from = getPortPos(fromCard, arrowFrom.port);
+          const to = mouseWorldPos;
+          let toDir = 'left';
+          if (arrowFrom.port === 'left') toDir = 'right';
+          if (arrowFrom.port === 'top') toDir = 'bottom';
+          if (arrowFrom.port === 'bottom') toDir = 'top';
+          tempArrow.setAttribute('d', smartBezierPath(from, to, arrowFrom.port, toDir));
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', e => {
+      if (panning) {
+        panning = false;
+        canvasEl.classList.remove('panning');
+      }
+      if (dragging) {
+        dragging = null;
+        renderMinimap();
+      }
+      if (laneDragging) {
+        laneDragging = null;
+      }
+      if (laneResizing) {
+        laneResizing = null;
+      }
+    });
 
     // ─── Arrow drawing ────────────────────────────────────────────────────────────
     function handlePortClick(e, cardId, port) {
@@ -2600,21 +2913,90 @@
       parsedImportRows = [];
     }
 
+    function getWrapLines(ctx, text, maxWidth) {
+      const words = text.split(' ');
+      let line = '';
+      let testLine = '';
+      let lineArray = [];
+      for (let n = 0; n < words.length; n++) {
+        testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+          lineArray.push(line);
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lineArray.push(line);
+      return lineArray;
+    }
+
     // ─── Export PNG ───────────────────────────────────────────────────────────────
     async function exportPNG() {
       const page = getPage();
       if (!page.cards.length) { alert('Add some cards first!'); return; }
 
+      const canvasForMeas = document.createElement('canvas');
+      const ctxMeas = canvasForMeas.getContext('2d');
+      const SCALE = 2;
+
+      // 1. Calculate Canvas-specific heights for all cards
+      page.cards.forEach(c => {
+        const W2 = 320;
+        const sideW = 84;
+        const mainW = W2 - (sideW * 2);
+
+        ctxMeas.font = '500 11px Poppins, sans-serif'; // Desc font
+        const descLines = c.description ? getWrapLines(ctxMeas, c.description, mainW - 16) : [];
+        const descH = 36 + 16 + (descLines.length * 15) + 20; // Header + topPad + text + botPad
+
+        ctxMeas.font = '500 9px Poppins, sans-serif'; // Item font
+        // Measure Inputs
+        let inputY = 36 + 26;
+        const inputs = c.inputs || [];
+        const inputLinesPerItem = inputs.map(t => getWrapLines(ctxMeas, t, sideW - 22)); // sideW - 14(box) - 8(pad)
+        inputLinesPerItem.forEach(lines => {
+          const boxH = Math.max(18, lines.length * 11 + 6); // min 18px, or text + pad
+          inputY += boxH + 4; // box + margin
+        });
+        const inputsH = inputY + 10;
+
+        // Measure Outputs
+        let outputY = 36 + 26;
+        const outputs = c.outputs || [];
+        const outputLinesPerItem = outputs.map(t => getWrapLines(ctxMeas, t, sideW - 22));
+        outputLinesPerItem.forEach(lines => {
+          const boxH = Math.max(18, lines.length * 11 + 6);
+          outputY += boxH + 4;
+        });
+        const outputsH = outputY + 10;
+
+        // Total Height
+        const calcH = Math.max(160, descH, inputsH, outputsH);
+
+        // Store for drawing
+        c._canvasH = calcH;
+        c._h = calcH; // Override for arrow routing
+        c._descLines = descLines;
+        c._inputLines = inputLinesPerItem;
+        c._outputLines = outputLinesPerItem;
+      });
+
       // Find bounding box
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       page.cards.forEach(c => {
-        minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-        maxX = Math.max(maxX, c.x + 320); maxY = Math.max(maxY, c.y + getCardHeight(c));
+        const w = 320;
+        const h = c._canvasH;
+        minX = Math.min(minX, c.x);
+        minY = Math.min(minY, c.y);
+        maxX = Math.max(maxX, c.x + w);
+        maxY = Math.max(maxY, c.y + h);
       });
       const pad = 80;
       minX -= pad; minY -= pad; maxX += pad; maxY += pad;
       const W = maxX - minX, H = maxY - minY;
-      const SCALE = 2; // retina
 
       const canvas = document.createElement('canvas');
       canvas.width = W * SCALE;
@@ -2630,6 +3012,34 @@
       ctx.lineWidth = 0.5;
       for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
       for (let gy = 0; gy < H; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+      // Draw Swimlanes
+      const swimlanes = page.swimlanes || [];
+      swimlanes.forEach(lane => {
+        const lx = lane.x - minX;
+        const ly = lane.y - minY;
+
+        // Fill
+        ctx.fillStyle = 'rgba(245, 239, 224, 0.4)';
+        ctx.fillRect(lx, ly, lane.w, lane.h);
+
+        // Border
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.2)';
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(lx, ly, lane.w, lane.h);
+        ctx.setLineDash([]);
+
+        // Header
+        ctx.fillStyle = 'rgba(44, 62, 80, 0.1)';
+        ctx.fillRect(lx, ly, lane.w, 30);
+
+        // Header Label
+        ctx.fillStyle = '#2C3E50';
+        ctx.font = '600 12px Poppins, sans-serif'; // roughly matches CSS 12px
+        ctx.textAlign = 'left';
+        ctx.fillText(lane.label, lx + 10, ly + 20);
+      });
 
       // Draw arrows
       ctx.strokeStyle = '#34495E';
@@ -2685,6 +3095,9 @@
         // Label
         if (arr.label) {
           const mid = { x: (from.x + to.x) / 2 - minX, y: (from.y + to.y) / 2 - minY };
+          // Need to fix label position if using Bezier mid
+          // But getPortPos uses measured coords, so simple mid might be off if curve is large.
+          // For export simplicity, linear mid is often "okay" but let's stick to what we have.
           ctx.font = '600 11px Poppins, sans-serif';
           const tw = ctx.measureText(arr.label).width;
           ctx.fillStyle = '#F5EFE0';
@@ -2704,7 +3117,7 @@
       // Draw cards
       page.cards.forEach(c => {
         const x = c.x - minX, y = c.y - minY;
-        const W2 = c._w || 320, H2 = c._h || getCardHeight(c);
+        const W2 = 320, H2 = c._canvasH;
         const headerH = 36;
         const sideW = 84;
 
@@ -2721,7 +3134,9 @@
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
 
-        // Teal left accent border (6px)
+        // Teal left accent border (6px) OR department color if needed? Style guide says default cards have it?
+        // Actually style guide says Dept Indicators use heavy border on left.
+        // For now, keeping hardcoded teal as per original code, or map to dept color if we want full consistency.
         ctx.fillStyle = '#1ABC9C';
         ctx.fillRect(x, y, 6, H2);
 
@@ -2760,11 +3175,13 @@
         ctx.letterSpacing = '0px';
 
         // Description
-        if (c.description) {
+        if (c._descLines && c._descLines.length > 0) {
           ctx.fillStyle = '#34495E';
           ctx.font = '500 11px Poppins, sans-serif';
           ctx.textAlign = 'center';
-          wrapText(ctx, c.description, x + sideW + 4, y + headerH + 16, W2 - sideW * 2 - 8, 15);
+          c._descLines.forEach((line, k) => {
+            ctx.fillText(line, x + sideW + 4 + (W2 - sideW * 2 - 8) / 2, y + headerH + 16 + (k * 15));
+          });
         }
 
         // IN label (horizontal)
@@ -2778,36 +3195,50 @@
         ctx.fillText('OUT', x + W2 - sideW / 2, y + headerH + 9);
         ctx.letterSpacing = '0px';
 
-        // Input item pills — start below the IN/OUT label
-        const inputStartY = y + headerH + 26;
-        (c.inputs || []).forEach((inp, i) => {
-          const iy = inputStartY + i * 22;
+        // Input item pills
+        let currentY = y + headerH + 26;
+        (c._inputLines || []).forEach((lines, i) => {
+          const boxH = Math.max(18, lines.length * 11 + 6);
+
           ctx.fillStyle = '#FFFFFF';
           ctx.strokeStyle = '#D5C9B0';
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.roundRect(x + 8, iy - 10, sideW - 14, 18, 3);
+          ctx.roundRect(x + 8, currentY, sideW - 14, boxH, 3);
           ctx.fill(); ctx.stroke();
+
           ctx.fillStyle = '#34495E';
           ctx.font = '500 9px Poppins, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(inp.length > 13 ? inp.substring(0, 12) + '…' : inp, x + sideW / 2, iy + 4);
+          ctx.textAlign = 'left';
+
+          lines.forEach((l, k) => {
+            ctx.fillText(l, x + 8 + 4, currentY + 10 + (k * 11));
+          });
+
+          currentY += boxH + 4;
         });
 
         // Output item pills
-        (c.outputs || []).forEach((out, i) => {
-          const oy2 = inputStartY + i * 22;
+        currentY = y + headerH + 26;
+        (c._outputLines || []).forEach((lines, i) => {
+          const boxH = Math.max(18, lines.length * 11 + 6);
+
           ctx.fillStyle = '#FFFFFF';
           ctx.strokeStyle = '#D5C9B0';
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.roundRect(x + W2 - sideW + 6, oy2 - 10, sideW - 14, 18, 3);
+          ctx.roundRect(x + W2 - sideW + 6, currentY, sideW - 14, boxH, 3);
           ctx.fill(); ctx.stroke();
-          ctx.fillStyle = '#34495E';
+
           ctx.fillStyle = '#34495E';
           ctx.font = '500 9px Poppins, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(out.length > 13 ? out.substring(0, 12) + '…' : out, x + W2 - sideW / 2, oy2 + 4);
+          ctx.textAlign = 'left';
+
+          lines.forEach((l, k) => {
+            ctx.fillText(l, x + W2 - sideW + 6 + 4, currentY + 10 + (k * 11));
+          });
+
+          currentY += boxH + 4;
         });
 
         // Role badge footer
@@ -2848,12 +3279,13 @@
       ctx.fillText('UPN WORKFLOW BUILDER', W - 12, H - 10);
       ctx.letterSpacing = '0px';
 
-      // Download
-      const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = `${page.name.replace(/\s+/g, '_')}_workflow.png`;
-      a.click();
+      const link = document.createElement('a');
+      link.download = 'workflow.png';
+      link.href = canvas.toDataURL();
+      link.click();
     }
+
+
 
     function drawArrowhead(ctx, x, y, angle) {
       const size = 10;
@@ -2888,21 +3320,7 @@
       ctx.closePath();
     }
 
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-      const words = text.split(' ');
-      let line = '';
-      for (let i = 0; i < words.length; i++) {
-        const test = line + words[i] + ' ';
-        if (ctx.measureText(test).width > maxWidth && i > 0) {
-          ctx.fillText(line, x + maxWidth / 2, y);
-          line = words[i] + ' ';
-          y += lineHeight;
-        } else {
-          line = test;
-        }
-      }
-      ctx.fillText(line, x + maxWidth / 2, y);
-    }
+
 
     // ─── Status ───────────────────────────────────────────────────────────────────
     function updateStatus() {
@@ -2971,6 +3389,26 @@
           if (state.zoom === undefined) state.zoom = 1;
           if (state.panX === undefined) state.panX = 0;
           if (state.panY === undefined) state.panY = 0;
+
+          // MIGRATION: Index -> ID
+          if (!state.activePageId) {
+            state.pages.forEach(p => {
+              if (!p.id) p.id = 'page-' + getId();
+              if (!p.swimlanes) p.swimlanes = [];
+            });
+            // Use old activePage index if available, else 0
+            const idx = (typeof state.activePage === 'number') ? state.activePage : 0;
+            if (state.pages[idx]) {
+              state.activePageId = state.pages[idx].id;
+            } else if (state.pages.length > 0) {
+              state.activePageId = state.pages[0].id;
+            }
+          } else {
+            // Just ensure swimlanes exist
+            state.pages.forEach(p => {
+              if (!p.swimlanes) p.swimlanes = [];
+            });
+          }
 
           // Re-render
           render();
