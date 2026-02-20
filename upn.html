@@ -1707,14 +1707,14 @@ async function exportPNG() {
     ctx.font = 'bold 7px Poppins, sans-serif';
     ctx.textAlign = 'center';
     ctx.letterSpacing = '2px';
-    ctx.fillText('IN', x + sideW/2, y + headerH + 10);
+    ctx.fillText('IN', x + sideW/2, y + headerH + 9);
 
     // OUT label (horizontal)
-    ctx.fillText('OUT', x + W2 - sideW/2, y + headerH + 10);
+    ctx.fillText('OUT', x + W2 - sideW/2, y + headerH + 9);
     ctx.letterSpacing = '0px';
 
-    // Input item pills
-    const inputStartY = y + headerH + 20;
+    // Input item pills — start below the IN/OUT label
+    const inputStartY = y + headerH + 26;
     (c.inputs || []).forEach((inp, i) => {
       const iy = inputStartY + i * 22;
       ctx.fillStyle = '#FFFFFF';
