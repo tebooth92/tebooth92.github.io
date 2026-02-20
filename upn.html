@@ -1180,29 +1180,232 @@
       cursor: nwse-resize;
       background: linear-gradient(135deg, transparent 50%, rgba(44, 62, 80, 0.3) 50%);
     }
+
+    /* ── Side Panel ────────────────────────────────────────────────────────── */
+    .side-panel {
+      position: absolute;
+      top: 60px;
+      /* Below toolbar */
+      left: 20px;
+      width: 50px;
+      /* Collapsed / Icon only width */
+      background: white;
+      border: 1px solid #BDC3C7;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      padding: 10px 0;
+      z-index: 100;
+      transition: width 0.2s;
+      overflow: hidden;
+    }
+
+    .side-panel:hover {
+      width: 160px;
+      /* Expand on hover to show labels */
+    }
+
+    .tool-section {
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .tool-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .tool-btn {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      cursor: pointer;
+      color: var(--vault-slate);
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .tool-btn:hover {
+      background: var(--vault-light);
+    }
+
+    .tool-btn svg,
+    .tool-btn .btn-icon {
+      margin-right: 12px;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* Text Box Colors */
+    .text-color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      display: inline-block;
+    }
+
+    .bg-white {
+      background: #FFFFFF;
+    }
+
+    .bg-green {
+      background: #E8F8F5;
+      border-color: #1ABC9C;
+    }
+
+    /* Light teal */
+    .bg-red {
+      background: #FADBD8;
+      border-color: #E74C3C;
+    }
+
+    /* Light red */
+    .bg-yellow {
+      background: #FCF3CF;
+      border-color: #F1C40F;
+    }
+
+    /* Light yellow */
+
+    /* ── Review Icons & Text ────────────────────────────────────────────────── */
+    .icon-element {
+      position: absolute;
+      font-size: 24px;
+      cursor: grab;
+      z-index: 20;
+      /* Above cards? Or same level? Above cards makes sense for overlays */
+      user-select: none;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+    }
+
+    .icon-element:active {
+      cursor: grabbing;
+    }
+
+    .text-element {
+      position: absolute;
+      padding: 8px 12px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--vault-slate);
+      min-width: 50px;
+      cursor: grab;
+      z-index: 15;
+      /* Above cards */
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .text-resize-handle {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      cursor: nwse-resize;
+      background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.2) 50%);
+      border-radius: 0 0 2px 0;
+      display: none;
+      /* Show on hover */
+    }
+
+    .text-element:hover .text-resize-handle {
+      display: block;
+    }
+
+    .text-element.selected {
+      border: 2px solid var(--dept-teal);
+    }
+
+    /* Context Menu for deleting/changing color */
+    .context-menu {
+      position: absolute;
+      background: white;
+      border: 1px solid #BDC3C7;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      min-width: 120px;
+    }
+
+    .ctx-item {
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--vault-slate);
+    }
+
+    .ctx-item:hover {
+      background: var(--vault-light);
+    }
+
+    .ctx-sep {
+      height: 1px;
+      background: #eee;
+      margin: 4px 0;
+    }
   </style>
 </head>
 
 <body>
 
-  <div id="toolbar">
-    <div class="tool-group">
-      <button class="btn primary" onclick="addCard()">
-        <svg width="14" height="14" viewBox="0 0 14 14">
-          <rect x="6" y="1" width="2" height="12" fill="currentColor" />
-          <rect x="1" y="6" width="12" height="2" fill="currentColor" />
-        </svg>
-        Add Card
-      </button>
-      <button class="btn" onclick="addSwimlane()" title="Add Swimlane">
-        <svg width="14" height="14" viewBox="0 0 14 14">
-          <rect x="2" y="2" width="10" height="10" stroke="currentColor" stroke-width="1.5" fill="none" />
-          <line x1="2" y1="5" x2="12" y2="5" stroke="currentColor" stroke-width="1.5" />
-        </svg>
-        Add Lane
-      </button>
+  <!-- Side Panel -->
+  <div class="side-panel">
+    <!-- Main Tools -->
+    <div class="tool-section">
+      <div class="tool-btn" onclick="addCard()" title="Add Card">
+        <span class="btn-icon">⬜</span> Add Card
+      </div>
+      <div class="tool-btn" onclick="addSwimlane()" title="Add Lane">
+        <span class="btn-icon">🏊</span> Add Lane
+      </div>
     </div>
-    <div class="tool-sep"></div>
+
+    <!-- Text Tools -->
+    <div class="tool-section">
+      <div class="tool-btn" onclick="addText('yellow')" title="Add Text Note">
+        <span class="btn-icon"
+          style="background:#FCF3CF; border:1px solid #F1C40F; width:16px; height:16px; border-radius:2px; display:inline-block;"></span>
+        Add Note
+      </div>
+    </div>
+
+    <!-- Icon Tools -->
+    <div class="tool-section">
+      <div class="tool-btn" onclick="addIcon('question')" title="Question Mark">
+        <span class="btn-icon">❓</span> Question
+      </div>
+      <div class="tool-btn" onclick="addIcon('exclamation')" title="Exclamation">
+        <span class="btn-icon">❗</span> Alert
+      </div>
+      <div class="tool-btn" onclick="addIcon('danger')" title="Danger">
+        <span class="btn-icon">⚠️</span> Danger
+      </div>
+      <div class="tool-btn" onclick="addIcon('info')" title="Info">
+        <span class="btn-icon">ℹ️</span> Info
+      </div>
+      <div class="tool-btn" onclick="addIcon('check')" title="Check">
+        <span class="btn-icon">✅</span> Check
+      </div>
+      <div class="tool-btn" onclick="addIcon('cross')" title="Cross">
+        <span class="btn-icon">❌</span> Cross
+      </div>
+    </div>
+  </div>
+
+  <!-- Context Menu -->
+  <div id="ctx-menu" class="context-menu"></div>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
     <div class="tool-group">
       <button class="btn" onclick="zoomIn()">
         <svg width="14" height="14" viewBox="0 0 14 14">
@@ -1254,7 +1457,6 @@
       </svg>
       Load
     </button>
-    <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="loadProject(event)" />
     <div class="tool-sep"></div>
     <button class="btn primary" onclick="exportPNG()">
       <svg width="14" height="14" viewBox="0 0 14 14">
@@ -1520,7 +1722,7 @@
       panY: 0,
       activePageId: 'page-1',
       pages: [
-        { id: 'page-1', name: 'Main Flow', cards: [], arrows: [], swimlanes: [] }
+        { id: 'page-1', name: 'Main Flow', cards: [], arrows: [], swimlanes: [], icons: [], texts: [] }
       ],
       activePage: 0,
       zoom: 1,
@@ -1602,6 +1804,98 @@
       render();
     }
 
+    function addIcon(type) {
+      const page = getPage();
+      if (!page.icons) page.icons = [];
+      // Center in view
+      const cx = (canvasEl.clientWidth / 2 - state.panX) / state.zoom;
+      const cy = (canvasEl.clientHeight / 2 - state.panY) / state.zoom;
+      page.icons.push({
+        id: getId(),
+        x: cx,
+        y: cy,
+        type: type
+      });
+      render();
+    }
+
+    function addText(color) {
+      const page = getPage();
+      if (!page.texts) page.texts = [];
+      const cx = (canvasEl.clientWidth / 2 - state.panX) / state.zoom;
+      const cy = (canvasEl.clientHeight / 2 - state.panY) / state.zoom;
+      page.texts.push({
+        id: getId(),
+        x: cx,
+        y: cy,
+        w: 200,
+        content: 'New Note',
+        color: color || 'yellow'
+      });
+      render();
+    }
+
+    function getIconEmoji(type) {
+      switch (type) {
+        case 'question': return '❓';
+        case 'exclamation': return '❗';
+        case 'danger': return '⚠️';
+        case 'info': return 'ℹ️';
+        case 'check': return '✅';
+        case 'cross': return '❌';
+        default: return '❓';
+      }
+    }
+
+    // Context Menu
+    let ctxMenuTarget = null; // { type: 'text'|'icon', id: '...' }
+
+    function showCtxMenu(e, type, id) {
+      e.preventDefault();
+      e.stopPropagation();
+      ctxMenuTarget = { type, id };
+      const menu = document.getElementById('ctx-menu');
+      menu.style.display = 'flex';
+      menu.style.left = e.clientX + 'px';
+      menu.style.top = e.clientY + 'px';
+
+      let html = '';
+      if (type === 'text') {
+        html += `<div class="ctx-item" onclick="changeTextColor('white')"><span class="text-color-dot bg-white"></span> White</div>`;
+        html += `<div class="ctx-item" onclick="changeTextColor('green')"><span class="text-color-dot bg-green"></span> Green</div>`;
+        html += `<div class="ctx-item" onclick="changeTextColor('red')"><span class="text-color-dot bg-red"></span> Red</div>`;
+        html += `<div class="ctx-item" onclick="changeTextColor('yellow')"><span class="text-color-dot bg-yellow"></span> Yellow</div>`;
+        html += `<div class="ctx-sep"></div>`;
+      }
+      html += `<div class="ctx-item" onclick="deleteCtxTarget()">Delete</div>`;
+      menu.innerHTML = html;
+
+      // Close on click elsewhere
+      const closer = () => {
+        menu.style.display = 'none';
+        document.removeEventListener('click', closer);
+      };
+      document.addEventListener('click', closer);
+    }
+
+    function changeTextColor(color) {
+      if (!ctxMenuTarget || ctxMenuTarget.type !== 'text') return;
+      const page = getPage();
+      const text = page.texts.find(t => t.id === ctxMenuTarget.id);
+      if (text) { text.color = color; render(); }
+    }
+
+    function deleteCtxTarget() {
+      if (!ctxMenuTarget) return;
+      const page = getPage();
+      if (ctxMenuTarget.type === 'text') {
+        page.texts = page.texts.filter(t => t.id !== ctxMenuTarget.id);
+      } else if (ctxMenuTarget.type === 'icon') {
+        page.icons = page.icons.filter(i => i.id !== ctxMenuTarget.id);
+      }
+      render();
+    }
+
     // ─── Render ───────────────────────────────────────────────────────────────────
     function render() {
       renderWorld();
@@ -1621,6 +1915,8 @@
       // Remove old elements
       worldEl.querySelectorAll('.upn-card').forEach(el => el.remove());
       worldEl.querySelectorAll('.swim-lane').forEach(el => el.remove());
+      worldEl.querySelectorAll('.icon-element').forEach(el => el.remove());
+      worldEl.querySelectorAll('.text-element').forEach(el => el.remove());
 
       // Render Swimlanes FIRST (bottom layer)
       page.swimlanes.forEach(lane => {
@@ -1664,6 +1960,66 @@
           }
         };
         header.appendChild(delBtn);
+
+        worldEl.appendChild(el);
+      });
+
+      // Render Icons
+      if (!page.icons) page.icons = [];
+      page.icons.forEach(icon => {
+        const el = document.createElement('div');
+        el.className = 'icon-element';
+        el.style.left = icon.x + 'px';
+        el.style.top = icon.y + 'px';
+        el.innerHTML = getIconEmoji(icon.type);
+        el.addEventListener('mousedown', e => startIconDrag(e, icon.id));
+        el.addEventListener('contextmenu', e => showCtxMenu(e, 'icon', icon.id));
+        worldEl.appendChild(el);
+      });
+
+      // Render Texts
+      if (!page.texts) page.texts = [];
+      (page.texts || []).forEach(text => {
+        const el = document.createElement('div');
+        el.className = 'text-element';
+        el.dataset.textId = text.id;
+        el.style.left = text.x + 'px';
+        el.style.top = text.y + 'px';
+        el.style.width = (text.w || 200) + 'px';
+        if (text.h) el.style.minHeight = text.h + 'px';
+
+        let bg = '#FFFFFF';
+        let border = 'rgba(0,0,0,0.1)';
+        if (text.color === 'green') { bg = '#E8F8F5'; border = '#1ABC9C'; }
+        if (text.color === 'red') { bg = '#FADBD8'; border = '#E74C3C'; }
+        if (text.color === 'yellow') { bg = '#FCF3CF'; border = '#F1C40F'; }
+
+        el.style.background = bg;
+        el.style.borderColor = border;
+
+        const content = document.createElement('div');
+        content.textContent = text.content;
+        el.appendChild(content);
+
+        // Resize Handle
+        const handle = document.createElement('div');
+        handle.className = 'text-resize-handle';
+        handle.addEventListener('mousedown', (e) => startTextResize(e, text.id));
+        el.appendChild(handle);
+
+        el.addEventListener('mousedown', (e) => {
+          if (e.target === handle) return; // let handle take precedence
+          startTextDrag(e, text.id);
+        });
+        el.addEventListener('dblclick', (e) => {
+          e.stopPropagation();
+          const newText = prompt('Edit Note:', text.content);
+          if (newText !== null) {
+            text.content = newText;
+            render();
+          }
+        });
+        el.addEventListener('contextmenu', (e) => showCtxMenu(e, 'text', text.id));
 
         worldEl.appendChild(el);
       });
@@ -1754,7 +2110,9 @@
       // Delete button
       el.querySelector('.card-delete').addEventListener('click', e => {
         e.stopPropagation();
-        deleteCard(card.id);
+        if (confirm(`Delete card "${card.title || 'Untitled'}"?`)) {
+          deleteCard(card.id);
+        }
       });
 
       // Ports
@@ -2143,19 +2501,13 @@
     // ─── Drag ─────────────────────────────────────────────────────────────────────
     let laneDragging = null;
     let laneResizing = null;
+    let iconDragging = null;
+    let textDragging = null;
 
     function startDrag(e, cardId) {
       if (arrowMode) return;
       const page = getPage();
       const worldPos = screenToWorld(e.clientX, e.clientY);
-
-      // Check for swim lane interaction FIRST (resize handle or header)
-      // Actually, standard event bubbling means we can attach listeners to the elements?
-      // But we are using a global mousemove.
-      // Let's attach listeners to the swim lane elements in renderSwimlanes? 
-      // No, let's keep it centralized if possible, OR use the specific element listeners.
-      // In renderSwimlanes we attached click handlers.
-      // Let's rely on specific mousedown handlers on the lane elements.
 
       // Card drag logic
       if (cardId) {
@@ -2201,7 +2553,40 @@
       };
     }
 
+    function startIconDrag(e, iconId) {
+      e.stopPropagation();
+      e.preventDefault(); // prevent text selection
+      const page = getPage();
+      const icon = page.icons.find(i => i.id === iconId);
+      const worldPos = screenToWorld(e.clientX, e.clientY);
+      iconDragging = {
+        iconId,
+        startWorldX: worldPos.x,
+        startWorldY: worldPos.y,
+        origX: icon.x,
+        origY: icon.y
+      };
+    }
+
+    function startTextDrag(e, textId) {
+      e.stopPropagation();
+      e.preventDefault();
+      const page = getPage();
+      const text = page.texts.find(t => t.id === textId);
+      const worldPos = screenToWorld(e.clientX, e.clientY);
+      textDragging = {
+        textId,
+        startWorldX: worldPos.x,
+        startWorldY: worldPos.y,
+        origX: text.x,
+        origY: text.y
+      };
+    }
+
     // ─── Events (Global move/up) ──────────────────────────────────────────────────
+
+    let textResizing = null; // { textId, startX, startY, startW, startH }
+
     document.addEventListener('mousemove', e => {
       const rect = canvasEl.getBoundingClientRect();
       mouseWorldPos = screenToWorld(e.clientX, e.clientY);
@@ -2218,76 +2603,131 @@
         const worldPos = screenToWorld(e.clientX, e.clientY);
         const page = getPage();
         const card = page.cards.find(c => c.id === dragging.cardId);
-        if (card) {
-          card.x = dragging.origX + (worldPos.x - dragging.startWorldX);
-          card.y = dragging.origY + (worldPos.y - dragging.startWorldY);
-          const el = worldEl.querySelector(`[data-card-id="${dragging.cardId}"]`);
-          if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
-          arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
-          page.arrows.forEach(arr => renderArrow(arr));
-          renderMinimap();
-        }
+        card.x = dragging.origX + (worldPos.x - dragging.startWorldX);
+        card.y = dragging.origY + (worldPos.y - dragging.startWorldY);
+        // Move card element directly for performance
+        const el = worldEl.querySelector(`[data-card-id="${dragging.cardId}"]`);
+        if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
+        // Re-render arrows
+        arrowsSvg.querySelectorAll('.arrow-group').forEach(el => el.remove());
+        page.arrows.forEach(arr => renderArrow(arr));
+        renderMinimap();
         return;
       }
 
       if (laneDragging) {
+        // ... (existing lane drag)
         const worldPos = screenToWorld(e.clientX, e.clientY);
         const page = getPage();
         const lane = page.swimlanes.find(l => l.id === laneDragging.laneId);
         if (lane) {
           lane.x = laneDragging.origX + (worldPos.x - laneDragging.startWorldX);
           lane.y = laneDragging.origY + (worldPos.y - laneDragging.startWorldY);
-          const el = worldEl.querySelector(`.swim-lane[data-lane-id="${laneDragging.laneId}"]`);
-          if (el) { el.style.left = lane.x + 'px'; el.style.top = lane.y + 'px'; }
+          render();
         }
         return;
       }
 
       if (laneResizing) {
+        // ... (existing lane resize)
         const worldPos = screenToWorld(e.clientX, e.clientY);
         const page = getPage();
         const lane = page.swimlanes.find(l => l.id === laneResizing.laneId);
         if (lane) {
-          lane.w = Math.max(100, laneResizing.origW + (worldPos.x - laneResizing.startWorldX));
-          lane.h = Math.max(50, laneResizing.origH + (worldPos.y - laneResizing.startWorldY));
-          const el = worldEl.querySelector(`.swim-lane[data-lane-id="${laneResizing.laneId}"]`);
-          if (el) { el.style.width = lane.w + 'px'; el.style.height = lane.h + 'px'; }
+          const dx = worldPos.x - laneResizing.startWorldX;
+          const dy = worldPos.y - laneResizing.startWorldY;
+          lane.w = Math.max(200, laneResizing.origW + dx);
+          lane.h = Math.max(100, laneResizing.origH + dy);
+          render();
+        }
+        return;
+      }
+
+      if (iconDragging) {
+        const worldPos = screenToWorld(e.clientX, e.clientY);
+        const page = getPage();
+        const icon = page.icons.find(i => i.id === iconDragging.iconId);
+        if (icon) {
+          icon.x = iconDragging.origX + (worldPos.x - iconDragging.startWorldX);
+          icon.y = iconDragging.origY + (worldPos.y - iconDragging.startWorldY);
+          render();
+        }
+        return;
+      }
+
+      if (textDragging) {
+        const worldPos = screenToWorld(e.clientX, e.clientY);
+        const page = getPage();
+        const text = page.texts.find(t => t.id === textDragging.textId);
+        if (text) {
+          text.x = textDragging.origX + (worldPos.x - textDragging.startWorldX);
+          text.y = textDragging.origY + (worldPos.y - textDragging.startWorldY);
+          render();
+        }
+        return;
+      }
+
+      if (textResizing) {
+        const worldPos = screenToWorld(e.clientX, e.clientY);
+        const page = getPage();
+        const text = page.texts.find(t => t.id === textResizing.textId);
+        if (text) {
+          const dx = worldPos.x - textResizing.startWorldX;
+          const dy = worldPos.y - textResizing.startWorldY;
+          text.w = Math.max(50, textResizing.startW + dx);
+          // Optional: Resize height too if needed, but text usually auto-heights.
+          // If we want height resizing, we need to enforce min-height style.
+          if (textResizing.startH) {
+            text.h = Math.max(20, textResizing.startH + dy);
+          }
+          render();
         }
         return;
       }
 
       if (arrowFrom) {
         // ... (existing arrow logic)
-        const page = getPage();
-        const fromCard = page.cards.find(c => c.id === arrowFrom.cardId);
-        if (fromCard) {
-          const from = getPortPos(fromCard, arrowFrom.port);
-          const to = mouseWorldPos;
-          let toDir = 'left';
-          if (arrowFrom.port === 'left') toDir = 'right';
-          if (arrowFrom.port === 'top') toDir = 'bottom';
-          if (arrowFrom.port === 'bottom') toDir = 'top';
-          tempArrow.setAttribute('d', smartBezierPath(from, to, arrowFrom.port, toDir));
-        }
+        // ...
       }
     });
 
     document.addEventListener('mouseup', e => {
-      if (panning) {
-        panning = false;
-        canvasEl.classList.remove('panning');
-      }
-      if (dragging) {
-        dragging = null;
-        renderMinimap();
-      }
-      if (laneDragging) {
-        laneDragging = null;
-      }
-      if (laneResizing) {
-        laneResizing = null;
-      }
+      // ... clear all drag states
+      if (panning) { panning = false; canvasEl.classList.remove('panning'); }
+      if (dragging) { dragging = null; renderMinimap(); }
+      if (laneDragging) laneDragging = null;
+      if (laneResizing) laneResizing = null;
+      if (iconDragging) iconDragging = null;
+      if (textDragging) textDragging = null;
+      if (textResizing) textResizing = null;
     });
+
+    function startTextResize(e, textId) {
+      e.stopPropagation();
+      e.preventDefault();
+      const page = getPage();
+      const text = page.texts.find(t => t.id === textId);
+      if (!text) return;
+      const worldPos = screenToWorld(e.clientX, e.clientY);
+      textResizing = {
+        textId,
+        startWorldX: worldPos.x,
+        startWorldY: worldPos.y,
+        startW: text.w || 200,
+        startH: text.h || 0 // if 0, maybe we don't resize height? 
+        // Actually, let's treat unset height as auto, but if dragging handle
+        // we probably want to set a min-height or explicit height.
+        // For now, let's just resize Width as that's most important for text.
+        // If user wants height, we can add it. 
+        // Let's support both for full "resize" feel.
+      };
+      // If text.h is undefined, measure it? 
+      // We can get element to measure.
+      const el = worldEl.querySelector(`[data-text-id="${textId}"]`);
+      if (el) {
+        textResizing.startH = el.offsetHeight;
+      }
+    }
 
     // ─── Arrow drawing ────────────────────────────────────────────────────────────
     function handlePortClick(e, cardId, port) {
@@ -2582,7 +3022,13 @@
         closeArrowLabelEditor();
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.matches('input,textarea')) {
-        if (selectedCard) { deleteCard(selectedCard); selectedCard = null; }
+        if (selectedCard) {
+          const page = getPage();
+          const card = page.cards.find(c => c.id === selectedCard);
+          if (confirm(`Delete card "${card ? card.title || 'Untitled' : 'selected card'}"?`)) {
+            deleteCard(selectedCard); selectedCard = null;
+          }
+        }
         if (selectedArrow) {
           const page = getPage();
           page.arrows = page.arrows.filter(a => a.id !== selectedArrow);
@@ -2948,18 +3394,18 @@
         const sideW = 84;
         const mainW = W2 - (sideW * 2);
 
-        ctxMeas.font = '500 11px Poppins, sans-serif'; // Desc font
+        ctxMeas.font = '500 11px Poppins, sans-serif';
         const descLines = c.description ? getWrapLines(ctxMeas, c.description, mainW - 16) : [];
-        const descH = 36 + 16 + (descLines.length * 15) + 20; // Header + topPad + text + botPad
+        const descH = 36 + 16 + (descLines.length * 15) + 20;
 
-        ctxMeas.font = '500 9px Poppins, sans-serif'; // Item font
+        ctxMeas.font = '500 9px Poppins, sans-serif';
         // Measure Inputs
         let inputY = 36 + 26;
         const inputs = c.inputs || [];
-        const inputLinesPerItem = inputs.map(t => getWrapLines(ctxMeas, t, sideW - 22)); // sideW - 14(box) - 8(pad)
+        const inputLinesPerItem = inputs.map(t => getWrapLines(ctxMeas, t, sideW - 22));
         inputLinesPerItem.forEach(lines => {
-          const boxH = Math.max(18, lines.length * 11 + 6); // min 18px, or text + pad
-          inputY += boxH + 4; // box + margin
+          const boxH = Math.max(18, lines.length * 11 + 6);
+          inputY += boxH + 4;
         });
         const inputsH = inputY + 10;
 
@@ -2973,12 +3419,13 @@
         });
         const outputsH = outputY + 10;
 
-        // Total Height
-        const calcH = Math.max(160, descH, inputsH, outputsH);
+        // Total Height (add role bar if present)
+        const roleBarH = c.role ? 24 : 0;
+        const calcH = Math.max(160, descH, inputsH, outputsH) + roleBarH;
 
         // Store for drawing
         c._canvasH = calcH;
-        c._h = calcH; // Override for arrow routing
+        c._h = calcH;
         c._descLines = descLines;
         c._inputLines = inputLinesPerItem;
         c._outputLines = outputLinesPerItem;
@@ -2994,6 +3441,25 @@
         maxX = Math.max(maxX, c.x + w);
         maxY = Math.max(maxY, c.y + h);
       });
+
+      // Include Swimlanes
+      (page.swimlanes || []).forEach(l => {
+        minX = Math.min(minX, l.x);
+        minY = Math.min(minY, l.y);
+        maxX = Math.max(maxX, l.x + l.w);
+        maxY = Math.max(maxY, l.y + l.h);
+      });
+
+      // Include Icons/Texts
+      (page.icons || []).forEach(i => {
+        minX = Math.min(minX, i.x); minY = Math.min(minY, i.y);
+        maxX = Math.max(maxX, i.x + 30); maxY = Math.max(maxY, i.y + 30);
+      });
+      (page.texts || []).forEach(t => {
+        minX = Math.min(minX, t.x); minY = Math.min(minY, t.y);
+        maxX = Math.max(maxX, t.x + (t.w || 200)); maxY = Math.max(maxY, t.y + (t.h || 50));
+      });
+
       const pad = 80;
       minX -= pad; minY -= pad; maxX += pad; maxY += pad;
       const W = maxX - minX, H = maxY - minY;
@@ -3005,7 +3471,6 @@
       ctx.scale(SCALE, SCALE);
 
       // Background
-      // Export background — eggshell with crosshatch
       ctx.fillStyle = '#FDFBF5';
       ctx.fillRect(0, 0, W, H);
       ctx.strokeStyle = 'rgba(44,62,80,0.07)';
@@ -3014,103 +3479,51 @@
       for (let gy = 0; gy < H; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
 
       // Draw Swimlanes
-      const swimlanes = page.swimlanes || [];
-      swimlanes.forEach(lane => {
+      (page.swimlanes || []).forEach(lane => {
         const lx = lane.x - minX;
         const ly = lane.y - minY;
-
-        // Fill
         ctx.fillStyle = 'rgba(245, 239, 224, 0.4)';
         ctx.fillRect(lx, ly, lane.w, lane.h);
-
-        // Border
         ctx.strokeStyle = 'rgba(44, 62, 80, 0.2)';
         ctx.setLineDash([5, 5]);
         ctx.lineWidth = 2;
         ctx.strokeRect(lx, ly, lane.w, lane.h);
         ctx.setLineDash([]);
-
-        // Header
         ctx.fillStyle = 'rgba(44, 62, 80, 0.1)';
         ctx.fillRect(lx, ly, lane.w, 30);
-
-        // Header Label
         ctx.fillStyle = '#2C3E50';
-        ctx.font = '600 12px Poppins, sans-serif'; // roughly matches CSS 12px
+        ctx.font = '600 12px Poppins, sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(lane.label, lx + 10, ly + 20);
       });
 
       // Draw arrows
-      ctx.strokeStyle = '#34495E';
-      ctx.lineWidth = 2;
-      ctx.fillStyle = '#34495E';
       page.arrows.forEach(arr => {
-        const fc = page.cards.find(c => c.id === arr.fromCard);
-        const tc = page.cards.find(c => c.id === arr.toCard);
-        if (!fc || !tc) return;
-        const from = getPortPos(fc, arr.fromPort || 'right');
-        const to = getPortPos(tc, arr.toPort || 'left');
+        const fromCard = page.cards.find(c => c.id === arr.fromCard);
+        const toCard = page.cards.find(c => c.id === arr.toCard);
+        if (!fromCard || !toCard) return;
+        // ... (Simple arrow logic for export)
+        // Re-calculate positions roughly
+        const from = { x: fromCard.x + (arr.fromPort === 'right' ? 320 : arr.fromPort === 'left' ? 0 : 160), y: fromCard.y + (arr.fromPort === 'bottom' ? fromCard._canvasH : arr.fromPort === 'top' ? 0 : fromCard._canvasH / 2) };
+        const to = { x: toCard.x + (arr.toPort === 'right' ? 320 : arr.toPort === 'left' ? 0 : 160), y: toCard.y + (arr.toPort === 'bottom' ? toCard._canvasH : arr.toPort === 'top' ? 0 : toCard._canvasH / 2) };
 
-        // Smart routing calculation for canvas
-        const dist = Math.hypot(to.x - from.x, to.y - from.y);
-        const cpDist = Math.max(40, Math.min(dist * 0.5, 150));
+        ctx.beginPath();
+        ctx.moveTo(from.x - minX, from.y - minY);
+        if (arr.mx && arr.my) ctx.quadraticCurveTo(arr.mx - minX, arr.my - minY, to.x - minX, to.y - minY);
+        else ctx.lineTo(to.x - minX, to.y - minY);
+        ctx.strokeStyle = '#34495E';
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-        let cp1 = { x: from.x, y: from.y };
-        let cp2 = { x: to.x, y: to.y };
-
-        // Adjust based on directions
-        const fromDir = arr.fromPort || 'right';
-        const toDir = arr.toPort || 'left';
-
-        switch (fromDir) {
-          case 'left': cp1.x -= cpDist; break;
-          case 'right': cp1.x += cpDist; break;
-          case 'top': cp1.y -= cpDist; break;
-          case 'bottom': cp1.y += cpDist; break;
-        }
-        switch (toDir) {
-          case 'left': cp2.x -= cpDist; break;
-          case 'right': cp2.x += cpDist; break;
-          case 'top': cp2.y -= cpDist; break;
-          case 'bottom': cp2.y += cpDist; break;
-        }
-
-        // Handle custom midpoint if it exists
-        if (arr.mx !== undefined && arr.my !== undefined) {
-          ctx.beginPath();
-          // Quadratic through mid
-          ctx.moveTo(from.x - minX, from.y - minY);
-          ctx.quadraticCurveTo(arr.mx - minX, arr.my - minY, to.x - minX, to.y - minY);
-          ctx.stroke();
-        } else {
-          ctx.beginPath();
-          ctx.moveTo(from.x - minX, from.y - minY);
-          ctx.bezierCurveTo(cp1.x - minX, cp1.y - minY, cp2.x - minX, cp2.y - minY, to.x - minX, to.y - minY);
-          ctx.stroke();
-        }
         // Arrowhead
-        const angle = Math.atan2(to.y - from.y, to.x - from.x);
+        const angle = Math.atan2(to.y - from.y, to.x - from.x); // approx
         drawArrowhead(ctx, to.x - minX, to.y - minY, angle);
-        // Label
+
         if (arr.label) {
-          const mid = { x: (from.x + to.x) / 2 - minX, y: (from.y + to.y) / 2 - minY };
-          // Need to fix label position if using Bezier mid
-          // But getPortPos uses measured coords, so simple mid might be off if curve is large.
-          // For export simplicity, linear mid is often "okay" but let's stick to what we have.
-          ctx.font = '600 11px Poppins, sans-serif';
-          const tw = ctx.measureText(arr.label).width;
-          ctx.fillStyle = '#F5EFE0';
-          ctx.fillRect(mid.x - tw / 2 - 6, mid.y - 9, tw + 12, 18);
-          ctx.strokeStyle = '#D5C9B0';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(mid.x - tw / 2 - 6, mid.y - 9, tw + 12, 18);
-          ctx.fillStyle = '#2C3E50';
-          ctx.textAlign = 'center';
-          ctx.fillText(arr.label, mid.x, mid.y + 4);
-          ctx.strokeStyle = '#34495E';
-          ctx.lineWidth = 2;
-          ctx.fillStyle = '#34495E';
+          const midX = (from.x + to.x) / 2 - minX;
+          const midY = (from.y + to.y) / 2 - minY;
+          ctx.fillStyle = '#F5EFE0'; ctx.fillRect(midX - 20, midY - 10, 40, 20);
+          ctx.fillStyle = '#2C3E50'; ctx.textAlign = 'center'; ctx.fillText(arr.label, midX, midY + 5);
         }
       });
 
@@ -3121,163 +3534,110 @@
         const headerH = 36;
         const sideW = 84;
 
-        // Shadow — subtle warm drop shadow
-        ctx.shadowColor = 'rgba(44,62,80,0.2)';
-        ctx.shadowBlur = 14;
-        ctx.shadowOffsetY = 5;
-
-        // Card background
+        ctx.shadowColor = 'rgba(44,62,80,0.2)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 5;
         roundRect(ctx, x, y, W2, H2, 4);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fill();
+        ctx.fillStyle = '#FFFFFF'; ctx.fill();
+        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
 
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
+        const colors = { amber: '#F39C12', teal: '#1ABC9C', blue: '#3498DB', red: '#E74C3C', purple: '#9B59B6', green: '#27AE60', yellow: '#F1C40F' };
+        const color = colors[c.color || 'amber'] || colors.amber;
+        ctx.fillStyle = color; ctx.fillRect(x, y, 6, H2); // Side bar color
 
-        // Teal left accent border (6px) OR department color if needed? Style guide says default cards have it?
-        // Actually style guide says Dept Indicators use heavy border on left.
-        // For now, keeping hardcoded teal as per original code, or map to dept color if we want full consistency.
-        ctx.fillStyle = '#1ABC9C';
-        ctx.fillRect(x, y, 6, H2);
-
-        // Header — slate
         roundRect(ctx, x + 6, y, W2 - 6, headerH, 4, true);
-        ctx.fillStyle = '#2C3E50';
-        ctx.fill();
+        ctx.fillStyle = '#2C3E50'; ctx.fill();
 
-        // Side panels — tan
         ctx.fillStyle = '#F5EFE0';
         ctx.fillRect(x + 6, y + headerH, sideW - 6, H2 - headerH);
         ctx.fillRect(x + W2 - sideW, y + headerH, sideW, H2 - headerH);
 
-        // Card border
         roundRect(ctx, x, y, W2, H2, 4);
-        ctx.strokeStyle = '#2C3E50';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.strokeStyle = '#2C3E50'; ctx.lineWidth = 2; ctx.stroke();
 
-        // Side dividers — ruled line style
-        ctx.beginPath();
-        ctx.moveTo(x + sideW, y + headerH);
-        ctx.lineTo(x + sideW, y + H2);
-        ctx.moveTo(x + W2 - sideW, y + headerH);
-        ctx.lineTo(x + W2 - sideW, y + H2);
-        ctx.strokeStyle = '#D5C9B0';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + sideW, y + headerH); ctx.lineTo(x + sideW, y + H2);
+        ctx.moveTo(x + W2 - sideW, y + headerH); ctx.lineTo(x + W2 - sideW, y + H2);
+        ctx.strokeStyle = '#D5C9B0'; ctx.lineWidth = 2; ctx.stroke();
 
-        // Title — ALL CAPS white Poppins
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 10px Poppins, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.letterSpacing = '1.5px';
+        ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 10px Poppins, sans-serif'; ctx.textAlign = 'center'; ctx.letterSpacing = '1.5px';
         ctx.fillText((c.title || 'UNTITLED').toUpperCase(), x + 6 + (W2 - 6) / 2, y + headerH / 2 + 4);
         ctx.letterSpacing = '0px';
 
-        // Description
         if (c._descLines && c._descLines.length > 0) {
-          ctx.fillStyle = '#34495E';
-          ctx.font = '500 11px Poppins, sans-serif';
-          ctx.textAlign = 'center';
-          c._descLines.forEach((line, k) => {
-            ctx.fillText(line, x + sideW + 4 + (W2 - sideW * 2 - 8) / 2, y + headerH + 16 + (k * 15));
-          });
+          ctx.fillStyle = '#34495E'; ctx.font = '500 11px Poppins, sans-serif'; ctx.textAlign = 'center';
+          c._descLines.forEach((line, k) => { ctx.fillText(line, x + sideW + 4 + (W2 - sideW * 2 - 8) / 2, y + headerH + 16 + (k * 15)); });
         }
 
-        // IN label (horizontal)
-        ctx.fillStyle = '#7F8C8D';
-        ctx.font = 'bold 7px Poppins, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.letterSpacing = '2px';
-        ctx.fillText('IN', x + sideW / 2, y + headerH + 9);
-
-        // OUT label (horizontal)
-        ctx.fillText('OUT', x + W2 - sideW / 2, y + headerH + 9);
-        ctx.letterSpacing = '0px';
-
-        // Input item pills
         let currentY = y + headerH + 26;
         (c._inputLines || []).forEach((lines, i) => {
           const boxH = Math.max(18, lines.length * 11 + 6);
-
-          ctx.fillStyle = '#FFFFFF';
-          ctx.strokeStyle = '#D5C9B0';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.roundRect(x + 8, currentY, sideW - 14, boxH, 3);
-          ctx.fill(); ctx.stroke();
-
-          ctx.fillStyle = '#34495E';
-          ctx.font = '500 9px Poppins, sans-serif';
-          ctx.textAlign = 'left';
-
-          lines.forEach((l, k) => {
-            ctx.fillText(l, x + 8 + 4, currentY + 10 + (k * 11));
-          });
-
+          ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = '#D5C9B0'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.roundRect(x + 8, currentY, sideW - 14, boxH, 3); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#34495E'; ctx.font = '500 9px Poppins, sans-serif'; ctx.textAlign = 'left';
+          lines.forEach((l, k) => { ctx.fillText(l, x + 8 + 4, currentY + 10 + (k * 11)); });
           currentY += boxH + 4;
         });
 
-        // Output item pills
         currentY = y + headerH + 26;
         (c._outputLines || []).forEach((lines, i) => {
           const boxH = Math.max(18, lines.length * 11 + 6);
-
-          ctx.fillStyle = '#FFFFFF';
-          ctx.strokeStyle = '#D5C9B0';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.roundRect(x + W2 - sideW + 6, currentY, sideW - 14, boxH, 3);
-          ctx.fill(); ctx.stroke();
-
-          ctx.fillStyle = '#34495E';
-          ctx.font = '500 9px Poppins, sans-serif';
-          ctx.textAlign = 'left';
-
-          lines.forEach((l, k) => {
-            ctx.fillText(l, x + W2 - sideW + 6 + 4, currentY + 10 + (k * 11));
-          });
-
+          ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = '#D5C9B0'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.roundRect(x + W2 - sideW + 6, currentY, sideW - 14, boxH, 3); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#34495E'; ctx.font = '500 9px Poppins, sans-serif'; ctx.textAlign = 'left';
+          lines.forEach((l, k) => { ctx.fillText(l, x + W2 - sideW + 6 + 4, currentY + 10 + (k * 11)); });
           currentY += boxH + 4;
         });
 
-        // Role badge footer
+        // Draw responsible / role bar
         if (c.role) {
-          const roleBarH = 26;
-
-          const colors = {
-            amber: '#F39C12',
-            teal: '#1ABC9C',
-            blue: '#3498DB',
-            red: '#E74C3C',
-            purple: '#9B59B6',
-            green: '#27AE60',
-            yellow: '#F1C40F'
-          };
-          const color = colors[c.color || 'amber'] || colors.amber;
-
+          const roleY = y + H2 - 24;
           ctx.fillStyle = color;
-          ctx.fillRect(x + 6, y + H2 - roleBarH, W2 - 6, roleBarH);
-          ctx.beginPath();
-          ctx.moveTo(x + 6, y + H2 - roleBarH);
-          ctx.lineTo(x + W2, y + H2 - roleBarH);
-          ctx.strokeStyle = 'rgba(0,0,0,0.15)'; // simple dark overlay for border
-          ctx.lineWidth = 3;
-          ctx.stroke();
-          ctx.fillStyle = '#1a1a0a';
-          ctx.font = 'bold 9px Poppins, sans-serif';
+          ctx.fillRect(x, roleY, W2, 24);
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(x, roleY); ctx.lineTo(x + W2, roleY); ctx.stroke();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '500 10px Poppins, sans-serif';
           ctx.textAlign = 'left';
-          ctx.fillText('👤  ' + c.role.toUpperCase(), x + 14, y + H2 - 9);
+          ctx.fillText('👤 ' + c.role, x + 10, roleY + 15);
         }
       });
 
-      // Watermark — subtle slate text
+      // Draw Icons
+      (page.icons || []).forEach(icon => {
+        const x = icon.x - minX;
+        const y = icon.y - minY;
+        ctx.font = '24px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillText(getIconEmoji(icon.type), x, y);
+      });
+
+      // Draw Texts
+      (page.texts || []).forEach(text => {
+        const x = text.x - minX;
+        const y = text.y - minY;
+        ctx.font = '13px Poppins, sans-serif';
+        const maxWidth = text.w || 200;
+        const lines = getWrapLines(ctx, text.content, maxWidth);
+        const lineHeight = 20; const padding = 12;
+        const h = (text.h && text.h > lines.length * lineHeight + padding * 2) ? text.h : lines.length * lineHeight + padding * 2;
+
+        let bg = '#FFFFFF'; let border = 'rgba(0,0,0,0.1)';
+        if (text.color === 'green') { bg = '#E8F8F5'; border = '#1ABC9C'; }
+        if (text.color === 'red') { bg = '#FADBD8'; border = '#E74C3C'; }
+        if (text.color === 'yellow') { bg = '#FCF3CF'; border = '#F1C40F'; }
+
+        ctx.fillStyle = bg; ctx.strokeStyle = border; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(x, y, maxWidth, h, 4); ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#2C3E50'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        lines.forEach((l, i) => { ctx.fillText(l, x + padding, y + padding + (i * lineHeight)); });
+      });
+
+      // Watermark
       ctx.fillStyle = 'rgba(44,62,80,0.2)';
       ctx.font = 'bold 9px Poppins, sans-serif';
       ctx.letterSpacing = '2px';
       ctx.textAlign = 'right';
       ctx.fillText('UPN WORKFLOW BUILDER', W - 12, H - 10);
-      ctx.letterSpacing = '0px';
 
       const link = document.createElement('a');
       link.download = 'workflow.png';
