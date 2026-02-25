@@ -1,555 +1,4 @@
-<html lang="en"><head><script>(function(firebaseConfig, initialAuthToken, appId) {
-        window.__firebase_config = firebaseConfig;
-        window.__initial_auth_token = initialAuthToken;
-        window.__app_id = appId;
-            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjA5ZmNiMTMxOGNkZGNmOWU4YjczZjZhMzM3ZTk2ZTIwNjJmMjEwZGIiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxNzE2NjgwMzkxODMyMTIxNjMwMSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzc2N2UzYjViN2E0NTJmODFfTWFuYWdlcl9Ub29sa2l0XzIwMjUtMTEtMjEgKDEpLmh0bWwtOTI1In0sImV4cCI6MTc2MzcwNTIyNSwiaWF0IjoxNzYzNzAxNjI1LCJhbGciOiJSUzI1NiJ9.JafGOq0stbFSQE4XwBLEZcKKgUqC6vvWAB3dBMHBwN_y43VuhCK7dFR0QeAnvNNlNtmwKkNVDvbiIgd6IYJ_X0WlVvcNReiZx7Mmg9ed6bwCWOSyOmSP4xNJ2OAGDOzO43JrEa6fI26TpRNHPZAuPrKJOLDcNcneLvuMrDASG7fQaBcQAT8Usai7OfvV9ELSuWAJBBBXJm7JE53fjQ91LZBmWJ_uzbrx3DkEGl6d27BFEHl9WnvC92hsPaD8k7XFWl8byQ1OLGDVbl94Dqy-D2oN2KMuJu0XeqpCAmf_rivDzSgRNjHSTUNL6pI4wp6yHY_KqrxQkhLUZCOz93qvkg","c_767e3b5b7a452f81_Manager_Toolkit_2025-11-21 (1).html-925")</script><script>'use strict';var h=typeof Object.defineProperties=="function"?Object.defineProperty:function(a,b,d){if(a==Array.prototype||a==Object.prototype)return a;a[b]=d.value;return a};function l(a){a=["object"==typeof globalThis&&globalThis,a,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var b=0;b<a.length;++b){var d=a[b];if(d&&d.Math==Math)return d}throw Error("Cannot find global object");}var n=l(this);
-function p(a,b){if(b)a:{var d=n;a=a.split(".");for(var c=0;c<a.length-1;c++){var e=a[c];if(!(e in d))break a;d=d[e]}a=a[a.length-1];c=d[a];b=b(c);b!=c&&b!=null&&h(d,a,{configurable:!0,writable:!0,value:b})}}function r(a){function b(c){return a.next(c)}function d(c){return a.throw(c)}return new Promise(function(c,e){function f(g){g.done?c(g.value):Promise.resolve(g.value).then(b,d).then(f,e)}f(a.next())})}function t(a){return r(a())}
-p("Object.values",function(a){return a?a:function(b){var d=[],c;for(c in b)Object.prototype.hasOwnProperty.call(b,c)&&d.push(b[c]);return d}});p("Array.prototype.includes",function(a){return a?a:function(b,d){var c=this;c instanceof String&&(c=String(c));var e=c.length;d=d||0;for(d<0&&(d=Math.max(d+e,0));d<e;d++){var f=c[d];if(f===b||Object.is(f,b))return!0}return!1}});/*
-
- MIT License
-
- Copyright (c) 2017-2023 W.Y.
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
-
-*/
-function u(a,b){const d=a.style;b.backgroundColor&&(d.backgroundColor=b.backgroundColor);b.width&&(d.width=`${b.width}px`);b.height&&(d.height=`${b.height}px`);const c=b.style;c!=null&&Object.keys(c).forEach(e=>{d[e]=c[e]})};var v=(()=>{let a=0;return()=>{a+=1;return`u${`0000${(Math.random()*1679616<<0).toString(36)}`.slice(-4)}${a}`}})();function w(a){const b=[];for(let d=0,c=a.length;d<c;d++)b.push(a[d]);return b}let x=null;function y(a={}){return x?x:a.l?x=a.l:x=w(window.getComputedStyle(document.documentElement))}function z(a,b){return(a=(a.ownerDocument.defaultView||window).getComputedStyle(a).getPropertyValue(b))?parseFloat(a.replace("px","")):0}
-function A(a,b={}){var d;if(!(d=b.width)){d=z(a,"border-left-width");var c=z(a,"border-right-width");d=a.clientWidth+d+c}(b=b.height)||(b=z(a,"border-top-width"),c=z(a,"border-bottom-width"),b=a.clientHeight+b+c);return{width:d,height:b}}function B(a){return new Promise((b,d)=>{const c=new Image;c.onload=()=>{c.decode().then(()=>{requestAnimationFrame(()=>b(c))})};c.onerror=d;c.crossOrigin="anonymous";c.decoding="async";c.src=a})}
-function C(a){return t(function*(){return Promise.resolve().then(()=>(new XMLSerializer).serializeToString(a)).then(encodeURIComponent).then(b=>`data:image/svg+xml;charset=utf-8,${b}`)})}
-function D(a,b,d){return t(function*(){const c=document.createElementNS("http://www.w3.org/2000/svg","svg"),e=document.createElementNS("http://www.w3.org/2000/svg","foreignObject");c.setAttribute("width",`${b}`);c.setAttribute("height",`${d}`);c.setAttribute("viewBox",`0 0 ${b} ${d}`);e.setAttribute("width","100%");e.setAttribute("height","100%");e.setAttribute("x","0");e.setAttribute("y","0");e.setAttribute("externalResourcesRequired","true");c.appendChild(e);e.appendChild(a);return C(c)})}
-var E=(a,b)=>{if(a instanceof b)return!0;a=Object.getPrototypeOf(a);return a===null?!1:a.constructor.name===b.name||E(a,b)};function F(a,b){return y(b).map(d=>{const c=a.getPropertyValue(d),e=a.getPropertyPriority(d);return`${d}: ${c}${e?" !important":""};`}).join(" ")}
-function G(a,b,d,c){a=window.getComputedStyle(a,d);var e=a.getPropertyValue("content");if(e!==""&&e!=="none"){var f=v();try{b.className=`${b.className} ${f}`}catch(k){return}e=document.createElement("style");var g=e.appendChild;d=`.${f}:${d}`;a.cssText?(c=a.getPropertyValue("content"),c=`${a.cssText} content: '${c.replace(/'|"/g,"")}';`):c=F(a,c);g.call(e,document.createTextNode(`${d}{${c}}`));b.appendChild(e)}};function H(a){return a.search(/^(data:)/)!==-1}function I(a,b,d){return t(function*(){const c=yield fetch(a,b);if(c.status===404)throw Error(`Resource "${c.url}" not found`);const e=yield c.blob();return new Promise((f,g)=>{const k=new FileReader;k.onerror=g;k.onloadend=()=>{try{f(d({o:c,result:k.result}))}catch(m){g(m)}};k.readAsDataURL(e)})})}const J={};function K(a,b,d){let c=a.replace(/\?.*/,"");d&&(c=a);/ttf|otf|eot|woff2?/i.test(c)&&(c=c.replace(/.*\//,""));return b?`[${b}]${c}`:c}
-function L(a,b,d){return t(function*(){const c=K(a,b,d.C);if(J[c]!=null)return J[c];d.u&&(a+=(/\?/.test(a)?"&":"?")+(new Date).getTime());let e;try{const f=yield I(a,d.i,({o:g,result:k})=>{b||(b=g.headers.get("Content-Type")||"");return k.split(/,/)[1]});e=`data:${b};base64,${f}`}catch(f){e=d.B||""}return J[c]=e})};const M={P:"application/font-woff",R:"application/font-woff",N:"application/font-truetype",v:"application/vnd.ms-fontobject",H:"image/png",F:"image/jpeg",D:"image/jpeg",A:"image/gif",M:"image/tiff",L:"image/svg+xml",O:"image/webp"};function N(a){return(a=/\.([^./]*?)$/g.exec(a))?a[1]:""};function O(a){return t(function*(){const b=a.toDataURL();return b==="data:,"?a.cloneNode(!1):B(b)})}function aa(a,b){return t(function*(){if(a.currentSrc){var d=document.createElement("canvas");const c=d.getContext("2d");d.width=a.clientWidth;d.height=a.clientHeight;c==null||c.drawImage(a,0,0,d.width,d.height);d=d.toDataURL();return B(d)}d=a.poster;d=yield L(d,M[N(d).toLowerCase()]||"",b);return B(d)})}
-function ba(a,b){return t(function*(){try{let d;if(a==null?0:(d=a.contentDocument)==null?0:d.body)return yield P(a.contentDocument.body,b,!0)}catch(d){}return a.cloneNode(!1)})}function ca(a,b){return t(function*(){return E(a,HTMLCanvasElement)?O(a):E(a,HTMLVideoElement)?aa(a,b):E(a,HTMLIFrameElement)?ba(a,b):a.cloneNode(a.tagName!=null&&a.tagName.toUpperCase()==="SVG")})}
-function da(a,b,d){return t(function*(){if(b.tagName!=null&&b.tagName.toUpperCase()==="SVG")return b;let c=[];if(a.tagName!=null&&a.tagName.toUpperCase()==="SLOT"&&a.assignedNodes)c=w(a.assignedNodes());else{let e;if(E(a,HTMLIFrameElement)&&((e=a.contentDocument)==null?0:e.body))c=w(a.contentDocument.body.childNodes);else{let f;c=w(((f=a.shadowRoot)!=null?f:a).childNodes)}}if(c.length===0||E(a,HTMLVideoElement))return b;yield c.reduce((e,f)=>e.then(()=>P(f,d)).then(g=>{g&&b.appendChild(g)}),Promise.resolve());
-return b})}function ea(a,b,d){const c=b.style;if(c){var e=window.getComputedStyle(a);e.cssText?(c.cssText=e.cssText,c.transformOrigin=e.transformOrigin):y(d).forEach(f=>{let g=e.getPropertyValue(f);f==="font-size"&&g.endsWith("px")&&(g=`${Math.floor(parseFloat(g.substring(0,g.length-2)))-.1}px`);E(a,HTMLIFrameElement)&&f==="display"&&g==="inline"&&(g="block");f==="d"&&b.getAttribute("d")&&(g=`path(${b.getAttribute("d")})`);c.setProperty(f,g,e.getPropertyPriority(f))})}}
-function fa(a,b){E(a,HTMLSelectElement)&&(b=Array.from(b.children).find(d=>a.value===d.getAttribute("value")))&&b.setAttribute("selected","")}
-function ha(a,b){return t(function*(){var d=a.querySelectorAll?a.querySelectorAll("use"):[];if(d.length===0)return a;var c={};for(var e=0;e<d.length;e++){var f=d[e].getAttribute("xlink:href");if(f){const g=document.querySelector(f);a.querySelector(f)||!g||c[f]||(c[f]=yield P(g,b,!0))}}d=Object.values(c);if(d.length){c=document.createElementNS("http://www.w3.org/1999/xhtml","svg");c.setAttribute("xmlns","http://www.w3.org/1999/xhtml");c.style.position="absolute";c.style.width="0";c.style.height="0";
-c.style.overflow="hidden";c.style.display="none";e=document.createElementNS("http://www.w3.org/1999/xhtml","defs");c.appendChild(e);for(f=0;f<d.length;f++)e.appendChild(d[f]);a.appendChild(c)}return a})}
-function P(a,b,d){return t(function*(){return d||!b.filter||b.filter(a)?Promise.resolve(a).then(c=>ca(c,b)).then(c=>da(a,c,b)).then(c=>{E(c,Element)&&(ea(a,c,b),G(a,c,":before",b),G(a,c,":after",b),E(a,HTMLTextAreaElement)&&(c.textContent=a.value),E(a,HTMLInputElement)&&c.setAttribute("value",a.value),fa(a,c));return c}).then(c=>ha(c,b)):null})};const Q=/url\((['"]?)([^'"]+?)\1\)/g,ia=/url\([^)]+\)\s*format\((["']?)([^"']+)\1\)/g,ja=/src:\s*(?:url\([^)]+\)\s*format\([^)]+\)[,;]\s*)+/g;function ka(a){const b=[];a.replace(Q,(d,c,e)=>{b.push(e);return d});return b.filter(d=>!H(d))}
-function la(a,b,d,c){return t(function*(){try{const e=d?(new URL(b,d||void 0)).toString():b;let f;f=yield L(e,M[N(b).toLowerCase()]||"",c);return a.replace(new RegExp(`(url\\(['"]?)(${b.replace(/([.*+?^${}()|\[\]\/\\])/g,"\\$1")})(['"]?\\))`,"g"),`$1${f}$3`)}catch(e){}return a})}function ma(a,{I:b}){return b?a.replace(ja,d=>{for(;;){const [c,,e]=ia.exec(d)||[],f=c,g=e;if(!g)return"";if(g===b)return`src: ${f};`}}):a}
-function R(a,b,d){return t(function*(){if(a.search(Q)===-1)return a;const c=ma(a,d);return ka(c).reduce((e,f)=>e.then(g=>la(g,f,b,d)),Promise.resolve(c))})};function S(a,b,d){return t(function*(){var c;const e=(c=b.style)==null?void 0:c.getPropertyValue(a);return e?(c=yield R(e,null,d),b.style.setProperty(a,c,b.style.getPropertyPriority(a)),!0):!1})}function na(a,b){return t(function*(){(yield S("background",a,b))||(yield S("background-image",a,b));(yield S("mask",a,b))||(yield S("-webkit-mask",a,b))||(yield S("mask-image",a,b))||(yield S("-webkit-mask-image",a,b))})}
-function oa(a,b){return t(function*(){const d=E(a,HTMLImageElement);if(d&&!H(a.src)||E(a,SVGImageElement)&&!H(a.href.baseVal)){var c=d?a.src:a.href.baseVal,e=yield L(c,M[N(c).toLowerCase()]||"",b);yield new Promise((f,g)=>{a.onload=f;a.onerror=b.m?(...k)=>{try{f(b.m(...k))}catch(m){g(m)}}:g;a.decode&&(a.decode=f);a.loading==="lazy"&&(a.loading="eager");d?(a.srcset="",a.src=e):a.href.baseVal=e})}})}
-function pa(a,b){return t(function*(){const d=w(a.childNodes).map(c=>T(c,b));yield Promise.all(d).then(()=>a)})}function T(a,b){return t(function*(){E(a,Element)&&(yield na(a,b),yield oa(a,b),yield pa(a,b))})};const U={};function V(a){return t(function*(){var b=U[a];if(b!=null)return b;b=yield(yield fetch(a)).text();b={url:a,cssText:b};return U[a]=b})}function W(a,b){return t(function*(){let d=a.cssText;const c=/url\(["']?([^"')]+)["']?\)/g,e=(d.match(/url\([^)]+\)/g)||[]).map(f=>t(function*(){let g=f.replace(c,"$1");g.startsWith("https://")||(g=(new URL(g,a.url)).href);return I(g,b.i,({result:k})=>{d=d.replace(f,`url(${k})`);return[f,k]})}));return Promise.all(e).then(()=>d)})}
-function X(a){if(a==null)return[];const b=[];a=a.replace(/(\/\*[\s\S]*?\*\/)/gi,"");for(var d=RegExp("((@.*?keyframes [\\s\\S]*?){([\\s\\S]*?}\\s*?)})","gi");;){var c=d.exec(a);if(c===null)break;b.push(c[0])}a=a.replace(d,"");d=/@import[\s\S]*?url\([^)]*\)[\s\S]*?;/gi;for(c=RegExp("((\\s*?(?:\\/\\*[\\s\\S]*?\\*\\/)?\\s*?@media[\\s\\S]*?){([\\s\\S]*?)}\\s*?})|(([\\s\\S]*?){([\\s\\S]*?)})","gi");;){let e=d.exec(a);if(e===null)if(e=c.exec(a),e===null)break;else d.lastIndex=c.lastIndex;else c.lastIndex=
-d.lastIndex;b.push(e[0])}return b}
-function qa(a,b){return t(function*(){const d=[],c=[];a.forEach(e=>{if("cssRules"in e)try{w(e.cssRules||[]).forEach((f,g)=>{if(f.type===CSSRule.IMPORT_RULE){let k=g+1;f=V(f.href).then(m=>W(m,b)).then(m=>X(m).forEach(q=>{try{e.insertRule(q,q.startsWith("@import")?k+=1:e.cssRules.length)}catch(Da){}})).catch(()=>{});c.push(f)}})}catch(f){const g=a.find(k=>k.href==null)||document.styleSheets[0];e.href!=null&&c.push(V(e.href).then(k=>W(k,b)).then(k=>X(k).forEach(m=>{g.insertRule(m,g.cssRules.length)})).catch(()=>
-{}))}});return Promise.all(c).then(()=>{a.forEach(e=>{if("cssRules"in e)try{w(e.cssRules||[]).forEach(f=>{d.push(f)})}catch(f){}});return d})})}function ra(a){return a.filter(b=>b.type===CSSRule.FONT_FACE_RULE).filter(b=>b.style.getPropertyValue("src").search(Q)!==-1)}function sa(a,b){return t(function*(){if(a.ownerDocument==null)throw Error("Provided element is not within a Document");var d=w(a.ownerDocument.styleSheets);d=yield qa(d,b);return ra(d)})}
-function ta(a){function b(c){(c.style.fontFamily||getComputedStyle(c).fontFamily).split(",").forEach(e=>{d.add(e.trim().replace(/["']/g,""))});Array.from(c.children).forEach(e=>{e instanceof HTMLElement&&b(e)})}const d=new Set;b(a);return d}function ua(a,b){return t(function*(){const d=yield sa(a,b),c=ta(a);return(yield Promise.all(d.filter(e=>c.has(e.style.fontFamily.trim().replace(/["']/g,""))).map(e=>R(e.cssText,e.parentStyleSheet?e.parentStyleSheet.href:null,b)))).join("\n")})}
-function va(a,b){return t(function*(){const d=b.j!=null?b.j:b.K?null:yield ua(a,b);if(d){const c=document.createElement("style");c.appendChild(document.createTextNode(d));a.firstChild?a.insertBefore(c,a.firstChild):a.appendChild(c)}})};function wa(a,b={}){return t(function*(){const {width:d,height:c}=A(a,b),e=yield P(a,b,!0);yield va(e,b);yield T(e,b);u(e,b);return yield D(e,d,c)})}
-function xa(a,b={}){return t(function*(){const {width:d,height:c}=A(a,b);var e=yield wa(a,b);e=yield B(e);const f=document.createElement("canvas"),g=f.getContext("2d"),k=b.G||window.devicePixelRatio||1,m=b.h||d,q=b.g||c;f.width=m*k;f.height=q*k;!b.J&&(f.width>16384||f.height>16384)&&(f.width>16384&&f.height>16384?f.width>f.height?(f.height*=16384/f.width,f.width=16384):(f.width*=16384/f.height,f.height=16384):f.width>16384?(f.height*=16384/f.width,f.width=16384):(f.width*=16384/f.height,f.height=
-16384));f.style.width=`${m}`;f.style.height=`${q}`;b.backgroundColor&&(g.fillStyle=b.backgroundColor,g.fillRect(0,0,f.width,f.height));g.drawImage(e,0,0,f.width,f.height);return f})}function ya(a,b={}){return t(function*(){return(yield xa(a,b)).toDataURL()})};const za=["gemini.google.com","corp.google.com","proxy.googlers.com"];function Y(){return document.body.querySelectorAll('[class*="animate"]').length>0}function Z(a){return t(function*(){try{return yield ya(a,{h:a.offsetWidth,g:a.offsetHeight})}catch(d){var b=a.offsetHeight;const c=document.createElement("canvas");c.width=a.offsetWidth;c.height=b;return c.toDataURL("image/png")}})}
-function Aa(){return t(function*(){const a=document.body.offsetWidth,b=document.body.offsetHeight,d=document.body.cloneNode(!0);d.querySelectorAll('[class*="animate"]').forEach(c=>{c.classList.remove(...Array.from(c.classList).filter(e=>e.startsWith("animate")))});d.style.width=`${a}px`;d.style.height=`${b}px`;return d})}
-function Ba(a){return t(function*(){let b=document.body;if(Y()){var d=yield Aa();b=d;document.body.appendChild(d)}d=yield Z(b);Y()&&document.body.removeChild(b);window.parent.postMessage({type:"SEND_SCREENSHOT",image:d,topOffset:document.documentElement.scrollTop},a.origin)})}function Ca(a){return t(function*(){const b={type:"SEND_SCREENSHOT_FOR_DATA_VISUALIZATION",image:yield Z(document.body),topOffset:0};window.parent.postMessage(b,a.origin)})}
-window.addEventListener("message",a=>t(function*(){if(za.some(d=>a.origin.includes(d))){var b=a.data;b&&(b.type==="MAKE_SCREENSHOT"&&(yield Ba(a)),b.type==="MAKE_SCREENSHOT_FOR_DATA_VISUALIZATION"&&(yield Ca(a)))}}));
-</script><script>(function() {
-  // Ensure this script is executed only once
-  if (window.firebaseAuthBridgeScriptLoaded) {
-    return;
-  }
-  window.firebaseAuthBridgeScriptLoaded = true;
-
-  let nextTokenPromiseId = 0;
-
-  // Stores { resolve, reject } for ongoing token requests
-  const pendingTokenPromises = {};
-
-  // Listen for messages from the Host Application
-  window.addEventListener('message', function(event) {
-
-    const messageData = event.data;
-
-  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
-      const { success, token, error, promiseId } = messageData ?? {};
-      if (pendingTokenPromises[promiseId]) {
-        if (success) {
-          pendingTokenPromises[promiseId].resolve(token);
-        } else {
-          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
-        }
-        delete pendingTokenPromises[promiseId];
-      }
-    }
-  });
-
-  // Expose a function for the Generated App to request a new Firebase token
-  window.requestNewFirebaseToken = function() {
-    const currentPromiseId = nextTokenPromiseId++;
-    const promise = new Promise((resolve, reject) => {
-      pendingTokenPromises[currentPromiseId] = { resolve, reject };
-    });
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({
-        type: 'REQUEST_NEW_FIREBASE_TOKEN',
-        promiseId: currentPromiseId
-      }, '*');
-    } else {
-      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
-      delete pendingTokenPromises[currentPromiseId];
-    }
-    return promise;
-  };
-})();</script><script>
-let realOriginalGetUserMedia = null;
-if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-}
-
-(function() {
-  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
-    try {
-      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
-        get: function() {
-          return undefined; // Or throw an error
-        },
-        configurable: false
-      });
-    } catch (error) {
-      console.error("Error defining prototype getter:", error);
-    }
-  }
-})();
-
-(function() {
-  const pendingMediaResolvers = {};
-  let nextMediaPromiseId = 0;
-
-  function requestMediaPermissions(constraints) {
-    const mediaPromiseId = nextMediaPromiseId++;
-    const promise = new Promise((resolve, reject) => {
-      pendingMediaResolvers[mediaPromiseId] = (granted) => {
-        delete pendingMediaResolvers[mediaPromiseId];
-        resolve(granted);
-      };
-    });
-
-    window.parent.postMessage({
-      type: 'requestMediaPermission',
-      constraints: constraints,
-      promiseId: mediaPromiseId,
-    }, '*');
-
-    return promise;
-  }
-
-  let originalGetUserMedia = realOriginalGetUserMedia;
-
-  function interceptGetUserMedia() {
-    if (navigator.mediaDevices) {
-      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
-        value: function(constraints) {
-          return requestMediaPermissions(constraints).then((granted) => {
-            if (granted) {
-              if (originalGetUserMedia) {
-                return originalGetUserMedia(constraints);
-              } else {
-                throw new Error("Original getUserMedia not available.");
-              }
-            } else {
-              throw new DOMException('Permission denied', 'NotAllowedError');
-            }
-          });
-        },
-        writable: false,
-        configurable: false
-      });
-    }
-  }
-
-  interceptGetUserMedia();
-
-  const observer = new MutationObserver(function(mutationsList, observer) {
-    for (const mutation of mutationsList) {
-      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
-        interceptGetUserMedia();
-      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
-        interceptGetUserMedia();
-      } else if (mutation.type === 'childList' && mutation.addedNodes) {
-        mutation.addedNodes.forEach(node => {
-          if (node === navigator.mediaDevices) {
-            interceptGetUserMedia();
-          }
-        });
-      }
-    }
-  });
-
-  function interceptSpeechRecognition() {
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-      return;
-    }
-
-    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    const SpeechRecognitionWrapper = function(...args) {
-      const recognizer = new OriginalSpeechRecognition(...args);
-      const originalStart = recognizer.start.bind(recognizer);
-
-      recognizer.start = function() {
-        requestMediaPermissions({ audio: true }).then(granted => {
-          if (granted) {
-            originalStart();
-          } else {
-            const errorEvent = new SpeechRecognitionErrorEvent('error');
-            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
-            recognizer.dispatchEvent(errorEvent);
-          }
-        });
-      };
-
-      return recognizer;
-    };
-
-    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
-    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
-
-    if (window.SpeechRecognition) {
-      window.SpeechRecognition = SpeechRecognitionWrapper;
-    }
-    if (window.webkitSpeechRecognition) {
-      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
-    }
-  }
-
-  interceptSpeechRecognition();
-
-  window.addEventListener('message', function(event) {
-    if (event.data) {
-      if (event.data.type === 'resolveMediaPermission') {
-        const { promiseId, granted } = event.data;
-        if (pendingMediaResolvers[promiseId]) {
-          pendingMediaResolvers[promiseId](granted);
-        }
-      }
-    }
-  });
-
-})();</script><script>((function(modelInformation) {
-  const originalFetch = window.fetch;
-  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
-  let googleLlmBaseApiUrls = [
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
-  ];
-  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-    );
-  });
-  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
-    );
-  });
-
-  const pendingFetchResolvers = {};
-  let nextPromiseId = 0;
-
-  function handleStringInput(input, optionsArgument) {
-    const actualUrl = input;
-    const fetchCallArgs = [actualUrl, optionsArgument];
-    const effectiveOptions = optionsArgument || {};
-    const bodyForApiKeyCheck = effectiveOptions.body;
-    const bodyForPostMessage = effectiveOptions.body;
-    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
-  }
-
-  function handleRequestInput(input, optionsArgument) {
-    const actualUrl = input.url;
-    const fetchCallArgs = [input, optionsArgument];
-    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
-    let bodyForApiKeyCheck;
-    let bodyForPostMessage;
-
-    if (optionsArgument) {
-      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
-      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
-      if ('body' in optionsArgument) {
-        bodyForApiKeyCheck = optionsArgument.body;
-        bodyForPostMessage = optionsArgument.body;
-      } else {
-        bodyForApiKeyCheck = undefined;
-        bodyForPostMessage = input.body;
-      }
-    } else {
-      bodyForApiKeyCheck = undefined;
-      bodyForPostMessage = input.body;
-    }
-    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
-  }
-
-  window.fetch = function(input, optionsArgument) {
-    let actualUrl;
-    let fetchCallArgs;
-    let effectiveOptions = {};
-    let bodyForApiKeyCheck;
-    let bodyForPostMessage;
-
-    if (typeof input === 'string') {
-      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
-    } else if (input instanceof Request) {
-      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
-    } else {
-      return originalFetch.apply(window, [input, optionsArgument]);
-    }
-
-    effectiveOptions.method = effectiveOptions.method || 'GET';
-    if (!effectiveOptions.headers) {
-      effectiveOptions.headers = new Headers();
-    }
-
-
-    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
-      let apiKeyIsNull = true;
-
-      const regex = new RegExp("models/([^:]+)");
-      const modelNameMatch = actualUrl.match(regex);
-      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
-
-
-      try {
-        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
-        const apiKeyParam = urlObject.searchParams.get('key');
-        if (apiKeyParam) {
-          apiKeyIsNull = false;
-        }
-      } catch (e) {
-        // Continue checks even if URL parsing fails
-      }
-
-      if (apiKeyIsNull && effectiveOptions.headers) {
-        const h = new Headers(effectiveOptions.headers);
-        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
-        if (apiKeyHeaderValue) {
-          apiKeyIsNull = false;
-          return originalFetch.apply(window, fetchCallArgs);
-        }
-      }
-
-      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
-        try {
-          const bodyData = JSON.parse(bodyForApiKeyCheck);
-          if (bodyData && bodyData.apiKey) {
-            apiKeyIsNull = false;
-            return originalFetch.apply(window, fetchCallArgs);
-          }
-        } catch (e) {
-          // Ignore JSON parsing errors
-        }
-      }
-
-      if(apiKeyIsNull) {
-        const promiseId = nextPromiseId++;
-        const promise = new Promise((resolve) => {
-          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
-            delete pendingFetchResolvers[promiseId];
-            resolve(resolvedResponse);
-          };
-        });
-
-        let serializedBodyForPostMessage;
-        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
-            serializedBodyForPostMessage = bodyForPostMessage;
-        } else if (bodyForPostMessage instanceof ReadableStream) {
-            serializedBodyForPostMessage = null;
-        } else {
-            try {
-                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
-            } catch (e) {
-                serializedBodyForPostMessage = null;
-            }
-        }
-
-        const messageOptions = {
-            method: effectiveOptions.method,
-            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
-            body: serializedBodyForPostMessage
-        };
-
-        window.parent.postMessage({
-          type: 'requestFetch',
-          url: actualUrl,
-          modelName: modelName,
-          options: messageOptions,
-          promiseId: promiseId,
-        }, '*');
-
-        return promise;
-      }
-      return originalFetch.apply(window, fetchCallArgs);
-    }
-    return originalFetch.apply(window, fetchCallArgs);
-  };
-
-  window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'resolveFetch') {
-      const { promiseId, response } = event.data;
-      if (pendingFetchResolvers[promiseId]) {
-        try {
-          const reconstructedResponse = new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: new Headers(response.headers),
-          });
-          pendingFetchResolvers[promiseId](reconstructedResponse);
-        } catch (error) {
-          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
-        }
-      }
-    }
-  });
-
-}))({"textModelName":"gemini-2.5-flash-preview-09-2025","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-2.5-flash-image-preview","imageTransformModelName":"gemini-2.5-flash-image-preview","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"]})</script><script>(function() {
-  const originalConsoleLog = console.log;
-  const originalConsoleError = console.error;
-
-    /**
-   * Normalizes an error event or a promise rejection reason into a structured error object.
-   * @param {*} errorEventOrReason The error object or reason.
-   * @return {object} Structured error data { message, name, stack }.
-   */
-  function getErrorObject(errorEventOrReason) {
-    if (errorEventOrReason instanceof Error) {
-      return {
-        message: errorEventOrReason.message,
-        name: errorEventOrReason.name,
-        stack: errorEventOrReason.stack,
-      };
-    }
-    // Fallback for non-Error objects.
-    try {
-      return {
-        message: JSON.stringify(errorEventOrReason),
-        name: 'UnknownErrorType',
-        stack: null,
-      };
-    } catch (e) {
-      return {
-        message: String(errorEventOrReason),
-        name: 'UnknownErrorTypeNonStringifiable',
-        stack: null,
-      };
-    }
-  }
-
-  /**
-   * Converts an array of arguments (from log/error) into a single string.
-   * Handles Error objects specially to include their message and stack.
-   * @param {Array<*>} args - Arguments passed to console methods.
-   * @return {string} A string representation of the arguments.
-   */
-  function stringifyArgs(args) {
-    return args
-      .map((arg) => {
-        if (arg instanceof Error) {
-          const {message, stack} = arg;
-          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
-        }
-        if (typeof arg === 'object' && arg !== null) {
-          try {
-            return JSON.stringify(arg);
-          } catch (error) {
-            return '[Circular Object]';
-          }
-        } else {
-          return String(arg);
-        }
-      })
-      .join(' ');
-  }
-
-  console.log = function(...args) {
-    const logString = stringifyArgs(args);
-    window.parent.postMessage({ type: 'log', message: logString }, '*');
-    originalConsoleLog.apply(console, args);
-  };
-
-  console.error = function(...args) {
-    let errorData;
-    if (args.length > 0 && args[0] instanceof Error) {
-      const err = args[0];
-      // If the first arg is an Error, capture its details.
-      errorData = {
-        type: 'error',
-        source: 'CONSOLE_ERROR',
-        ...getErrorObject(err),
-        rawArgsString: stringifyArgs(args.slice(1)),
-        timestamp: new Date().toISOString(),
-      };
-    } else {
-      // If not an Error object, treat all args as a general error message.
-      errorData = {
-        type: 'error',
-        source: 'CONSOLE_ERROR',
-        message: stringifyArgs(args),
-        name: 'ConsoleLoggedError',
-        stack: null,
-        timestamp: new Date().toISOString(),
-      };
-    }
-    window.parent.postMessage(errorData, '*');
-    originalConsoleError.apply(console, args);
-  };
-
-  // Listen for global unhandled synchronous errors.
-  window.addEventListener('error', function(event) {
-    const errorDetails = event.error ? getErrorObject(event.error) : {
-      message: event.message,
-      name: 'GlobalError',
-      stack: null,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
-    };
-
-    window.parent.postMessage({
-      type: 'error',
-      source: 'global',
-      ...errorDetails,
-      message: errorDetails.message || event.message,
-      timestamp: new Date().toISOString(),
-    }, '*');
-  });
-
-  // Listen for unhandled promise rejections (asynchronous errors).
-  window.addEventListener('unhandledrejection', function(event) {
-    const errorDetails = getErrorObject(event.reason);
-
-    window.parent.postMessage({
-      type: 'error',
-      source: 'unhandledrejection',
-      ...errorDetails,
-      message: errorDetails.message || 'Unhandled Promise Rejection',
-      timestamp: new Date().toISOString(),
-    }, '*');
-  });
-
-})();</script>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Toolkit &amp; Capacity Planner - Austin Health Edition</title>
@@ -893,17 +342,17 @@ var FREQUENCIES = {
   'Annually': 1 / 52
 };
 var GRADE_VALUES = {
-  "1": 1,
-  "2": 2,
-  "3": 3,
-  "4": 4,
-  "5": 5,
-  "6": 6,
-  "7": 7,
-  "8": 8,
-  "9": 9,
-  "10": 10,
-  "11": 11,
+  "1A": 1,
+  "1": 2,
+  "2": 3,
+  "3": 4,
+  "4": 5,
+  "5": 6,
+  "6": 7,
+  "7": 8,
+  "8": 9,
+  "9": 10,
+  "10": 11,
   "Executive": 12,
   "N/A": 0
 };
@@ -1369,47 +818,51 @@ var DIMENSION_CONFIG = {
   }
 };
 var GRADING_SCALES = [{
-  grade: 1,
+  grade: "1A",
   min: 0,
   max: 14
 }, {
-  grade: 2,
+  grade: 1,
   min: 15,
   max: 24
 }, {
-  grade: 3,
+  grade: 2,
   min: 25,
   max: 34
 }, {
-  grade: 4,
+  grade: 3,
   min: 35,
   max: 44
 }, {
-  grade: 5,
+  grade: 4,
   min: 45,
   max: 54
 }, {
-  grade: 6,
+  grade: 5,
   min: 55,
   max: 64
 }, {
-  grade: 7,
+  grade: 6,
   min: 65,
   max: 74
 }, {
-  grade: 8,
+  grade: 7,
   min: 75,
   max: 84
 }, {
-  grade: 9,
+  grade: 8,
   min: 85,
   max: 94
 }, {
-  grade: 10,
+  grade: 9,
   min: 95,
+  max: 104
+}, {
+  grade: 10,
+  min: 105,
   max: 110
 }];
-var GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, "Executive", "N/A"];
+var GRADES = ["1A", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "Executive", "N/A"];
 
 // --- UTILS ---
 var shuffleArray = function shuffleArray(array) {
@@ -1500,6 +953,10 @@ var MultiSelect = function MultiSelect(_ref5) {
     _useState2 = _slicedToArray(_useState, 2),
     isOpen = _useState2[0],
     setIsOpen = _useState2[1];
+  var _useStateStyle = useState({}),
+    _useStateStyle2 = _slicedToArray(_useStateStyle, 2),
+    dropdownStyle = _useStateStyle2[0],
+    setDropdownStyle = _useStateStyle2[1];
   var containerRef = useRef(null);
   useEffect(function () {
     var handleClickOutside = function handleClickOutside(event) {
@@ -1510,20 +967,35 @@ var MultiSelect = function MultiSelect(_ref5) {
       return document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+  useEffect(function () {
+    if (!isOpen) return;
+    var handleScroll = function handleScroll() { setIsOpen(false); };
+    window.addEventListener('scroll', handleScroll, true);
+    return function () { window.removeEventListener('scroll', handleScroll, true); };
+  }, [isOpen]);
   var toggleOption = function toggleOption(optionValue) {
     var newSelected = selected.includes(optionValue) ? selected.filter(function (v) {
       return v !== optionValue;
     }) : [].concat(_toConsumableArray(selected), [optionValue]);
     onChange(newSelected);
   };
+  var handleOpen = function handleOpen() {
+    if (!isOpen && containerRef.current) {
+      var rect = containerRef.current.getBoundingClientRect();
+      var spaceBelow = window.innerHeight - rect.bottom;
+      var openUp = spaceBelow < 260;
+      var style = { position: 'fixed', left: rect.left + 'px', width: '224px', zIndex: 9999 };
+      if (openUp) { style.bottom = (window.innerHeight - rect.top + 4) + 'px'; } else { style.top = (rect.bottom + 4) + 'px'; }
+      setDropdownStyle(style);
+    }
+    setIsOpen(!isOpen);
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "relative",
     ref: containerRef
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-full bg-transparent border border-transparent hover:border-slate-300 hover:bg-white rounded px-2 py-1 cursor-pointer flex items-center justify-between",
-    onClick: function onClick() {
-      return setIsOpen(!isOpen);
-    }
+    onClick: handleOpen
   }, /*#__PURE__*/React.createElement("div", {
     className: "truncate text-slate-600 text-sm font-medium"
   }, selected.length === 0 ? /*#__PURE__*/React.createElement("span", {
@@ -1533,7 +1005,8 @@ var MultiSelect = function MultiSelect(_ref5) {
     size: 14,
     className: "text-slate-400"
   })), isOpen && /*#__PURE__*/React.createElement("div", {
-    className: "absolute z-50 mt-1 w-56 bg-white rounded-lg shadow-xl border border-slate-100 py-1 max-h-60 overflow-auto left-0"
+    style: dropdownStyle,
+    className: "bg-white rounded-lg shadow-xl border border-slate-100 py-1 max-h-60 overflow-auto"
   }, options.map(function (opt) {
     return /*#__PURE__*/React.createElement("div", {
       key: opt,
@@ -2539,6 +2012,17 @@ var App = function App() {
         actual: actualHours / 38
       };
     });
+    var roleDiscrepancies = data.roles.map(function (r) {
+      var actualHours = data.employees.filter(function (e) {
+        return e.role === r.name;
+      }).reduce(function (sum, e) {
+        return sum + e.weeklyHours;
+      }, 0);
+      var actualFTE = actualHours / 38;
+      var budgetedFTE = r.budgetedFTE || 0;
+      var diff = actualFTE - budgetedFTE;
+      return { name: r.name, budgetedFTE: budgetedFTE, actualFTE: actualFTE, diff: diff };
+    }).filter(function (r) { return Math.abs(r.diff) > 0.05; });
     return {
       totalDemand: totalDemand,
       totalCapacity: totalCapacity,
@@ -2551,7 +2035,8 @@ var App = function App() {
       totalBudgetedFTE: totalBudgetedFTE,
       currentFTE: currentFTE,
       risks: risks,
-      budgetData: budgetData
+      budgetData: budgetData,
+      roleDiscrepancies: roleDiscrepancies
     };
   }, [data]);
   var saveData = function saveData() {
@@ -3232,10 +2717,15 @@ var App = function App() {
     name: "users",
     size: 24
   }))), /*#__PURE__*/React.createElement("div", {
-    className: "bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between"
+    className: "bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between relative group cursor-default"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "text-slate-500 text-xs font-bold uppercase tracking-wider mb-1"
-  }, "Vacancy / Surplus"), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"
+  }, "Vacancy / Surplus", metrics.roleDiscrepancies && metrics.roleDiscrepancies.length > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-500"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "alert-circle",
+    size: 14
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "text-3xl font-bold ".concat(metrics.totalBudgetedFTE - metrics.currentFTE < 0 ? 'text-red-600' : 'text-emerald-600')
   }, (metrics.totalBudgetedFTE - metrics.currentFTE).toFixed(1), " ", /*#__PURE__*/React.createElement("span", {
     className: "text-sm text-slate-400 font-normal"
@@ -3244,7 +2734,26 @@ var App = function App() {
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "user-plus",
     size: 24
-  })))), /*#__PURE__*/React.createElement("div", {
+  })), metrics.roleDiscrepancies && metrics.roleDiscrepancies.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "absolute left-0 right-0 top-full mt-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-800 text-white rounded-lg shadow-xl p-3 mx-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] uppercase font-bold text-slate-400 mb-2"
+  }, "Role FTE Discrepancies"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5"
+  }, metrics.roleDiscrepancies.map(function (r, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "flex items-start gap-2 text-xs"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "mt-0.5 w-2 h-2 rounded-full shrink-0 ".concat(r.diff > 0 ? 'bg-red-400' : 'bg-amber-400')
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-200"
+    }, /*#__PURE__*/React.createElement("strong", null, r.name), ": ", r.actualFTE.toFixed(1), " actual vs ", r.budgetedFTE.toFixed(1), " budgeted", /*#__PURE__*/React.createElement("span", {
+      className: "ml-1 font-bold ".concat(r.diff > 0 ? 'text-red-400' : 'text-emerald-400')
+    }, "(", r.diff > 0 ? '+' : '', r.diff.toFixed(1), " FTE)")));
+  }))))), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 lg:grid-cols-3 gap-6"
   }, /*#__PURE__*/React.createElement("div", {
     className: "lg:col-span-2 space-y-6"
@@ -3694,17 +3203,17 @@ var FREQUENCIES = {
   'Annually': 1 / 52
 };
 var GRADE_VALUES = {
-  "1": 1,
-  "2": 2,
-  "3": 3,
-  "4": 4,
-  "5": 5,
-  "6": 6,
-  "7": 7,
-  "8": 8,
-  "9": 9,
-  "10": 10,
-  "11": 11,
+  "1A": 1,
+  "1": 2,
+  "2": 3,
+  "3": 4,
+  "4": 5,
+  "5": 6,
+  "6": 7,
+  "7": 8,
+  "8": 9,
+  "9": 10,
+  "10": 11,
   "Executive": 12,
   "N/A": 0
 };
@@ -4170,47 +3679,51 @@ var DIMENSION_CONFIG = {
   }
 };
 var GRADING_SCALES = [{
-  grade: 1,
+  grade: "1A",
   min: 0,
   max: 14
 }, {
-  grade: 2,
+  grade: 1,
   min: 15,
   max: 24
 }, {
-  grade: 3,
+  grade: 2,
   min: 25,
   max: 34
 }, {
-  grade: 4,
+  grade: 3,
   min: 35,
   max: 44
 }, {
-  grade: 5,
+  grade: 4,
   min: 45,
   max: 54
 }, {
-  grade: 6,
+  grade: 5,
   min: 55,
   max: 64
 }, {
-  grade: 7,
+  grade: 6,
   min: 65,
   max: 74
 }, {
-  grade: 8,
+  grade: 7,
   min: 75,
   max: 84
 }, {
-  grade: 9,
+  grade: 8,
   min: 85,
   max: 94
 }, {
-  grade: 10,
+  grade: 9,
   min: 95,
+  max: 104
+}, {
+  grade: 10,
+  min: 105,
   max: 110
 }];
-var GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, "Executive", "N/A"];
+var GRADES = ["1A", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "Executive", "N/A"];
 
 // --- UTILS ---
 var shuffleArray = function shuffleArray(array) {
@@ -4301,6 +3814,10 @@ var MultiSelect = function MultiSelect(_ref5) {
     _useState2 = _slicedToArray(_useState, 2),
     isOpen = _useState2[0],
     setIsOpen = _useState2[1];
+  var _useStateStyle = useState({}),
+    _useStateStyle2 = _slicedToArray(_useStateStyle, 2),
+    dropdownStyle = _useStateStyle2[0],
+    setDropdownStyle = _useStateStyle2[1];
   var containerRef = useRef(null);
   useEffect(function () {
     var handleClickOutside = function handleClickOutside(event) {
@@ -4311,20 +3828,35 @@ var MultiSelect = function MultiSelect(_ref5) {
       return document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+  useEffect(function () {
+    if (!isOpen) return;
+    var handleScroll = function handleScroll() { setIsOpen(false); };
+    window.addEventListener('scroll', handleScroll, true);
+    return function () { window.removeEventListener('scroll', handleScroll, true); };
+  }, [isOpen]);
   var toggleOption = function toggleOption(optionValue) {
     var newSelected = selected.includes(optionValue) ? selected.filter(function (v) {
       return v !== optionValue;
     }) : [].concat(_toConsumableArray(selected), [optionValue]);
     onChange(newSelected);
   };
+  var handleOpen = function handleOpen() {
+    if (!isOpen && containerRef.current) {
+      var rect = containerRef.current.getBoundingClientRect();
+      var spaceBelow = window.innerHeight - rect.bottom;
+      var openUp = spaceBelow < 260;
+      var style = { position: 'fixed', left: rect.left + 'px', width: '224px', zIndex: 9999 };
+      if (openUp) { style.bottom = (window.innerHeight - rect.top + 4) + 'px'; } else { style.top = (rect.bottom + 4) + 'px'; }
+      setDropdownStyle(style);
+    }
+    setIsOpen(!isOpen);
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "relative",
     ref: containerRef
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-full bg-transparent border border-transparent hover:border-slate-300 hover:bg-white rounded px-2 py-1 cursor-pointer flex items-center justify-between",
-    onClick: function onClick() {
-      return setIsOpen(!isOpen);
-    }
+    onClick: handleOpen
   }, /*#__PURE__*/React.createElement("div", {
     className: "truncate text-slate-600 text-sm font-medium"
   }, selected.length === 0 ? /*#__PURE__*/React.createElement("span", {
@@ -4334,7 +3866,8 @@ var MultiSelect = function MultiSelect(_ref5) {
     size: 14,
     className: "text-slate-400"
   })), isOpen && /*#__PURE__*/React.createElement("div", {
-    className: "absolute z-50 mt-1 w-56 bg-white rounded-lg shadow-xl border border-slate-100 py-1 max-h-60 overflow-auto left-0"
+    style: dropdownStyle,
+    className: "bg-white rounded-lg shadow-xl border border-slate-100 py-1 max-h-60 overflow-auto"
   }, options.map(function (opt) {
     return /*#__PURE__*/React.createElement("div", {
       key: opt,
@@ -5340,6 +4873,17 @@ var App = function App() {
         actual: actualHours / 38
       };
     });
+    var roleDiscrepancies = data.roles.map(function (r) {
+      var actualHours = data.employees.filter(function (e) {
+        return e.role === r.name;
+      }).reduce(function (sum, e) {
+        return sum + e.weeklyHours;
+      }, 0);
+      var actualFTE = actualHours / 38;
+      var budgetedFTE = r.budgetedFTE || 0;
+      var diff = actualFTE - budgetedFTE;
+      return { name: r.name, budgetedFTE: budgetedFTE, actualFTE: actualFTE, diff: diff };
+    }).filter(function (r) { return Math.abs(r.diff) > 0.05; });
     return {
       totalDemand: totalDemand,
       totalCapacity: totalCapacity,
@@ -5352,7 +4896,8 @@ var App = function App() {
       totalBudgetedFTE: totalBudgetedFTE,
       currentFTE: currentFTE,
       risks: risks,
-      budgetData: budgetData
+      budgetData: budgetData,
+      roleDiscrepancies: roleDiscrepancies
     };
   }, [data]);
   var saveData = function saveData() {
@@ -6033,10 +5578,15 @@ var App = function App() {
     name: "users",
     size: 24
   }))), /*#__PURE__*/React.createElement("div", {
-    className: "bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between"
+    className: "bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between relative group cursor-default"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "text-slate-500 text-xs font-bold uppercase tracking-wider mb-1"
-  }, "Vacancy / Surplus"), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"
+  }, "Vacancy / Surplus", metrics.roleDiscrepancies && metrics.roleDiscrepancies.length > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-500"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "alert-circle",
+    size: 14
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "text-3xl font-bold ".concat(metrics.totalBudgetedFTE - metrics.currentFTE < 0 ? 'text-red-600' : 'text-emerald-600')
   }, (metrics.totalBudgetedFTE - metrics.currentFTE).toFixed(1), " ", /*#__PURE__*/React.createElement("span", {
     className: "text-sm text-slate-400 font-normal"
@@ -6045,7 +5595,26 @@ var App = function App() {
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "user-plus",
     size: 24
-  })))), /*#__PURE__*/React.createElement("div", {
+  })), metrics.roleDiscrepancies && metrics.roleDiscrepancies.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "absolute left-0 right-0 top-full mt-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-800 text-white rounded-lg shadow-xl p-3 mx-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] uppercase font-bold text-slate-400 mb-2"
+  }, "Role FTE Discrepancies"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5"
+  }, metrics.roleDiscrepancies.map(function (r, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "flex items-start gap-2 text-xs"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "mt-0.5 w-2 h-2 rounded-full shrink-0 ".concat(r.diff > 0 ? 'bg-red-400' : 'bg-amber-400')
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-200"
+    }, /*#__PURE__*/React.createElement("strong", null, r.name), ": ", r.actualFTE.toFixed(1), " actual vs ", r.budgetedFTE.toFixed(1), " budgeted", /*#__PURE__*/React.createElement("span", {
+      className: "ml-1 font-bold ".concat(r.diff > 0 ? 'text-red-400' : 'text-emerald-400')
+    }, "(", r.diff > 0 ? '+' : '', r.diff.toFixed(1), " FTE)")));
+  }))))), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 lg:grid-cols-3 gap-6"
   }, /*#__PURE__*/React.createElement("div", {
     className: "lg:col-span-2 space-y-6"
@@ -6482,7 +6051,7 @@ root.render( /*#__PURE__*/React.createElement(App, null));
         
         const FREQUENCIES = { 'Daily': 5, 'Weekly': 1, 'Monthly': 1/4.33, 'Annually': 1/52 };
         
-        const GRADE_VALUES = { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "11": 11, "Executive": 12, "N/A": 0 };
+        const GRADE_VALUES = { "1A": 1, "1": 2, "2": 3, "3": 4, "4": 5, "5": 6, "6": 7, "7": 8, "8": 9, "9": 10, "10": 11, "Executive": 12, "N/A": 0 };
 
         const PRIORITIES = [
             { value: 1, label: "High", color: "bg-red-100 text-red-700 border-red-200" },
@@ -6573,13 +6142,13 @@ root.render( /*#__PURE__*/React.createElement(App, null));
         };
 
         const GRADING_SCALES = [
-            { grade: 1, min: 0, max: 14 }, { grade: 2, min: 15, max: 24 }, { grade: 3, min: 25, max: 34 },
-            { grade: 4, min: 35, max: 44 }, { grade: 5, min: 45, max: 54 }, { grade: 6, min: 55, max: 64 },
-            { grade: 7, min: 65, max: 74 }, { grade: 8, min: 75, max: 84 }, { grade: 9, min: 85, max: 94 },
-            { grade: 10, min: 95, max: 110 }
+            { grade: "1A", min: 0, max: 14 }, { grade: 1, min: 15, max: 24 }, { grade: 2, min: 25, max: 34 },
+            { grade: 3, min: 35, max: 44 }, { grade: 4, min: 45, max: 54 }, { grade: 5, min: 55, max: 64 },
+            { grade: 6, min: 65, max: 74 }, { grade: 7, min: 75, max: 84 }, { grade: 8, min: 85, max: 94 },
+            { grade: 9, min: 95, max: 104 }, { grade: 10, min: 105, max: 110 }
         ];
 
-        const GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, "Executive", "N/A"];
+        const GRADES = ["1A", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "Executive", "N/A"];
 
         // --- UTILS ---
         const shuffleArray = (array) => { const newArray = [...array]; for (let i = newArray.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; } return newArray; };
@@ -6624,24 +6193,46 @@ root.render( /*#__PURE__*/React.createElement(App, null));
 
         const MultiSelect = ({ options, selected = [], onChange }) => {
             const [isOpen, setIsOpen] = useState(false);
+            const [dropdownStyle, setDropdownStyle] = useState({});
             const containerRef = useRef(null);
             useEffect(() => {
                 const handleClickOutside = (event) => { if (containerRef.current && !containerRef.current.contains(event.target)) setIsOpen(false); };
                 document.addEventListener('mousedown', handleClickOutside);
                 return () => document.removeEventListener('mousedown', handleClickOutside);
             }, []);
+            useEffect(() => {
+                if (!isOpen) return;
+                const handleScroll = () => setIsOpen(false);
+                window.addEventListener('scroll', handleScroll, true);
+                return () => window.removeEventListener('scroll', handleScroll, true);
+            }, [isOpen]);
             const toggleOption = (optionValue) => {
                 const newSelected = selected.includes(optionValue) ? selected.filter(v => v !== optionValue) : [...selected, optionValue];
                 onChange(newSelected);
             };
+            const handleOpen = () => {
+                if (!isOpen && containerRef.current) {
+                    const rect = containerRef.current.getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    const openUp = spaceBelow < 260;
+                    setDropdownStyle({
+                        position: 'fixed',
+                        left: rect.left + 'px',
+                        width: '224px',
+                        zIndex: 9999,
+                        ...(openUp ? { bottom: (window.innerHeight - rect.top + 4) + 'px' } : { top: (rect.bottom + 4) + 'px' })
+                    });
+                }
+                setIsOpen(!isOpen);
+            };
             return (
                 <div className="relative" ref={containerRef}>
-                    <div className="w-full bg-transparent border border-transparent hover:border-slate-300 hover:bg-white rounded px-2 py-1 cursor-pointer flex items-center justify-between" onClick={() => setIsOpen(!isOpen)}>
+                    <div className="w-full bg-transparent border border-transparent hover:border-slate-300 hover:bg-white rounded px-2 py-1 cursor-pointer flex items-center justify-between" onClick={handleOpen}>
                         <div className="truncate text-slate-600 text-sm font-medium">{selected.length === 0 ? <span className="text-slate-400">Select Roles...</span> : selected.length === 1 ? selected[0] : `${selected.length} Roles`}</div>
                         <Icon name="chevron-down" size={14} className="text-slate-400" />
                     </div>
                     {isOpen && (
-                        <div className="absolute z-50 mt-1 w-56 bg-white rounded-lg shadow-xl border border-slate-100 py-1 max-h-60 overflow-auto left-0">
+                        <div style={dropdownStyle} className="bg-white rounded-lg shadow-xl border border-slate-100 py-1 max-h-60 overflow-auto">
                             {options.map(opt => (
                                 <div key={opt} className="px-3 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer" onClick={() => toggleOption(opt)}>
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center ${selected.includes(opt) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>{selected.includes(opt) && <Icon name="check" size={10} className="text-white" />}</div>
@@ -7046,10 +6637,124 @@ root.render( /*#__PURE__*/React.createElement(App, null));
             );
         };
 
+        // --- WALKTHROUGH COMPONENT ---
+        const WALKTHROUGH_STEPS = [
+            // INTRO
+            { tab: null, target: null, title: "Welcome to the Manager Toolkit", body: "This guided tour will walk you through every feature of the Manager Toolkit — your one-stop capacity planning and workforce management tool.\n\nClick 'Next' to begin, or 'Skip' to close at any time.", position: "center" },
+            // NAV
+            { tab: null, target: '[data-tour="nav-bar"]', title: "Navigation Bar", body: "This is your main navigation. The toolbar at the top gives you quick access to saving your work. All changes are made in-browser and saved into the HTML file itself — making it fully portable.", position: "bottom" },
+            { tab: null, target: '[data-tour="tab-bar"]', title: "Tab Navigation", body: "These tabs organise your toolkit into six key areas: Dashboard, Roles, Employees, Processes, Systems, and Value Matrix. Click any tab to switch views.", position: "bottom" },
+            // DASHBOARD
+            { tab: 'dashboard', target: '[data-tour="dash-stats"]', title: "Dashboard — Key Metrics", body: "The top row gives you an at-a-glance summary:\n\n• Total Headcount — number of staff members\n• Budget vs Actual FTE — compares your budgeted full-time equivalents against actual hours worked\n• Risk Factors — hover to see alerts like single points of failure or system skill gaps", position: "bottom" },
+            { tab: 'dashboard', target: '[data-tour="dash-budget-chart"]', title: "Team Composition & Budget Chart", body: "This bar chart compares Budgeted FTE (grey) vs Actual FTE (indigo) for each role. It instantly highlights where you're over or under-resourced at a role level.", position: "bottom" },
+            { tab: 'dashboard', target: '[data-tour="dash-workload"]', title: "Workload Distribution", body: "This donut chart breaks your team's total workload into three categories:\n\n• Strategic (High Value) — processes rated 7-10\n• Core Operations — processes rated 5-6\n• Admin / Low Value — processes rated 1-4\n\nAim to maximise strategic work and minimise admin.", position: "bottom" },
+            { tab: 'dashboard', target: '[data-tour="dash-systems"]', title: "Systems Proficiency & Gaps", body: "Shows the skill coverage across your configured systems. Red 'Gap' badges flag systems where nobody has expert-level proficiency — a risk to continuity.", position: "bottom" },
+            { tab: 'dashboard', target: '[data-tour="dash-pulse"]', title: "Staff Pulse", body: "A real-time view of each employee's utilisation. The percentage shows allocated workload vs capacity, factoring in efficiency and leave.\n\n• Green — healthy load\n• Red — at risk of burnout (>105%)", position: "left" },
+            // ROLES
+            { tab: 'roles', target: '[data-tour="roles-summary"]', title: "Roles — Summary Tiles", body: "Three summary tiles show:\n\n• Total Roles — how many distinct roles exist\n• Total FTE Budget — the combined budgeted headcount\n• Vacancy/Surplus — the gap between budget and actual. Hover for a per-role breakdown showing exactly where discrepancies lie.", position: "bottom" },
+            { tab: 'roles', target: '[data-tour="roles-table"]', title: "Role Architecture Table", body: "This is where you define your team's role structure. Each row is a role with:\n\n• Grade Level — the classification grade (1A through 10, Executive, or N/A)\n• Budget (FTE) — the planned headcount for this role\n• Actual (FTE) — calculated from assigned employees' hours\n\nAll fields are editable inline. Rows highlight amber when actual exceeds budget.", position: "bottom" },
+            { tab: 'roles', target: '[data-tour="roles-add"]', title: "Quick Add & Classification Wizard", body: "Use 'Quick Add Role' to manually create a new role with a name, grade, and FTE budget.\n\nOr use the Classification Wizard — answer a series of weighted questions across dimensions like Knowledge, Problem Solving, Accountability, Leadership, Communication, and Impact. The wizard calculates a score and recommends a grade automatically.", position: "left" },
+            // WIZARD DEMO
+            { tab: 'roles', target: '[data-tour="roles-add"]', title: "Classification Wizard — How It Works", body: "When you launch the wizard, you'll step through 8-12 questions grouped by dimension. Each answer scores the role on a 0-100 scale.\n\nAt the end you'll see:\n• A calculated Grade based on the scoring matrix\n• A radar chart showing the role's profile across all dimensions\n• A grading scale reference table\n• The option to create the role directly with the recommended grade.", position: "left" },
+            // EMPLOYEES
+            { tab: 'employees', target: '[data-tour="emp-add"]', title: "Employees — Add Team Members", body: "Add staff by entering their name, selecting their role from the dropdown, and setting their weekly hours. The default is 38 hours (1.0 FTE).", position: "bottom" },
+            { tab: 'employees', target: '[data-tour="emp-table"]', title: "Employee Table", body: "Each employee row shows:\n\n• Name — editable inline\n• Role — reassignable via dropdown\n• Hours/Wk — their contracted weekly hours\n• FTE — auto-calculated (hours ÷ 38)\n• Efficiency % — accounts for ramp-up or part-time productivity\n• Leave (Hrs) — annual leave hours, factored into capacity\n\nAll fields are editable. Changes immediately recalculate dashboard metrics.", position: "bottom" },
+            // PROCESSES
+            { tab: 'processes', target: '[data-tour="proc-actions"]', title: "Processes — Actions", body: "Two ways to add processes:\n\n• Add Process — creates a blank row for manual entry\n• Classify Process — launches the Classification Wizard to score and create a process with recommended grade, priority, and operational details.", position: "bottom" },
+            { tab: 'processes', target: '[data-tour="proc-table"]', title: "Process Table", body: "Each process row captures:\n\n• Process Name — what the task is\n• Value (1-10) — strategic importance rating\n• Frequency — how often (Daily/Weekly/Monthly/Annually)\n• Volume — units per occurrence\n• Time (min) — minutes per unit\n• Assigned Roles — which roles perform this (multi-select)\n• Grade — the classification level\n\nAmber rows indicate a grade mismatch — where a role is over-qualified for the task.", position: "bottom" },
+            // SYSTEMS
+            { tab: 'systems', target: '[data-tour="systems-matrix"]', title: "Systems Matrix", body: "This proficiency matrix maps employees against business systems.\n\n• Add systems with a name and category (HRIS, Finance, Clinical, Ops, General)\n• Click any cell to cycle through skill levels: None → Novice → Basic → Competent → Proficient → Expert\n• The bottom row flags systems with no expert-level users\n\nThis data feeds the 'Systems Proficiency & Gaps' card on the dashboard and the Risk Factors alerts.", position: "bottom" },
+            // VALUE MATRIX
+            { tab: 'value matrix', target: '[data-tour="value-matrix"]', title: "Value vs. Effort Matrix", body: "This scatter chart plots every process by Effort (hours/week) on the X-axis and Strategic Value on the Y-axis, creating four quadrants:\n\n• Top-Left: Quick Wins — high value, low effort\n• Top-Right: Strategic Bets — high value, high effort\n• Bottom-Left: Routine — low value, low effort\n• Bottom-Right: The 'Waste' Trap — low value, high effort\n\nThe analysis cards on the right quantify hours spent in waste vs strategic activities.", position: "bottom" },
+            // SAVE
+            { tab: null, target: '[data-tour="save-btn"]', title: "Saving Your Work", body: "Click 'Save File' to download your toolkit as a self-contained HTML file. All your data — roles, employees, processes, systems, and skills — is embedded in the file.\n\nYou can reopen it in any browser to continue where you left off. No server, no login, no cloud — it's completely portable.", position: "bottom" },
+            // END
+            { tab: null, target: null, title: "Tour Complete!", body: "You've seen every feature of the Manager Toolkit. Here's a quick recap:\n\n• Dashboard — your KPI overview\n• Roles — define your team structure and grades\n• Employees — manage your people\n• Processes — capture and classify work\n• Systems — track technology proficiency\n• Value Matrix — identify waste and strategic opportunities\n\nStart by reviewing the demo data, then customise it to match your team. Happy planning!", position: "center" },
+        ];
+
+        const WalkthroughOverlay = ({ isActive, currentStep, onNext, onPrev, onClose, totalSteps }) => {
+            const [highlightStyle, setHighlightStyle] = useState(null);
+            const [tooltipStyle, setTooltipStyle] = useState({});
+            const step = WALKTHROUGH_STEPS[currentStep];
+
+            useEffect(() => {
+                if (!isActive || !step) return;
+                if (!step.target) {
+                    setHighlightStyle(null);
+                    setTooltipStyle({ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
+                    return;
+                }
+                const updatePosition = () => {
+                    const el = document.querySelector(step.target);
+                    if (!el) { setHighlightStyle(null); setTooltipStyle({ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }); return; }
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    setTimeout(() => {
+                        const rect = el.getBoundingClientRect();
+                        const pad = 8;
+                        setHighlightStyle({ position: 'fixed', top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2, borderRadius: '12px' });
+                        const tt = { position: 'fixed', maxWidth: '420px', width: '90vw' };
+                        if (step.position === 'bottom') { tt.top = Math.min(rect.bottom + pad + 12, window.innerHeight - 300) + 'px'; tt.left = Math.max(12, Math.min(rect.left, window.innerWidth - 440)) + 'px'; }
+                        else if (step.position === 'left') { tt.top = Math.max(12, rect.top) + 'px'; tt.right = (window.innerWidth - rect.left + pad + 12) + 'px'; tt.left = 'auto'; }
+                        else if (step.position === 'top') { tt.bottom = (window.innerHeight - rect.top + pad + 12) + 'px'; tt.left = Math.max(12, Math.min(rect.left, window.innerWidth - 440)) + 'px'; }
+                        else { tt.top = '50%'; tt.left = '50%'; tt.transform = 'translate(-50%, -50%)'; }
+                        setTooltipStyle(tt);
+                    }, 350);
+                };
+                const timer = setTimeout(updatePosition, 100);
+                return () => clearTimeout(timer);
+            }, [isActive, currentStep, step]);
+
+            if (!isActive || !step) return null;
+
+            return (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 99998 }}>
+                    {/* Backdrop with cutout */}
+                    <svg style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 99998 }} onClick={onClose}>
+                        <defs>
+                            <mask id="tour-mask">
+                                <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                                {highlightStyle && <rect x={highlightStyle.left} y={highlightStyle.top} width={highlightStyle.width} height={highlightStyle.height} rx="12" fill="black" />}
+                            </mask>
+                        </defs>
+                        <rect x="0" y="0" width="100%" height="100%" fill="rgba(15,23,42,0.65)" mask="url(#tour-mask)" />
+                    </svg>
+                    {/* Highlight ring */}
+                    {highlightStyle && <div style={{ ...highlightStyle, zIndex: 99999, border: '2px solid #818cf8', boxShadow: '0 0 0 4px rgba(129,140,248,0.3), 0 0 20px rgba(99,102,241,0.2)', pointerEvents: 'none' }} />}
+                    {/* Tooltip */}
+                    <div style={{ ...tooltipStyle, zIndex: 100000 }} className="bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
+                        {/* Progress bar */}
+                        <div className="h-1 bg-slate-100">
+                            <div className="h-full bg-indigo-500 transition-all duration-500" style={{ width: ((currentStep + 1) / totalSteps * 100) + '%' }} />
+                        </div>
+                        <div className="p-5">
+                            <div className="flex justify-between items-start mb-3">
+                                <h3 className="font-bold text-slate-800 text-base pr-4">{step.title}</h3>
+                                <button onClick={onClose} className="text-slate-400 hover:text-slate-600 shrink-0 p-0.5"><Icon name="x" size={16} /></button>
+                            </div>
+                            <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line mb-5">{step.body}</div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-slate-400 font-medium">{currentStep + 1} of {totalSteps}</span>
+                                <div className="flex gap-2">
+                                    {currentStep > 0 && <button onClick={onPrev} className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Previous</button>}
+                                    {currentStep < totalSteps - 1 ? (
+                                        <button onClick={onNext} className="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">Next</button>
+                                    ) : (
+                                        <button onClick={onClose} className="px-4 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors shadow-sm">Finish Tour</button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- APP COMPONENT ---
         const App = () => {
             const [data, setData] = useState(null);
             const [activeTab, setActiveTab] = useState('dashboard');
+            const [tourActive, setTourActive] = useState(false);
+            const [tourStep, setTourStep] = useState(0);
             const [classifierMode, setClassifierMode] = useState(null);
             const [deleteTarget, setDeleteTarget] = useState(null); // { type: 'role' | 'system', id: any, name: string }
             
@@ -7160,19 +6865,28 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                      };
                 });
 
-                return { 
-                    totalDemand, 
-                    totalCapacity, 
-                    demandByRole, 
-                    capacityByRole, 
-                    empUtilization, 
-                    strategicHours, 
+                const roleDiscrepancies = data.roles.map(r => {
+                    const actualHours = data.employees.filter(e => e.role === r.name).reduce((sum, e) => sum + e.weeklyHours, 0);
+                    const actualFTE = actualHours / 38;
+                    const budgetedFTE = r.budgetedFTE || 0;
+                    const diff = actualFTE - budgetedFTE;
+                    return { name: r.name, budgetedFTE, actualFTE, diff };
+                }).filter(r => Math.abs(r.diff) > 0.05);
+
+                return {
+                    totalDemand,
+                    totalCapacity,
+                    demandByRole,
+                    capacityByRole,
+                    empUtilization,
+                    strategicHours,
                     adminHours,
                     coreHours,
                     totalBudgetedFTE,
                     currentFTE,
                     risks,
-                    budgetData
+                    budgetData,
+                    roleDiscrepancies
                 };
             }, [data]);
 
@@ -7191,6 +6905,24 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                 a.click();
                 URL.revokeObjectURL(url);
             };
+
+            // Tour Handlers
+            const startTour = () => { setTourStep(0); setTourActive(true); };
+            const tourNext = () => {
+                const nextStep = tourStep + 1;
+                if (nextStep >= WALKTHROUGH_STEPS.length) { setTourActive(false); return; }
+                const step = WALKTHROUGH_STEPS[nextStep];
+                if (step.tab && step.tab !== activeTab) setActiveTab(step.tab);
+                setTourStep(nextStep);
+            };
+            const tourPrev = () => {
+                const prevStep = tourStep - 1;
+                if (prevStep < 0) return;
+                const step = WALKTHROUGH_STEPS[prevStep];
+                if (step.tab && step.tab !== activeTab) setActiveTab(step.tab);
+                setTourStep(prevStep);
+            };
+            const tourClose = () => setTourActive(false);
 
             // Handlers
             const addRole = (roleName, grade, budgetedFTE = 1.0) => {
@@ -7304,19 +7036,20 @@ root.render( /*#__PURE__*/React.createElement(App, null));
 
             return (
                 <div className="min-h-screen pb-20 font-sans text-slate-900">
-                    <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+                    <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm" data-tour="nav-bar">
                         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="bg-indigo-600 text-white p-2 rounded-lg shadow-indigo-200"><Icon name="briefcase" /></div>
                                 <h1 className="font-bold text-xl text-slate-800 tracking-tight">Manager Toolkit</h1>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2" data-tour="save-btn">
+                                <button onClick={startTour} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 rounded-lg transition-colors shadow-sm active:scale-95 transform duration-150"><Icon name="compass" size={16} /> <span className="hidden sm:inline">Guided Tour</span></button>
                                 <button onClick={saveData} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors shadow-sm active:scale-95 transform duration-150"><Icon name="save" size={16} /> <span className="hidden sm:inline">Save File</span></button>
                             </div>
                         </div>
                     </nav>
                     <div className="container mx-auto px-4 mt-8">
-                        <div className="flex gap-8 border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar">
+                        <div className="flex gap-8 border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar" data-tour="tab-bar">
                             {['dashboard', 'roles', 'employees', 'processes', 'systems', 'value matrix'].map(tab => (
                                 <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-4 capitalize font-medium text-sm transition-all relative whitespace-nowrap ${activeTab === tab ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>{tab}{activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-t-full"></div>}</button>
                             ))}
@@ -7325,7 +7058,7 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                         {activeTab === 'dashboard' && metrics && (
                             <div className="space-y-6 animate-in fade-in duration-300">
                                 {/* Top Stats Row - Manager Focused */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-tour="dash-stats">
                                      <Card className="border-l-4 border-l-indigo-500">
                                         <div className="flex justify-between items-start">
                                             <div>
@@ -7373,7 +7106,7 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                      {/* Left Col - 2 spans */}
                                      <div className="lg:col-span-2 space-y-6">
-                                          <Card title="Team Composition & Budget">
+                                          <div data-tour="dash-budget-chart"><Card title="Team Composition & Budget">
                                                <div className="h-72">
                                                     <ResponsiveContainer width="100%" height="100%">
                                                         <BarChart data={metrics.budgetData} margin={{top: 20, right: 30, left: 30, bottom: 5}}>
@@ -7387,10 +7120,10 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                                                         </BarChart>
                                                     </ResponsiveContainer>
                                                </div>
-                                          </Card>
-                                          
+                                          </Card></div>
+
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <Card title="Workload Distribution">
+                                            <div data-tour="dash-workload"><Card title="Workload Distribution">
                                                  <div className="h-72 flex items-center justify-center">
                                                     <ResponsiveContainer width="100%" height="100%">
                                                         <PieChart>
@@ -7416,8 +7149,8 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                                                         </PieChart>
                                                     </ResponsiveContainer>
                                                  </div>
-                                            </Card>
-                                            <Card title="Systems Proficiency & Gaps">
+                                            </Card></div>
+                                            <div data-tour="dash-systems"><Card title="Systems Proficiency & Gaps">
                                                 <div className="space-y-3 h-60 overflow-y-auto custom-scrollbar pr-2">
                                                     {data.systems.length === 0 ? (
                                                         <div className="h-full flex flex-col items-center justify-center text-slate-400">
@@ -7464,12 +7197,12 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                                                         })
                                                     )}
                                                 </div>
-                                            </Card>
+                                            </Card></div>
                                           </div>
                                      </div>
 
                                      {/* Right Col - 1 span */}
-                                     <div className="space-y-6">
+                                     <div className="space-y-6" data-tour="dash-pulse">
                                           <Card title="Staff Pulse">
                                                <div className="space-y-5 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
                                                     {Object.values(metrics.empUtilization).map(emp => { 
@@ -7504,12 +7237,12 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                         )}
 
                         {activeTab === 'systems' && (
-                            <SystemsMatrix data={data} onAddSystem={handleAddSystem} onDeleteSystem={handleDeleteSystem} onUpdateSkill={handleUpdateSkill} />
+                            <div data-tour="systems-matrix"><SystemsMatrix data={data} onAddSystem={handleAddSystem} onDeleteSystem={handleDeleteSystem} onUpdateSkill={handleUpdateSkill} /></div>
                         )}
 
                         {activeTab === 'employees' && (
                             <Card title="Employee Management" className="animate-in fade-in duration-300">
-                                <div className="mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <div className="mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200" data-tour="emp-add">
                                     <h4 className="font-bold text-slate-800 text-sm mb-3">Add New Team Member</h4>
                                     <div className="flex flex-wrap items-end gap-3">
                                         <div className="flex-1 min-w-[200px]">
@@ -7551,7 +7284,7 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                                     </div>
                                 </div>
 
-                                <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <div className="overflow-x-auto rounded-lg border border-slate-200" data-tour="emp-table">
                                     <table className="w-full text-left text-sm">
                                         <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
                                             <tr>
@@ -7627,12 +7360,12 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                         )}
 
                         {activeTab === 'value matrix' && (
-                            <ValueMatrix processes={data.processes} />
+                            <div data-tour="value-matrix"><ValueMatrix processes={data.processes} /></div>
                         )}
                         
                         {activeTab === 'roles' && (
                             <div className="space-y-6 animate-in fade-in duration-300">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-tour="roles-summary">
                                     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                                         <div>
                                             <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Roles</div>
@@ -7647,20 +7380,45 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                                         </div>
                                         <div className="bg-emerald-50 text-emerald-600 p-3 rounded-lg"><Icon name="users" size={24} /></div>
                                     </div>
-                                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between relative group cursor-default">
                                         <div>
-                                            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Vacancy / Surplus</div>
+                                            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                                Vacancy / Surplus
+                                                {metrics.roleDiscrepancies && metrics.roleDiscrepancies.length > 0 && (
+                                                    <span className="text-amber-500"><Icon name="alert-circle" size={14} /></span>
+                                                )}
+                                            </div>
                                             <div className={`text-3xl font-bold ${metrics.totalBudgetedFTE - metrics.currentFTE < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                                                 {(metrics.totalBudgetedFTE - metrics.currentFTE).toFixed(1)} <span className="text-sm text-slate-400 font-normal">FTE</span>
                                             </div>
                                         </div>
                                         <div className="bg-amber-50 text-amber-600 p-3 rounded-lg"><Icon name="user-plus" size={24} /></div>
+                                        {metrics.roleDiscrepancies && metrics.roleDiscrepancies.length > 0 && (
+                                            <div className="absolute left-0 right-0 top-full mt-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                                <div className="bg-slate-800 text-white rounded-lg shadow-xl p-3 mx-2">
+                                                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-2">Role FTE Discrepancies</div>
+                                                    <div className="space-y-1.5">
+                                                        {metrics.roleDiscrepancies.map((r, i) => (
+                                                            <div key={i} className="flex items-start gap-2 text-xs">
+                                                                <span className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${r.diff > 0 ? 'bg-red-400' : 'bg-amber-400'}`}></span>
+                                                                <span className="text-slate-200">
+                                                                    <strong>{r.name}</strong>: {r.actualFTE.toFixed(1)} actual vs {r.budgetedFTE.toFixed(1)} budgeted
+                                                                    <span className={`ml-1 font-bold ${r.diff > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                                        ({r.diff > 0 ? '+' : ''}{r.diff.toFixed(1)} FTE)
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                     <div className="lg:col-span-2 space-y-6">
-                                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" data-tour="roles-table">
                                             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                                                 <h3 className="font-bold text-slate-800">Role Architecture</h3>
                                             </div>
@@ -7720,7 +7478,7 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                                         </div>
                                     </div>
                                     
-                                    <div className="space-y-6">
+                                    <div className="space-y-6" data-tour="roles-add">
                                         <Card title="Add New Role">
                                             <div className="space-y-4">
                                                 <div>
@@ -7766,11 +7524,11 @@ root.render( /*#__PURE__*/React.createElement(App, null));
 
                         {activeTab === 'processes' && (
                             <Card title="Process Management" className="animate-in fade-in duration-300">
-                                <div className="mb-4 flex gap-2">
+                                <div className="mb-4 flex gap-2" data-tour="proc-actions">
                                     <button onClick={() => setData({...data, processes: [...data.processes, { id: Date.now(), name: "New Process", frequency: "Weekly", volume: 1, timePerCycle: 30, roles: ["Unassigned"], priority: 2, grade: "N/A", strategicValue: 5 }]})} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"><Icon name="plus" size={16} /> Add Process</button>
                                     <button onClick={() => setClassifierMode('process')} className="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm hover:bg-slate-200 transition-colors flex items-center gap-2 border border-slate-200"><Icon name="wand-2" size={16} /> Classify Process</button>
                                 </div>
-                                <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <div className="overflow-x-auto rounded-lg border border-slate-200" data-tour="proc-table">
                                     <table className="w-full text-left text-sm">
                                         <thead className="bg-slate-50 text-slate-500 border-b border-slate-200"><tr><th className="p-3 font-medium">Process Name</th><th className="p-3 font-medium w-20">Value (1-10)</th><th className="p-3 font-medium">Frequency</th><th className="p-3 font-medium">Volume</th><th className="p-3 font-medium">Time (min)</th><th className="p-3 font-medium">Assigned Roles</th><th className="p-3 font-medium w-16">Grade</th><th className="p-3 font-medium w-10"></th></tr></thead>
                                         <tbody className="divide-y divide-slate-100 bg-white">
@@ -7821,6 +7579,7 @@ root.render( /*#__PURE__*/React.createElement(App, null));
                             </div>
                         </div>
                     </Modal>
+                    <WalkthroughOverlay isActive={tourActive} currentStep={tourStep} onNext={tourNext} onPrev={tourPrev} onClose={tourClose} totalSteps={WALKTHROUGH_STEPS.length} />
                 </div>
             );
         };
