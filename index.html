@@ -128,6 +128,13 @@
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3 tracking-tight">Classification Calculator</h1>
         </div>
 
+        <!-- TSP Calculator Button -->
+        <button id="tsp-button"
+            class="fixed top-4 right-16 md:top-8 md:right-24 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors duration-200 z-50 focus:outline-none shadow-md"
+            aria-label="TSP Calculator">
+            TSP Calculator
+        </button>
+
         <!-- Help Button -->
         <button id="help-button"
             class="fixed top-4 right-4 md:top-8 md:right-8 text-slate-400 hover:text-indigo-600 transition-colors duration-200 z-50 focus:outline-none"
@@ -182601,6 +182608,420 @@
                 dateElement.textContent = 'Last Updated: ' + date.toLocaleDateString();
             }
         }
+    </script>
+
+    <!-- TSP Calculator Modal -->
+    <div id="tsp-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0" id="tsp-backdrop"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-start justify-center p-4 sm:p-8">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-2xl opacity-0 translate-y-4 sm:scale-95 my-8"
+                    id="tsp-panel">
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-5 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white">
+                                <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-white">Total Separation Package Calculator</h2>
+                                <p class="text-indigo-200 text-xs">Calculate employee TSP entitlements</p>
+                            </div>
+                        </div>
+                        <button id="tsp-close-button" class="text-white/70 hover:text-white transition-colors">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="px-6 py-6 space-y-6">
+                        <!-- Step 1: Classification -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs">1</div>
+                                <h3 class="text-sm font-bold text-slate-800">Classification & Pay</h3>
+                            </div>
+                            <div class="pl-9 space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">VHIA Code</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                                        </div>
+                                        <input type="text" id="tsp-code-search"
+                                            class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                            placeholder="Search by code or description..." />
+                                        <div id="tsp-code-dropdown" class="dropdown hidden"></div>
+                                    </div>
+                                    <div id="tsp-selected-code-display" class="mt-2 p-2.5 bg-indigo-50/50 border border-indigo-100 rounded-lg hidden text-sm">
+                                        <span class="text-xs font-bold text-indigo-600 uppercase">Selected: </span>
+                                        <span id="tsp-selected-code-value" class="font-medium text-indigo-900"></span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Hours per Week</label>
+                                        <input type="number" id="tsp-hours-input"
+                                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                            value="38" min="0" step="0.5" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Hourly Over Award ($)</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <i class="fa-solid fa-dollar-sign text-xs"></i>
+                                            </div>
+                                            <input type="number" id="tsp-over-award"
+                                                class="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                                value="0" min="0" step="0.01" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Allowances -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs">2</div>
+                                <h3 class="text-sm font-bold text-slate-800">Pay Components</h3>
+                            </div>
+                            <div class="pl-9">
+                                <div id="tsp-components-list" class="space-y-1 max-h-40 overflow-y-auto text-sm">
+                                    <p class="text-slate-400 text-xs italic">Select a classification first</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Employee Details -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs">3</div>
+                                <h3 class="text-sm font-bold text-slate-800">Employee Details</h3>
+                            </div>
+                            <div class="pl-9 grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Over 45 years of age?</label>
+                                    <div class="relative">
+                                        <select id="tsp-over-45"
+                                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm appearance-none">
+                                            <option value="no">No</option>
+                                            <option value="yes">Yes</option>
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Start Date with Organisation</label>
+                                    <input type="date" id="tsp-start-date"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button -->
+                        <button id="tsp-calculate-btn"
+                            class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg text-sm">
+                            <i class="fa-solid fa-calculator mr-2"></i>Calculate TSP
+                        </button>
+
+                        <!-- Results -->
+                        <div id="tsp-results" class="hidden space-y-4">
+                            <div class="border-t border-slate-200 pt-4">
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>TSP Breakdown
+                                </h3>
+                                <div id="tsp-summary" class="text-xs text-slate-500 mb-3"></div>
+                                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left font-semibold">Component</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Weeks</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tsp-results-body" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // TSP Calculator Logic
+        (function () {
+            const tspModal = document.getElementById('tsp-modal');
+            const tspButton = document.getElementById('tsp-button');
+            const tspCloseButton = document.getElementById('tsp-close-button');
+            const tspBackdrop = document.getElementById('tsp-backdrop');
+            const tspPanel = document.getElementById('tsp-panel');
+
+            if (!tspModal || !tspButton) return;
+
+            // TSP State
+            let tspState = {
+                selectedCode: '',
+                codeComponents: [],
+                selectedComponents: [],
+                hoursPerWeek: 38,
+                overAward: 0
+            };
+
+            function openTspModal() {
+                tspModal.classList.remove('hidden');
+                void tspModal.offsetWidth;
+                tspBackdrop.classList.remove('opacity-0');
+                tspPanel.classList.remove('opacity-0', 'translate-y-4', 'sm:scale-95');
+                tspPanel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
+            }
+
+            function closeTspModal() {
+                tspBackdrop.classList.add('opacity-0');
+                tspPanel.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
+                tspPanel.classList.add('opacity-0', 'translate-y-4', 'sm:scale-95');
+                setTimeout(() => tspModal.classList.add('hidden'), 300);
+            }
+
+            tspButton.addEventListener('click', openTspModal);
+            tspCloseButton.addEventListener('click', closeTspModal);
+            tspModal.addEventListener('click', (e) => {
+                if (e.target === tspModal || e.target === tspBackdrop) closeTspModal();
+            });
+
+            // Code search for TSP
+            const tspCodeSearch = document.getElementById('tsp-code-search');
+            const tspCodeDropdown = document.getElementById('tsp-code-dropdown');
+
+            tspCodeSearch.addEventListener('input', function () {
+                const searchTerm = this.value.trim();
+                if (!searchTerm) { tspCodeDropdown.classList.add('hidden'); return; }
+
+                // Access the main calculator's state for vhiaCodes
+                const codes = state.vhiaCodes || [];
+                const filtered = codes.filter(c =>
+                    c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    c.description.toLowerCase().includes(searchTerm.toLowerCase())
+                ).slice(0, 50);
+
+                if (filtered.length === 0) { tspCodeDropdown.classList.add('hidden'); return; }
+
+                tspCodeDropdown.innerHTML = '';
+                filtered.forEach(codeObj => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    item.textContent = codeObj.code + ' - ' + codeObj.description;
+                    item.addEventListener('click', () => tspSelectCode(codeObj.code));
+                    tspCodeDropdown.appendChild(item);
+                });
+                tspCodeDropdown.classList.remove('hidden');
+            });
+
+            function tspSelectCode(code) {
+                tspState.selectedCode = code;
+                tspCodeSearch.value = code;
+                tspCodeDropdown.classList.add('hidden');
+
+                document.getElementById('tsp-selected-code-display').classList.remove('hidden');
+                document.getElementById('tsp-selected-code-value').textContent = code;
+
+                // Get code data from main state
+                const codeData = state.vhiaCodes.find(c => c.code === code);
+                if (!codeData || !codeData.dateRanges || codeData.dateRanges.length === 0) return;
+
+                // Use most recent date range
+                const mostRecentRange = codeData.dateRanges[codeData.dateRanges.length - 1];
+                tspState.codeComponents = mostRecentRange.components.map(comp => {
+                    let amount = comp.amount;
+                    if (typeof amount === 'string' && !amount.includes('%')) {
+                        amount = parseFloat(amount);
+                    }
+                    return { name: comp.name, amount: amount };
+                });
+
+                // Auto-select Base Pay Rate or Casual Rate
+                tspState.selectedComponents = [];
+                const hasBase = tspState.codeComponents.find(c => c.name === 'Base Pay Rate');
+                const hasCasual = tspState.codeComponents.find(c => c.name === 'Casual Rate');
+                if (hasBase) tspState.selectedComponents.push('Base Pay Rate');
+                else if (hasCasual) tspState.selectedComponents.push('Casual Rate');
+
+                renderTspComponents();
+            }
+
+            function renderTspComponents() {
+                const list = document.getElementById('tsp-components-list');
+                list.innerHTML = '';
+
+                tspState.codeComponents.forEach((comp, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between p-2 border border-slate-200 rounded-lg bg-white hover:border-indigo-200 transition-colors';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = 'tsp-comp-' + i;
+                    checkbox.className = 'mr-2 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500';
+                    checkbox.checked = tspState.selectedComponents.includes(comp.name);
+                    checkbox.addEventListener('change', () => {
+                        const idx = tspState.selectedComponents.indexOf(comp.name);
+                        if (idx > -1) tspState.selectedComponents.splice(idx, 1);
+                        else tspState.selectedComponents.push(comp.name);
+                    });
+
+                    const label = document.createElement('label');
+                    label.htmlFor = 'tsp-comp-' + i;
+                    label.className = 'flex-grow cursor-pointer flex justify-between items-center text-sm';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = comp.name;
+
+                    const amountSpan = document.createElement('span');
+                    amountSpan.className = 'font-mono text-xs text-slate-500 ml-2';
+                    if (typeof comp.amount === 'number') {
+                        amountSpan.textContent = '$' + comp.amount.toFixed(5) + '/hr';
+                    } else if (typeof comp.amount === 'string' && comp.amount.includes('%')) {
+                        amountSpan.textContent = comp.amount;
+                    } else {
+                        const num = parseFloat(comp.amount);
+                        amountSpan.textContent = isNaN(num) ? comp.amount : '$' + num.toFixed(5) + '/hr';
+                    }
+
+                    label.appendChild(nameSpan);
+                    label.appendChild(amountSpan);
+                    item.appendChild(checkbox);
+                    item.appendChild(label);
+                    list.appendChild(item);
+                });
+            }
+
+            // Calculate TSP
+            document.getElementById('tsp-calculate-btn').addEventListener('click', function () {
+                const hoursPerWeek = parseFloat(document.getElementById('tsp-hours-input').value) || 38;
+                const overAwardHourly = parseFloat(document.getElementById('tsp-over-award').value) || 0;
+                const isOver45 = document.getElementById('tsp-over-45').value === 'yes';
+                const startDateStr = document.getElementById('tsp-start-date').value;
+
+                if (!tspState.selectedCode) {
+                    alert('Please select a classification.');
+                    return;
+                }
+                if (!startDateStr) {
+                    alert('Please enter the employee\'s start date.');
+                    return;
+                }
+
+                // Calculate completed years of service
+                const startDate = new Date(startDateStr);
+                const today = new Date();
+                let yearsOfService = today.getFullYear() - startDate.getFullYear();
+                const monthDiff = today.getMonth() - startDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < startDate.getDate())) {
+                    yearsOfService--;
+                }
+                yearsOfService = Math.max(0, yearsOfService);
+
+                // Calculate the total hourly rate from selected components
+                // First find the base rate for percentage calculations
+                let baseRate = 0;
+                const baseComp = tspState.codeComponents.find(c =>
+                    c.name === 'Base Pay Rate' && tspState.selectedComponents.includes('Base Pay Rate')
+                );
+                const casualComp = tspState.codeComponents.find(c =>
+                    c.name === 'Casual Rate' && tspState.selectedComponents.includes('Casual Rate')
+                );
+                if (baseComp) baseRate = typeof baseComp.amount === 'number' ? baseComp.amount : parseFloat(baseComp.amount) || 0;
+                else if (casualComp) baseRate = typeof casualComp.amount === 'number' ? casualComp.amount : parseFloat(casualComp.amount) || 0;
+
+                let totalHourlyRate = 0;
+                tspState.selectedComponents.forEach(compName => {
+                    const comp = tspState.codeComponents.find(c => c.name === compName);
+                    if (!comp) return;
+
+                    if (typeof comp.amount === 'string' && comp.amount.includes('%')) {
+                        const pct = parseFloat(comp.amount) / 100;
+                        totalHourlyRate += baseRate * pct;
+                    } else {
+                        totalHourlyRate += (typeof comp.amount === 'number' ? comp.amount : parseFloat(comp.amount) || 0);
+                    }
+                });
+
+                // Add over award
+                totalHourlyRate += overAwardHourly;
+
+                const weeklyPay = totalHourlyRate * hoursPerWeek;
+
+                // TSP Calculation:
+                // 4 weeks' pay base
+                const baseWeeks = 4;
+
+                // +1 week if over 45 AND 2+ years service
+                const over45Weeks = (isOver45 && yearsOfService >= 2) ? 1 : 0;
+
+                // +2 weeks per completed year of service, capped at 10 years
+                const cappedYears = Math.min(yearsOfService, 10);
+                const serviceWeeks = cappedYears * 2;
+
+                const totalWeeks = baseWeeks + over45Weeks + serviceWeeks;
+                const totalTsp = totalWeeks * weeklyPay;
+
+                // Render results
+                const tbody = document.getElementById('tsp-results-body');
+                tbody.innerHTML = '';
+
+                const summaryEl = document.getElementById('tsp-summary');
+                summaryEl.innerHTML = `<strong>${tspState.selectedCode}</strong> &middot; ${hoursPerWeek} hrs/wk &middot; Weekly pay: <strong>${formatTspCurrency(weeklyPay)}</strong> &middot; ${yearsOfService} completed year${yearsOfService !== 1 ? 's' : ''} of service${isOver45 ? ' &middot; Over 45' : ''}`;
+
+                function addRow(label, weeks, amount, rowClass) {
+                    const row = document.createElement('tr');
+                    row.className = rowClass || 'hover:bg-slate-50 transition-colors';
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-slate-700">${label}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${weeks}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${formatTspCurrency(amount)}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+
+                addRow('Base entitlement', baseWeeks, baseWeeks * weeklyPay);
+
+                if (isOver45 && yearsOfService >= 2) {
+                    addRow('Over 45 years (2+ years service)', over45Weeks, over45Weeks * weeklyPay, 'bg-amber-50/50 hover:bg-amber-50 transition-colors');
+                } else if (isOver45 && yearsOfService < 2) {
+                    addRow('Over 45 years (less than 2 years service)', 0, 0, 'text-slate-400');
+                }
+
+                addRow(
+                    `Service entitlement (${cappedYears} yr${cappedYears !== 1 ? 's' : ''} &times; 2 wks` + (yearsOfService > 10 ? ', capped at 10 yrs' : '') + ')',
+                    serviceWeeks,
+                    serviceWeeks * weeklyPay,
+                    'bg-indigo-50/30 hover:bg-indigo-50 transition-colors'
+                );
+
+                // Total row
+                const totalRow = document.createElement('tr');
+                totalRow.className = 'bg-indigo-50 font-bold text-indigo-900 border-t-2 border-indigo-200';
+                totalRow.innerHTML = `
+                    <td class="px-4 py-3">Total Separation Package</td>
+                    <td class="px-4 py-3 text-right font-mono">${totalWeeks}</td>
+                    <td class="px-4 py-3 text-right font-mono">${formatTspCurrency(totalTsp)}</td>
+                `;
+                tbody.appendChild(totalRow);
+
+                document.getElementById('tsp-results').classList.remove('hidden');
+            });
+
+            function formatTspCurrency(amount) {
+                return new Intl.NumberFormat('en-AU', {
+                    style: 'currency', currency: 'AUD',
+                    minimumFractionDigits: 2, maximumFractionDigits: 2
+                }).format(amount);
+            }
+        })();
     </script>
     </div>
 </body>
