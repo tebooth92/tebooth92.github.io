@@ -182615,7 +182615,7 @@
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0" id="tsp-backdrop"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-start justify-center p-4 sm:p-8">
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-2xl opacity-0 translate-y-4 sm:scale-95 my-8"
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-3xl opacity-0 translate-y-4 sm:scale-95 my-8"
                     id="tsp-panel">
                     <!-- Header -->
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-5 flex items-center justify-between">
@@ -182625,7 +182625,7 @@
                             </div>
                             <div>
                                 <h2 class="text-lg font-bold text-white">Total Separation Package Calculator</h2>
-                                <p class="text-indigo-200 text-xs">Calculate employee TSP entitlements</p>
+                                <p class="text-indigo-200 text-xs">Calculate employee TSP entitlements &amp; tax</p>
                             </div>
                         </div>
                         <button id="tsp-close-button" class="text-white/70 hover:text-white transition-colors">
@@ -182698,24 +182698,95 @@
                                 <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs">3</div>
                                 <h3 class="text-sm font-bold text-slate-800">Employee Details</h3>
                             </div>
-                            <div class="pl-9 grid grid-cols-2 gap-3">
+                            <div class="pl-9 grid grid-cols-3 gap-3">
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Over 45 years of age?</label>
-                                    <div class="relative">
-                                        <select id="tsp-over-45"
-                                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm appearance-none">
-                                            <option value="no">No</option>
-                                            <option value="yes">Yes</option>
-                                        </select>
-                                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
-                                            <i class="fa-solid fa-chevron-down text-xs"></i>
-                                        </div>
-                                    </div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Date of Birth</label>
+                                    <input type="date" id="tsp-dob"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">Start Date with Organisation</label>
                                     <input type="date" id="tsp-start-date"
                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Separation Date</label>
+                                    <input type="date" id="tsp-separation-date"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" />
+                                    <p class="text-xs text-slate-400 mt-1">Defaults to today if blank</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Service Adjustments -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs">4</div>
+                                <h3 class="text-sm font-bold text-slate-800">Service Adjustments</h3>
+                            </div>
+                            <div class="pl-9 grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Avg. Hours/Wk (Last 10 Yrs)</label>
+                                    <input type="number" id="tsp-avg-hours"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                        value="38" min="0" step="0.5" />
+                                    <p class="text-xs text-slate-400 mt-1">Average FTE used for the service entitlement component</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Leave Without Pay (weeks)</label>
+                                    <input type="number" id="tsp-lwop-weeks"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                        value="0" min="0" step="1" />
+                                    <p class="text-xs text-slate-400 mt-1">LWOP doesn't break continuity but doesn't count as service</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Payment in Lieu of Notice & Golden Handshake -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs">5</div>
+                                <h3 class="text-sm font-bold text-slate-800">Notice &amp; Additional Payments</h3>
+                            </div>
+                            <div class="pl-9 grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment in Lieu of Notice (weeks)</label>
+                                    <input type="number" id="tsp-notice-weeks"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                        value="0" min="0" step="1" placeholder="Enter weeks of notice" />
+                                    <p class="text-xs text-slate-400 mt-1">hours &times; rate (incl. allowances) &times; weeks</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Golden Handshake ($)</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <i class="fa-solid fa-dollar-sign text-xs"></i>
+                                        </div>
+                                        <input type="number" id="tsp-golden-handshake"
+                                            class="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                            value="0" min="0" step="100" placeholder="0.00" />
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-1">Falls under ETP cap (genuine redundancy)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 6: Financial Year -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs">6</div>
+                                <h3 class="text-sm font-bold text-slate-800">Financial Year</h3>
+                            </div>
+                            <div class="pl-9">
+                                <div class="relative">
+                                    <select id="tsp-fy"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm appearance-none">
+                                        <option value="2025-26">2025-26 (Base $13,100 / Per Year $6,552 / ETP Cap $260,000)</option>
+                                        <option value="2024-25">2024-25 (Base $12,524 / Per Year $6,264 / ETP Cap $245,000)</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -182727,10 +182798,11 @@
                         </button>
 
                         <!-- Results -->
-                        <div id="tsp-results" class="hidden space-y-4">
+                        <div id="tsp-results" class="hidden space-y-5">
+                            <!-- TSP Entitlement Section -->
                             <div class="border-t border-slate-200 pt-4">
                                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
-                                    <i class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>TSP Breakdown
+                                    <i class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>TSP Entitlement
                                 </h3>
                                 <div id="tsp-summary" class="text-xs text-slate-500 mb-3"></div>
                                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -182744,6 +182816,76 @@
                                         </thead>
                                         <tbody id="tsp-results-body" class="divide-y divide-slate-100"></tbody>
                                     </table>
+                                </div>
+                            </div>
+
+                            <!-- Tax Breakdown Section -->
+                            <div class="border-t border-slate-200 pt-4">
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-receipt text-rose-500"></i>Tax Treatment (Genuine Redundancy)
+                                </h3>
+                                <div id="tsp-tax-info" class="text-xs text-slate-500 mb-3"></div>
+                                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left font-semibold">Item</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Gross</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Tax</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Net</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tsp-tax-body" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Payment in Lieu of Notice Section -->
+                            <div id="tsp-notice-section" class="hidden border-t border-slate-200 pt-4">
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-clock text-amber-500"></i>Payment in Lieu of Notice
+                                </h3>
+                                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left font-semibold">Item</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Gross</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Tax</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Net</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tsp-notice-body" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Golden Handshake Section -->
+                            <div id="tsp-handshake-section" class="hidden border-t border-slate-200 pt-4">
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-handshake text-purple-500"></i>Golden Handshake
+                                </h3>
+                                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left font-semibold">Item</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Gross</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Tax</th>
+                                                <th class="px-4 py-3 text-right font-semibold">Net</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tsp-handshake-body" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Grand Total Section -->
+                            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-4">
+                                <h3 class="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                                    <i class="fa-solid fa-sack-dollar text-indigo-600"></i>Grand Total Summary
+                                </h3>
+                                <div id="tsp-grand-total" class="grid grid-cols-3 gap-3 text-center">
                                 </div>
                             </div>
                         </div>
@@ -182763,6 +182905,29 @@
             const tspPanel = document.getElementById('tsp-panel');
 
             if (!tspModal || !tspButton) return;
+
+            // Financial Year tax parameters
+            const FY_PARAMS = {
+                '2025-26': { baseAmount: 13100, perYear: 6552, etpCap: 260000, woiCap: 180000 },
+                '2024-25': { baseAmount: 12524, perYear: 6264, etpCap: 245000, woiCap: 180000 }
+            };
+
+            // Preservation age lookup based on DOB
+            function getPreservationAge(dob) {
+                if (dob < new Date(1960, 6, 1)) return 55;      // Before 1 July 1960
+                if (dob < new Date(1961, 6, 1)) return 56;      // 1 Jul 1960 - 30 Jun 1961
+                if (dob < new Date(1962, 6, 1)) return 57;      // 1 Jul 1961 - 30 Jun 1962
+                if (dob < new Date(1963, 6, 1)) return 58;      // 1 Jul 1962 - 30 Jun 1963
+                if (dob < new Date(1964, 6, 1)) return 59;      // 1 Jul 1963 - 30 Jun 1964
+                return 60;                                        // Born from 1 July 1964
+            }
+
+            function getAge(dob, atDate) {
+                let age = atDate.getFullYear() - dob.getFullYear();
+                const m = atDate.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && atDate.getDate() < dob.getDate())) age--;
+                return Math.max(0, age);
+            }
 
             // TSP State
             let tspState = {
@@ -182802,7 +182967,6 @@
                 const searchTerm = this.value.trim();
                 if (!searchTerm) { tspCodeDropdown.classList.add('hidden'); return; }
 
-                // Access the main calculator's state for vhiaCodes
                 const codes = state.vhiaCodes || [];
                 const filtered = codes.filter(c =>
                     c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -182830,11 +182994,9 @@
                 document.getElementById('tsp-selected-code-display').classList.remove('hidden');
                 document.getElementById('tsp-selected-code-value').textContent = code;
 
-                // Get code data from main state
                 const codeData = state.vhiaCodes.find(c => c.code === code);
                 if (!codeData || !codeData.dateRanges || codeData.dateRanges.length === 0) return;
 
-                // Use most recent date range
                 const mostRecentRange = codeData.dateRanges[codeData.dateRanges.length - 1];
                 tspState.codeComponents = mostRecentRange.components.map(comp => {
                     let amount = comp.amount;
@@ -182844,7 +183006,6 @@
                     return { name: comp.name, amount: amount };
                 });
 
-                // Auto-select Base Pay Rate or Casual Rate
                 tspState.selectedComponents = [];
                 const hasBase = tspState.codeComponents.find(c => c.name === 'Base Pay Rate');
                 const hasCasual = tspState.codeComponents.find(c => c.name === 'Casual Rate');
@@ -182903,11 +183064,22 @@
             document.getElementById('tsp-calculate-btn').addEventListener('click', function () {
                 const hoursPerWeek = parseFloat(document.getElementById('tsp-hours-input').value) || 38;
                 const overAwardHourly = parseFloat(document.getElementById('tsp-over-award').value) || 0;
-                const isOver45 = document.getElementById('tsp-over-45').value === 'yes';
+                const dobStr = document.getElementById('tsp-dob').value;
                 const startDateStr = document.getElementById('tsp-start-date').value;
+                const avgHoursPerWeek = parseFloat(document.getElementById('tsp-avg-hours').value) || 38;
+                const lwopWeeks = parseFloat(document.getElementById('tsp-lwop-weeks').value) || 0;
+                const noticeWeeks = parseFloat(document.getElementById('tsp-notice-weeks').value) || 0;
+                const goldenHandshake = parseFloat(document.getElementById('tsp-golden-handshake').value) || 0;
+                const separationDateStr = document.getElementById('tsp-separation-date').value;
+                const fy = document.getElementById('tsp-fy').value;
+                const fyParams = FY_PARAMS[fy];
 
                 if (!tspState.selectedCode) {
                     alert('Please select a classification.');
+                    return;
+                }
+                if (!dobStr) {
+                    alert('Please enter the employee\'s date of birth.');
                     return;
                 }
                 if (!startDateStr) {
@@ -182915,18 +183087,26 @@
                     return;
                 }
 
-                // Calculate completed years of service
+                const dob = new Date(dobStr);
                 const startDate = new Date(startDateStr);
-                const today = new Date();
-                let yearsOfService = today.getFullYear() - startDate.getFullYear();
-                const monthDiff = today.getMonth() - startDate.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < startDate.getDate())) {
-                    yearsOfService--;
-                }
-                yearsOfService = Math.max(0, yearsOfService);
+                // Use separation date if provided, otherwise default to today
+                const separationDate = separationDateStr ? new Date(separationDateStr) : new Date();
 
-                // Calculate the total hourly rate from selected components
-                // First find the base rate for percentage calculations
+                // Calculate age at separation & preservation age
+                const employeeAge = getAge(dob, separationDate);
+                const preservationAge = getPreservationAge(dob);
+                const isAbovePreservationAge = employeeAge >= preservationAge;
+                const isOver45 = employeeAge >= 45;
+
+                // Calculate total elapsed days of service up to separation date
+                const totalServiceDays = Math.max(0, (separationDate - startDate) / (1000 * 60 * 60 * 24));
+                // Subtract LWOP (weeks → days) — LWOP doesn't break continuity but doesn't count as service
+                const lwopDays = lwopWeeks * 7;
+                const effectiveServiceDays = Math.max(0, totalServiceDays - lwopDays);
+                // Completed years of effective service
+                const yearsOfService = Math.floor(effectiveServiceDays / 365.25);
+
+                // Calculate the total hourly rate
                 let baseRate = 0;
                 const baseComp = tspState.codeComponents.find(c =>
                     c.name === 'Base Pay Rate' && tspState.selectedComponents.includes('Base Pay Rate')
@@ -182941,81 +183121,199 @@
                 tspState.selectedComponents.forEach(compName => {
                     const comp = tspState.codeComponents.find(c => c.name === compName);
                     if (!comp) return;
-
                     if (typeof comp.amount === 'string' && comp.amount.includes('%')) {
-                        const pct = parseFloat(comp.amount) / 100;
-                        totalHourlyRate += baseRate * pct;
+                        totalHourlyRate += baseRate * (parseFloat(comp.amount) / 100);
                     } else {
                         totalHourlyRate += (typeof comp.amount === 'number' ? comp.amount : parseFloat(comp.amount) || 0);
                     }
                 });
-
-                // Add over award
                 totalHourlyRate += overAwardHourly;
 
+                // Weekly pay at current hours (for base & over-45 entitlements, notice)
                 const weeklyPay = totalHourlyRate * hoursPerWeek;
+                // Weekly pay at average FTE hours (for service entitlement component)
+                const weeklyPayAvgFte = totalHourlyRate * avgHoursPerWeek;
 
-                // TSP Calculation:
-                // 4 weeks' pay base
+                // ====== TSP ENTITLEMENT ======
                 const baseWeeks = 4;
-
-                // +1 week if over 45 AND 2+ years service
                 const over45Weeks = (isOver45 && yearsOfService >= 2) ? 1 : 0;
-
-                // +2 weeks per completed year of service, capped at 10 years
                 const cappedYears = Math.min(yearsOfService, 10);
                 const serviceWeeks = cappedYears * 2;
-
+                // Base + over-45 use current weekly pay; service uses avg FTE weekly pay
+                const basePay = baseWeeks * weeklyPay;
+                const over45Pay = over45Weeks * weeklyPay;
+                const servicePay = serviceWeeks * weeklyPayAvgFte;
                 const totalWeeks = baseWeeks + over45Weeks + serviceWeeks;
-                const totalTsp = totalWeeks * weeklyPay;
+                const totalTsp = basePay + over45Pay + servicePay;
 
-                // Render results
+                // ====== PAYMENT IN LIEU OF NOTICE ======
+                const noticeGross = noticeWeeks * weeklyPay;
+
+                // ====== TAX CALCULATIONS ======
+                // Under genuine redundancy, ALL components (TSP + notice + golden handshake)
+                // are pooled as one genuine redundancy payment.
+                // The tax-free limit applies to the TOTAL first, then the excess is an excluded ETP.
+                const totalGenuineRedundancyPayment = totalTsp + noticeGross + goldenHandshake;
+
+                const taxFreeLimit = fyParams.baseAmount + (fyParams.perYear * yearsOfService);
+                const taxFreeComponent = Math.min(totalGenuineRedundancyPayment, taxFreeLimit);
+                const taxableExcess = Math.max(0, totalGenuineRedundancyPayment - taxFreeLimit);
+
+                // ETP tax rates on the taxable excess (excluded ETP)
+                // Below preservation age: 32% (30% + 2% Medicare)
+                // At or above preservation age: 17% (15% + 2% Medicare)
+                // Above ETP cap: 47%
+                const concessionalRate = isAbovePreservationAge ? 0.17 : 0.32;
+                const concessionalRateLabel = isAbovePreservationAge ? '17%' : '32%';
+                const aboveCapRate = 0.47;
+
+                const etpCap = fyParams.etpCap;
+                const withinCap = Math.min(taxableExcess, etpCap);
+                const aboveCap = Math.max(0, taxableExcess - etpCap);
+
+                const taxOnWithinCap = withinCap * concessionalRate;
+                const taxOnAboveCap = aboveCap * aboveCapRate;
+                const totalTax = taxOnWithinCap + taxOnAboveCap;
+
+                // ====== RENDER TSP ENTITLEMENT TABLE ======
                 const tbody = document.getElementById('tsp-results-body');
                 tbody.innerHTML = '';
 
                 const summaryEl = document.getElementById('tsp-summary');
-                summaryEl.innerHTML = `<strong>${tspState.selectedCode}</strong> &middot; ${hoursPerWeek} hrs/wk &middot; Weekly pay: <strong>${formatTspCurrency(weeklyPay)}</strong> &middot; ${yearsOfService} completed year${yearsOfService !== 1 ? 's' : ''} of service${isOver45 ? ' &middot; Over 45' : ''}`;
+                const sepDateDisplay = separationDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+                const lwopNote = lwopWeeks > 0 ? ` &middot; LWOP: ${lwopWeeks} wk${lwopWeeks !== 1 ? 's' : ''} deducted` : '';
+                const avgFteNote = avgHoursPerWeek !== hoursPerWeek ? ` &middot; Avg FTE: ${avgHoursPerWeek} hrs/wk (${fmt(weeklyPayAvgFte)}/wk)` : '';
+                summaryEl.innerHTML = `<strong>${tspState.selectedCode}</strong> &middot; ${hoursPerWeek} hrs/wk &middot; Weekly pay: <strong>${fmt(weeklyPay)}</strong> &middot; Separation: ${sepDateDisplay} &middot; ${yearsOfService} completed year${yearsOfService !== 1 ? 's' : ''} of effective service${lwopNote}${avgFteNote} &middot; Age at separation: ${employeeAge}${isOver45 ? ' (over 45)' : ''}`;
 
-                function addRow(label, weeks, amount, rowClass) {
+                function addRow(target, label, col2, col3, rowClass) {
                     const row = document.createElement('tr');
                     row.className = rowClass || 'hover:bg-slate-50 transition-colors';
                     row.innerHTML = `
                         <td class="px-4 py-3 text-slate-700">${label}</td>
-                        <td class="px-4 py-3 text-right font-mono text-slate-600">${weeks}</td>
-                        <td class="px-4 py-3 text-right font-mono text-slate-600">${formatTspCurrency(amount)}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${col2}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${col3}</td>
                     `;
-                    tbody.appendChild(row);
+                    target.appendChild(row);
                 }
 
-                addRow('Base entitlement', baseWeeks, baseWeeks * weeklyPay);
+                function addRow4(target, label, col2, col3, col4, rowClass) {
+                    const row = document.createElement('tr');
+                    row.className = rowClass || 'hover:bg-slate-50 transition-colors';
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-slate-700">${label}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${col2}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${col3}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${col4}</td>
+                    `;
+                    target.appendChild(row);
+                }
+
+                addRow(tbody, 'Base entitlement', baseWeeks, fmt(basePay));
 
                 if (isOver45 && yearsOfService >= 2) {
-                    addRow('Over 45 years (2+ years service)', over45Weeks, over45Weeks * weeklyPay, 'bg-amber-50/50 hover:bg-amber-50 transition-colors');
-                } else if (isOver45 && yearsOfService < 2) {
-                    addRow('Over 45 years (less than 2 years service)', 0, 0, 'text-slate-400');
+                    addRow(tbody, 'Over 45 years (2+ years service)', over45Weeks, fmt(over45Pay), 'bg-amber-50/50 hover:bg-amber-50 transition-colors');
+                } else if (isOver45) {
+                    addRow(tbody, 'Over 45 years (less than 2 years service)', 0, fmt(0), 'text-slate-400');
                 }
 
-                addRow(
-                    `Service entitlement (${cappedYears} yr${cappedYears !== 1 ? 's' : ''} &times; 2 wks` + (yearsOfService > 10 ? ', capped at 10 yrs' : '') + ')',
-                    serviceWeeks,
-                    serviceWeeks * weeklyPay,
-                    'bg-indigo-50/30 hover:bg-indigo-50 transition-colors'
+                const svcLabel = `Service entitlement (${cappedYears} yr${cappedYears !== 1 ? 's' : ''} &times; 2 wks`
+                    + (yearsOfService > 10 ? ', capped at 10 yrs' : '')
+                    + (avgHoursPerWeek !== hoursPerWeek ? `, avg ${avgHoursPerWeek} hrs/wk` : '')
+                    + (lwopWeeks > 0 ? `, ${lwopWeeks} wk${lwopWeeks !== 1 ? 's' : ''} LWOP deducted` : '')
+                    + ')';
+                addRow(tbody, svcLabel,
+                    serviceWeeks, fmt(servicePay), 'bg-indigo-50/30 hover:bg-indigo-50 transition-colors'
                 );
 
-                // Total row
                 const totalRow = document.createElement('tr');
                 totalRow.className = 'bg-indigo-50 font-bold text-indigo-900 border-t-2 border-indigo-200';
                 totalRow.innerHTML = `
                     <td class="px-4 py-3">Total Separation Package</td>
                     <td class="px-4 py-3 text-right font-mono">${totalWeeks}</td>
-                    <td class="px-4 py-3 text-right font-mono">${formatTspCurrency(totalTsp)}</td>
+                    <td class="px-4 py-3 text-right font-mono">${fmt(totalTsp)}</td>
                 `;
                 tbody.appendChild(totalRow);
+
+                // ====== RENDER TAX TABLE ======
+                // This table shows how the entire genuine redundancy payment is treated for tax
+                const taxBody = document.getElementById('tsp-tax-body');
+                taxBody.innerHTML = '';
+
+                const taxInfoEl = document.getElementById('tsp-tax-info');
+                taxInfoEl.innerHTML = `FY ${fy} &middot; Preservation age: <strong>${preservationAge}</strong> &middot; Employee age at separation: <strong>${employeeAge}</strong> &middot; ${isAbovePreservationAge ? '<span class="text-green-600 font-semibold">At/above preservation age</span>' : '<span class="text-amber-600 font-semibold">Below preservation age</span>'} &middot; ETP concessional rate: <strong>${concessionalRateLabel}</strong>`;
+
+                // Show the components that make up the total genuine redundancy payment
+                addRow4(taxBody, 'TSP entitlement', fmt(totalTsp), '', '', 'text-slate-500 text-xs');
+                if (noticeGross > 0) {
+                    addRow4(taxBody, `Payment in lieu of notice (${noticeWeeks} wk${noticeWeeks !== 1 ? 's' : ''})`, fmt(noticeGross), '', '', 'text-slate-500 text-xs');
+                }
+                if (goldenHandshake > 0) {
+                    addRow4(taxBody, 'Golden handshake', fmt(goldenHandshake), '', '', 'text-slate-500 text-xs');
+                }
+
+                // Total genuine redundancy payment
+                addRow4(taxBody, '<strong>Total genuine redundancy payment</strong>',
+                    `<strong>${fmt(totalGenuineRedundancyPayment)}</strong>`, '', '',
+                    'bg-slate-50 border-t border-slate-200');
+
+                // Tax-free row
+                addRow4(taxBody, `Tax-free component (${fmt(fyParams.baseAmount)} + ${fmt(fyParams.perYear)} &times; ${yearsOfService} yrs = ${fmt(taxFreeLimit)})`,
+                    fmt(taxFreeComponent), fmt(0), fmt(taxFreeComponent), 'bg-green-50/50 hover:bg-green-50');
+
+                // Taxable excess (excluded ETP)
+                if (taxableExcess > 0) {
+                    // Within ETP cap
+                    if (withinCap > 0) {
+                        addRow4(taxBody, `Excluded ETP (within ${fmt(etpCap)} cap @ ${concessionalRateLabel})`,
+                            fmt(withinCap), fmt(taxOnWithinCap), fmt(withinCap - taxOnWithinCap), 'bg-amber-50/30 hover:bg-amber-50');
+                    }
+                    // Above ETP cap
+                    if (aboveCap > 0) {
+                        addRow4(taxBody, `Excluded ETP (above ${fmt(etpCap)} cap @ 47%)`,
+                            fmt(aboveCap), fmt(taxOnAboveCap), fmt(aboveCap - taxOnAboveCap), 'bg-red-50/30 hover:bg-red-50');
+                    }
+                }
+
+                // Grand total row in the tax table
+                const taxTotalRow = document.createElement('tr');
+                taxTotalRow.className = 'bg-indigo-50 font-bold text-indigo-900 border-t-2 border-indigo-200';
+                taxTotalRow.innerHTML = `
+                    <td class="px-4 py-3">Total</td>
+                    <td class="px-4 py-3 text-right font-mono">${fmt(totalGenuineRedundancyPayment)}</td>
+                    <td class="px-4 py-3 text-right font-mono text-rose-600">${fmt(totalTax)}</td>
+                    <td class="px-4 py-3 text-right font-mono text-green-700">${fmt(totalGenuineRedundancyPayment - totalTax)}</td>
+                `;
+                taxBody.appendChild(taxTotalRow);
+
+                // Hide the separate notice and golden handshake result sections
+                // (they are now shown as part of the unified tax treatment table)
+                document.getElementById('tsp-notice-section').classList.add('hidden');
+                document.getElementById('tsp-handshake-section').classList.add('hidden');
+
+                // ====== GRAND TOTAL ======
+                const grandGross = totalGenuineRedundancyPayment;
+                const grandNet = grandGross - totalTax;
+
+                const grandTotalEl = document.getElementById('tsp-grand-total');
+                grandTotalEl.innerHTML = `
+                    <div class="bg-white rounded-lg p-3 border border-indigo-100">
+                        <div class="text-xs text-slate-500 uppercase font-semibold mb-1">Total Gross</div>
+                        <div class="text-lg font-bold text-slate-900">${fmt(grandGross)}</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 border border-rose-100">
+                        <div class="text-xs text-slate-500 uppercase font-semibold mb-1">Total Tax</div>
+                        <div class="text-lg font-bold text-rose-600">${fmt(totalTax)}</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 border border-green-100">
+                        <div class="text-xs text-slate-500 uppercase font-semibold mb-1">Total Net</div>
+                        <div class="text-lg font-bold text-green-700">${fmt(grandNet)}</div>
+                    </div>
+                `;
 
                 document.getElementById('tsp-results').classList.remove('hidden');
             });
 
-            function formatTspCurrency(amount) {
+            function fmt(amount) {
                 return new Intl.NumberFormat('en-AU', {
                     style: 'currency', currency: 'AUD',
                     minimumFractionDigits: 2, maximumFractionDigits: 2
