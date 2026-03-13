@@ -182626,7 +182626,7 @@
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0" id="tsp-backdrop"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-start justify-center p-4 sm:p-8">
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-2xl opacity-0 translate-y-4 sm:scale-95 my-8"
+                <div class="relative transform rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-2xl opacity-0 translate-y-4 sm:scale-95 my-8"
                     id="tsp-panel">
                     <!-- Header -->
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between">
@@ -182825,73 +182825,64 @@
 
                         <!-- Step 7: Results -->
                         <div class="tsp-step" data-tsp-step="6">
-                            <div id="tsp-results" class="space-y-5">
-                                <!-- TSP Entitlement -->
-                                <div>
-                                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
-                                        <i class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>TSP Entitlement
-                                    </h3>
-                                    <div id="tsp-summary" class="text-xs text-slate-500 mb-2"></div>
-                                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                                        <table class="w-full text-sm">
-                                            <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
-                                                <tr>
-                                                    <th class="px-4 py-2.5 text-left font-semibold">Component</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Weeks</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Amount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tsp-results-body" class="divide-y divide-slate-100"></tbody>
-                                        </table>
+                            <div id="tsp-results" class="flex flex-col md:flex-row gap-6">
+                                <!-- Left: Payment Breakdown -->
+                                <div class="flex-1 min-w-0">
+                                    <h2 class="text-xl font-bold text-slate-900 mb-5">Payment Breakdown</h2>
+
+                                    <!-- 1. Separation Package -->
+                                    <div class="mb-6">
+                                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">1. Separation Package</h3>
+                                        <div class="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                                            <table class="w-full text-sm"><tbody id="tsp-results-body"></tbody></table>
+                                        </div>
+                                        <div id="tsp-tax-note" class="mt-2 flex items-start gap-1.5 text-xs text-slate-500">
+                                            <i class="fa-solid fa-circle-info text-slate-400 mt-0.5 shrink-0"></i>
+                                            <span id="tsp-tax-note-text"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Leave Payouts -->
+                                    <div id="tsp-leave-section" class="mb-6 hidden">
+                                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">2. Leave Payouts</h3>
+                                        <div class="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                                            <table class="w-full text-sm">
+                                                <thead class="border-b border-slate-100">
+                                                    <tr class="text-xs text-slate-400 uppercase">
+                                                        <th class="px-4 py-2 text-left font-medium">Type</th>
+                                                        <th class="px-4 py-2 text-right font-medium">Gross</th>
+                                                        <th class="px-4 py-2 text-right font-medium">Tax</th>
+                                                        <th class="px-4 py-2 text-right font-medium">Net</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tsp-leave-body"></tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- Tax Treatment -->
-                                <div>
-                                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
-                                        <i class="fa-solid fa-receipt text-rose-500"></i>Tax Treatment (Genuine Redundancy)
-                                    </h3>
-                                    <div id="tsp-tax-info" class="text-xs text-slate-500 mb-2"></div>
-                                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                                        <table class="w-full text-sm">
-                                            <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
-                                                <tr>
-                                                    <th class="px-4 py-2.5 text-left font-semibold">Item</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Gross</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Tax</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Net</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tsp-tax-body" class="divide-y divide-slate-100"></tbody>
-                                        </table>
+
+                                <!-- Right: Summary Sidebar -->
+                                <div class="w-full md:w-64 shrink-0">
+                                    <div class="md:sticky md:top-4 space-y-4">
+                                        <!-- Final Summary Card -->
+                                        <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                                            <div class="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                                                <h3 class="text-sm font-bold text-slate-800">Final Summary</h3>
+                                            </div>
+                                            <div class="px-4 py-3 space-y-2 text-sm" id="tsp-final-summary"></div>
+                                            <div class="px-4 py-4 bg-slate-50 border-t border-slate-100">
+                                                <div class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Total Net Pay</div>
+                                                <div id="tsp-net-pay" class="text-2xl font-bold text-green-700"></div>
+                                            </div>
+                                        </div>
+                                        <!-- Calculation Parameters Card -->
+                                        <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                                            <div class="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Calculation Parameters</h3>
+                                            </div>
+                                            <div class="px-4 py-3" id="tsp-params"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <!-- Leave Payout -->
-                                <div id="tsp-leave-section" class="hidden">
-                                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
-                                        <i class="fa-solid fa-umbrella-beach text-teal-500"></i>Leave Payout
-                                        <span class="text-xs font-normal text-slate-400 ml-1">(taxed separately @ 32%)</span>
-                                    </h3>
-                                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                                        <table class="w-full text-sm">
-                                            <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
-                                                <tr>
-                                                    <th class="px-4 py-2.5 text-left font-semibold">Item</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Hours</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Gross</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Tax (32%)</th>
-                                                    <th class="px-4 py-2.5 text-right font-semibold">Net</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tsp-leave-body" class="divide-y divide-slate-100"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <!-- Grand Total -->
-                                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-4">
-                                    <h3 class="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
-                                        <i class="fa-solid fa-sack-dollar text-indigo-600"></i>Grand Total Summary
-                                    </h3>
-                                    <div id="tsp-grand-total" class="grid grid-cols-3 gap-3 text-center"></div>
                                 </div>
                             </div>
                         </div>
@@ -183031,6 +183022,15 @@
                 }
 
                 currentStep = step;
+
+                // Widen panel on results step for two-column layout
+                if (step === TOTAL_STEPS - 1) {
+                    tspPanel.classList.remove('max-w-2xl');
+                    tspPanel.classList.add('max-w-4xl');
+                } else {
+                    tspPanel.classList.remove('max-w-4xl');
+                    tspPanel.classList.add('max-w-2xl');
+                }
 
                 // Scroll panel to top
                 tspPanel.closest('.overflow-y-auto').scrollTop = 0;
@@ -183232,65 +183232,93 @@
                 const taxOnAboveCap = aboveCap * 0.47;
                 const totalTax = taxOnWithinCap + taxOnAboveCap;
 
-                // === RENDER TSP TABLE ===
+                // === RENDER RESULTS ===
+                const sepDateDisplay = separationDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                // --- 1. Separation Package table (simple: label + amount) ---
                 const tbody = document.getElementById('tsp-results-body');
                 tbody.innerHTML = '';
-                const summaryEl = document.getElementById('tsp-summary');
-                const sepDateDisplay = separationDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
-                const lwopNote = lwopWeeks > 0 ? ` · LWOP: ${lwopWeeks} wk${lwopWeeks !== 1 ? 's' : ''} deducted` : '';
-                const avgFteNote = avgHoursPerWeek !== hoursPerWeek ? ` · Avg FTE: ${avgHoursPerWeek} hrs/wk (${fmt(weeklyPayAvgFte)}/wk)` : '';
-                summaryEl.innerHTML = `<strong>${tspState.selectedCode}</strong> · ${hoursPerWeek} hrs/wk · Weekly: <strong>${fmt(weeklyPay)}</strong> · Sep: ${sepDateDisplay} · ${yearsOfService} yr${yearsOfService !== 1 ? 's' : ''} effective service${lwopNote}${avgFteNote} · Age: ${employeeAge}${isOver45 ? ' (over 45)' : ''}`;
 
-                function addRow(target, label, col2, col3, cls) {
+                function pkgRow(label, subtitle, amount, isBold) {
                     const r = document.createElement('tr');
-                    r.className = cls || 'hover:bg-slate-50';
-                    r.innerHTML = `<td class="px-4 py-2.5 text-slate-700">${label}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${col2}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${col3}</td>`;
-                    target.appendChild(r);
+                    r.className = isBold ? 'bg-slate-50' : 'border-b border-slate-100';
+                    const labelTd = document.createElement('td');
+                    labelTd.className = `px-4 py-3 ${isBold ? 'font-semibold text-slate-900' : 'text-slate-700'}`;
+                    labelTd.innerHTML = label + (subtitle ? `<div class="text-[11px] text-slate-400 mt-0.5">${subtitle}</div>` : '');
+                    const amtTd = document.createElement('td');
+                    amtTd.className = `px-4 py-3 text-right font-mono ${isBold ? 'font-semibold text-slate-900' : 'text-slate-600'}`;
+                    amtTd.textContent = fmt(amount);
+                    r.appendChild(labelTd);
+                    r.appendChild(amtTd);
+                    tbody.appendChild(r);
                 }
-                function addRow4(target, label, c2, c3, c4, cls) {
-                    const r = document.createElement('tr');
-                    r.className = cls || 'hover:bg-slate-50';
-                    r.innerHTML = `<td class="px-4 py-2.5 text-slate-700">${label}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${c2}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${c3}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${c4}</td>`;
-                    target.appendChild(r);
+
+                pkgRow(`Base Entitlement (${baseWeeks}w)`, null, basePay, false);
+                if (isOver45 && yearsOfService >= 2) {
+                    pkgRow(`Over 45 Entitlement (${over45Weeks}w)`, null, over45Pay, false);
                 }
 
-                addRow(tbody, 'Base entitlement', baseWeeks, fmt(basePay));
-                if (isOver45 && yearsOfService >= 2) addRow(tbody, 'Over 45 years (2+ yrs service)', over45Weeks, fmt(over45Pay), 'bg-amber-50/50 hover:bg-amber-50');
-                else if (isOver45) addRow(tbody, 'Over 45 years (&lt;2 yrs service)', 0, fmt(0), 'text-slate-400');
+                const svcSub = [
+                    `${cappedYears} yrs &times; 2 wks`,
+                    yearsOfService > 10 ? 'capped 10' : null,
+                    lwopWeeks > 0 ? `${lwopWeeks} wks LWOP` : null
+                ].filter(Boolean).join(', ');
+                pkgRow('Service Component', svcSub, servicePay, false);
 
-                const svcLabel = `Service (${cappedYears} yr${cappedYears !== 1 ? 's' : ''} × 2 wks` + (yearsOfService > 10 ? ', capped 10' : '') + (avgHoursPerWeek !== hoursPerWeek ? `, avg ${avgHoursPerWeek} hrs` : '') + (lwopWeeks > 0 ? `, ${lwopWeeks} wks LWOP` : '') + ')';
-                addRow(tbody, svcLabel, serviceWeeks, fmt(servicePay), 'bg-indigo-50/30 hover:bg-indigo-50');
-
-                const tr = document.createElement('tr');
-                tr.className = 'bg-indigo-50 font-bold text-indigo-900 border-t-2 border-indigo-200';
-                tr.innerHTML = `<td class="px-4 py-2.5">Total Separation Package</td><td class="px-4 py-2.5 text-right font-mono">${totalWeeks}</td><td class="px-4 py-2.5 text-right font-mono">${fmt(totalTsp)}</td>`;
-                tbody.appendChild(tr);
-
-                // === RENDER TAX TABLE ===
-                const taxBody = document.getElementById('tsp-tax-body');
-                taxBody.innerHTML = '';
-                document.getElementById('tsp-tax-info').innerHTML = `FY ${fy} · Preservation age: <strong>${preservationAge}</strong> · Age: <strong>${employeeAge}</strong> · ${isAbovePreservationAge ? '<span class="text-green-600 font-semibold">At/above preservation age</span>' : '<span class="text-amber-600 font-semibold">Below preservation age</span>'} · Rate: <strong>${concessionalRateLabel}</strong>`;
-
-                addRow4(taxBody, 'TSP entitlement', fmt(totalTsp), '', '', 'text-slate-500 text-xs');
-                if (noticeGross > 0) addRow4(taxBody, `Notice in lieu (${noticeWeeks} wk${noticeWeeks !== 1 ? 's' : ''})`, fmt(noticeGross), '', '', 'text-slate-500 text-xs');
-                if (goldenHandshake > 0) addRow4(taxBody, 'Discretionary severance', fmt(goldenHandshake), '', '', 'text-slate-500 text-xs');
-                addRow4(taxBody, '<strong>Total genuine redundancy</strong>', `<strong>${fmt(totalGenuineRedundancyPayment)}</strong>`, '', '', 'bg-slate-50 border-t border-slate-200');
-                addRow4(taxBody, `Tax-free (${fmt(fyParams.baseAmount)} + ${fmt(fyParams.perYear)} × ${yearsOfService} yrs = ${fmt(taxFreeLimit)})`, fmt(taxFreeComponent), fmt(0), fmt(taxFreeComponent), 'bg-green-50/50');
-                if (taxableExcess > 0) {
-                    if (withinCap > 0) addRow4(taxBody, `Excluded ETP (within ${fmt(etpCap)} cap @ ${concessionalRateLabel})`, fmt(withinCap), fmt(taxOnWithinCap), fmt(withinCap - taxOnWithinCap), 'bg-amber-50/30');
-                    if (aboveCap > 0) addRow4(taxBody, `Excluded ETP (above cap @ 47%)`, fmt(aboveCap), fmt(taxOnAboveCap), fmt(aboveCap - taxOnAboveCap), 'bg-red-50/30');
+                if (noticeGross > 0) {
+                    pkgRow(`Notice in lieu (${noticeWeeks}w)`, null, noticeGross, false);
                 }
-                const taxTr = document.createElement('tr');
-                taxTr.className = 'bg-indigo-50 font-bold text-indigo-900 border-t-2 border-indigo-200';
-                taxTr.innerHTML = `<td class="px-4 py-2.5">Total</td><td class="px-4 py-2.5 text-right font-mono">${fmt(totalGenuineRedundancyPayment)}</td><td class="px-4 py-2.5 text-right font-mono text-rose-600">${fmt(totalTax)}</td><td class="px-4 py-2.5 text-right font-mono text-green-700">${fmt(totalGenuineRedundancyPayment - totalTax)}</td>`;
-                taxBody.appendChild(taxTr);
+                if (goldenHandshake > 0) {
+                    pkgRow('Discretionary severance', null, goldenHandshake, false);
+                }
 
-                // === LEAVE PAYOUT ===
+                pkgRow('Total Separation Package', null, totalGenuineRedundancyPayment, true);
+
+                // --- Tax breakdown rows (only if tax is payable) ---
+                const taxNoteEl = document.getElementById('tsp-tax-note-text');
+                if (taxableExcess <= 0) {
+                    taxNoteEl.innerHTML = `Genuine Redundancy applies. Entire amount is below the tax-free limit of ${fmt(fyParams.baseAmount)} + ${fmt(fyParams.perYear)} &times; ${yearsOfService} yrs = ${fmt(taxFreeLimit)}. <strong>No tax withheld.</strong>`;
+                } else {
+                    // Add tax itemisation rows to the table
+                    function taxDetailRow(label, subtitle, amount, colorClass) {
+                        const r = document.createElement('tr');
+                        r.className = 'border-b border-slate-100';
+                        const labelTd = document.createElement('td');
+                        labelTd.className = 'px-4 py-2.5 text-slate-500 text-xs';
+                        labelTd.innerHTML = label + (subtitle ? `<div class="text-[10px] text-slate-400 mt-0.5">${subtitle}</div>` : '');
+                        const amtTd = document.createElement('td');
+                        amtTd.className = `px-4 py-2.5 text-right font-mono text-xs ${colorClass || 'text-slate-500'}`;
+                        amtTd.textContent = fmt(amount);
+                        r.appendChild(labelTd);
+                        r.appendChild(amtTd);
+                        tbody.appendChild(r);
+                    }
+
+                    taxDetailRow('Tax-free component', `${fmt(fyParams.baseAmount)} + ${fmt(fyParams.perYear)} \u00d7 ${yearsOfService} yrs`, taxFreeComponent, 'text-green-600');
+
+                    if (withinCap > 0) {
+                        taxDetailRow(`ETP taxable @ ${concessionalRateLabel}`, `Within ${fmt(etpCap)} cap`, -taxOnWithinCap, 'text-rose-500');
+                    }
+                    if (aboveCap > 0) {
+                        taxDetailRow('ETP taxable @ 47%', `Above ${fmt(etpCap)} cap`, -taxOnAboveCap, 'text-rose-500');
+                    }
+
+                    // Net separation package row
+                    const netRow = document.createElement('tr');
+                    netRow.className = 'bg-green-50/50';
+                    netRow.innerHTML = `<td class="px-4 py-3 font-semibold text-green-800">Net Separation Package</td>`
+                        + `<td class="px-4 py-3 text-right font-mono font-semibold text-green-700">${fmt(totalGenuineRedundancyPayment - totalTax)}</td>`;
+                    tbody.appendChild(netRow);
+
+                    taxNoteEl.innerHTML = `Genuine Redundancy applies. Tax-free limit: ${fmt(taxFreeLimit)}. Tax withheld on excess: <strong>${fmt(totalTax)}</strong>.`;
+                }
+
+                // --- 2. Leave Payouts ---
                 const LEAVE_TAX_RATE = 0.32;
                 const alGross = alHours * totalHourlyRate;
                 const lslGross = lslHours * totalHourlyRate;
                 const totalLeaveGross = alGross + lslGross;
-                const totalLeaveTax = (alGross + lslGross) * LEAVE_TAX_RATE;
+                const totalLeaveTax = totalLeaveGross * LEAVE_TAX_RATE;
 
                 const leaveSection = document.getElementById('tsp-leave-section');
                 const leaveBody = document.getElementById('tsp-leave-body');
@@ -183298,40 +183326,48 @@
 
                 if (alHours > 0 || lslHours > 0) {
                     leaveSection.classList.remove('hidden');
-                    function addLeaveRow(label, hours, gross, cls) {
+                    function leaveRow(label, gross, isBold) {
                         const tax = gross * LEAVE_TAX_RATE;
                         const r = document.createElement('tr');
-                        r.className = cls || '';
-                        r.innerHTML = `<td class="px-4 py-2.5 text-slate-700">${label}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${hours}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${fmt(gross)}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${fmt(tax)}</td><td class="px-4 py-2.5 text-right font-mono text-slate-600">${fmt(gross - tax)}</td>`;
+                        r.className = isBold ? 'bg-slate-50' : 'border-b border-slate-100';
+                        const cls = isBold ? 'font-semibold text-slate-900' : 'text-slate-600';
+                        r.innerHTML = `<td class="px-4 py-3 ${isBold ? 'font-semibold text-slate-900' : 'text-slate-700'}">${label}</td>`
+                            + `<td class="px-4 py-3 text-right font-mono ${cls}">${fmt(gross)}</td>`
+                            + `<td class="px-4 py-3 text-right font-mono ${isBold ? 'font-semibold text-rose-600' : 'text-rose-500'}">${fmt(tax)}</td>`
+                            + `<td class="px-4 py-3 text-right font-mono ${isBold ? 'font-semibold text-green-700' : 'text-green-600'}">${fmt(gross - tax)}</td>`;
                         leaveBody.appendChild(r);
                     }
-                    if (alHours > 0) addLeaveRow('Annual Leave', alHours, alGross, 'bg-teal-50/30');
-                    if (lslHours > 0) addLeaveRow('Long Service Leave', lslHours, lslGross, 'bg-teal-50/30');
-                    const ltr = document.createElement('tr');
-                    ltr.className = 'bg-teal-50 font-bold text-teal-900 border-t-2 border-teal-200';
-                    ltr.innerHTML = `<td class="px-4 py-2.5">Leave Total</td><td class="px-4 py-2.5 text-right font-mono">${alHours + lslHours}</td><td class="px-4 py-2.5 text-right font-mono">${fmt(totalLeaveGross)}</td><td class="px-4 py-2.5 text-right font-mono text-rose-600">${fmt(totalLeaveTax)}</td><td class="px-4 py-2.5 text-right font-mono text-green-700">${fmt(totalLeaveGross - totalLeaveTax)}</td>`;
-                    leaveBody.appendChild(ltr);
+                    if (alHours > 0) leaveRow(`Annual Leave`, alGross, false);
+                    if (lslHours > 0) leaveRow(`Long Service`, lslGross, false);
                 } else {
                     leaveSection.classList.add('hidden');
                 }
 
-                // === GRAND TOTAL ===
+                // --- Right sidebar: Final Summary ---
                 const grandGross = totalGenuineRedundancyPayment + totalLeaveGross;
                 const grandTax = totalTax + totalLeaveTax;
                 const grandNet = grandGross - grandTax;
-                document.getElementById('tsp-grand-total').innerHTML = `
-                    <div class="bg-white rounded-lg p-3 border border-indigo-100">
-                        <div class="text-xs text-slate-500 uppercase font-semibold mb-1">Total Gross</div>
-                        <div class="text-lg font-bold text-slate-900">${fmt(grandGross)}</div>
-                    </div>
-                    <div class="bg-white rounded-lg p-3 border border-rose-100">
-                        <div class="text-xs text-slate-500 uppercase font-semibold mb-1">Total Tax</div>
-                        <div class="text-lg font-bold text-rose-600">${fmt(grandTax)}</div>
-                    </div>
-                    <div class="bg-white rounded-lg p-3 border border-green-100">
-                        <div class="text-xs text-slate-500 uppercase font-semibold mb-1">Total Net</div>
-                        <div class="text-lg font-bold text-green-700">${fmt(grandNet)}</div>
-                    </div>`;
+
+                document.getElementById('tsp-final-summary').innerHTML = `
+                    <div class="flex justify-between"><span class="text-slate-500">Total Gross</span><span class="font-mono font-semibold text-slate-800">${fmt(grandGross)}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Total Tax Withheld</span><span class="font-mono font-semibold text-rose-600">-${fmt(grandTax)}</span></div>
+                `;
+                document.getElementById('tsp-net-pay').textContent = fmt(grandNet);
+
+                // --- Right sidebar: Calculation Parameters ---
+                const paramItems = [
+                    ['Role / Age', `${tspState.selectedCode} / ${employeeAge}y`],
+                    ['Base Rate', `${fmt(weeklyPay)}/wk`],
+                    ['Service', `${yearsOfService} yrs effective service`],
+                    ['Preservation Age', preservationAge],
+                    ['Tax Rate applied', concessionalRateLabel],
+                    ['Financial Year', fy]
+                ];
+                if (avgHoursPerWeek !== hoursPerWeek) paramItems.splice(2, 0, ['Avg FTE Rate', `${fmt(weeklyPayAvgFte)}/wk (${avgHoursPerWeek} hrs)`]);
+                if (lwopWeeks > 0) paramItems.splice(3, 0, ['LWOP Deducted', `${lwopWeeks} weeks`]);
+                document.getElementById('tsp-params').innerHTML = paramItems.map(([k, v]) =>
+                    `<div class="flex justify-between text-xs py-1.5 border-b border-slate-50 last:border-0"><span class="text-slate-400">${k}</span><span class="font-mono text-slate-700 text-right">${v}</span></div>`
+                ).join('');
             }
 
             function fmt(amount) {
