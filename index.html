@@ -182670,22 +182670,67 @@
                         <div class="tsp-step active" data-tsp-step="0">
                             <h3 class="text-sm font-bold text-slate-800 mb-4"><i class="fa-solid fa-briefcase text-indigo-500 mr-2"></i>Classification & Pay</h3>
                             <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">VHIA Code</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                                <!-- Custom Salary Toggle -->
+                                <div class="flex items-center gap-2.5 p-2.5 bg-amber-50/60 border border-amber-200/60 rounded-lg">
+                                    <input type="checkbox" id="tsp-custom-salary-toggle"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer" />
+                                    <label for="tsp-custom-salary-toggle" class="text-sm font-medium text-slate-700 cursor-pointer select-none">
+                                        <i class="fa-solid fa-pen-to-square text-amber-500 mr-1"></i>Use custom salary instead of VHIA code
+                                    </label>
+                                </div>
+
+                                <!-- VHIA Code Section (hidden when custom salary is active) -->
+                                <div id="tsp-vhia-section">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">VHIA Code</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                                            </div>
+                                            <input type="text" id="tsp-code-search"
+                                                class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                                placeholder="Search by code or description..." />
+                                            <div id="tsp-code-dropdown" class="dropdown hidden"></div>
                                         </div>
-                                        <input type="text" id="tsp-code-search"
-                                            class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
-                                            placeholder="Search by code or description..." />
-                                        <div id="tsp-code-dropdown" class="dropdown hidden"></div>
-                                    </div>
-                                    <div id="tsp-selected-code-display" class="mt-2 p-2.5 bg-indigo-50/50 border border-indigo-100 rounded-lg hidden text-sm">
-                                        <span class="text-xs font-bold text-indigo-600 uppercase">Selected: </span>
-                                        <span id="tsp-selected-code-value" class="font-medium text-indigo-900"></span>
+                                        <div id="tsp-selected-code-display" class="mt-2 p-2.5 bg-indigo-50/50 border border-indigo-100 rounded-lg hidden text-sm">
+                                            <span class="text-xs font-bold text-indigo-600 uppercase">Selected: </span>
+                                            <span id="tsp-selected-code-value" class="font-medium text-indigo-900"></span>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <!-- Custom Salary Section (hidden by default, shown when custom salary is active) -->
+                                <div id="tsp-custom-salary-section" class="hidden">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Salary Amount ($)</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                    <i class="fa-solid fa-dollar-sign text-xs"></i>
+                                                </div>
+                                                <input type="number" id="tsp-custom-salary-amount"
+                                                    class="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                                    value="0" min="0" step="0.01" placeholder="Enter salary..." />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Pay Frequency</label>
+                                            <div class="relative">
+                                                <select id="tsp-custom-salary-frequency"
+                                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm appearance-none">
+                                                    <option value="hourly">Hourly</option>
+                                                    <option value="weekly">Weekly</option>
+                                                    <option value="fortnightly">Fortnightly</option>
+                                                    <option value="annual">Annual</option>
+                                                </select>
+                                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-sm font-medium text-slate-700 mb-1">Hours per Week</label>
@@ -182693,7 +182738,8 @@
                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
                                             value="38" min="0" step="0.5" />
                                     </div>
-                                    <div>
+                                    <!-- Over Award (hidden when custom salary is active) -->
+                                    <div id="tsp-over-award-section">
                                         <label class="block text-sm font-medium text-slate-700 mb-1">Hourly Over Award ($)</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -182798,6 +182844,28 @@
                                         <input type="number" id="tsp-al-hours"
                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
                                             value="0" min="0" step="0.5" placeholder="0" />
+                                        <p class="text-xs text-slate-400 mt-1">17.5% leave loading applied automatically</p>
+                                        <!-- Override Loading Checkbox -->
+                                        <div class="flex items-center gap-2 mt-2">
+                                            <input type="checkbox" id="tsp-al-loading-override"
+                                                class="h-3.5 w-3.5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer" />
+                                            <label for="tsp-al-loading-override" class="text-xs font-medium text-slate-500 cursor-pointer select-none">
+                                                Override loading %
+                                            </label>
+                                        </div>
+                                        <!-- Override Loading Popup -->
+                                        <div id="tsp-al-loading-popup" class="hidden mt-2 p-3 bg-white border border-indigo-200 rounded-lg shadow-lg ring-1 ring-indigo-100 animate-in">
+                                            <label class="block text-xs font-semibold text-indigo-700 mb-1.5">
+                                                <i class="fa-solid fa-percent text-indigo-400 mr-1"></i>Custom Leave Loading Rate
+                                            </label>
+                                            <div class="relative">
+                                                <input type="number" id="tsp-al-loading-rate"
+                                                    class="w-full px-3 py-2 bg-indigo-50/50 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm font-mono"
+                                                    value="17.5" min="0" max="100" step="0.5" />
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-indigo-400 text-sm font-medium">%</div>
+                                            </div>
+                                            <p class="text-[10px] text-slate-400 mt-1.5">Standard loading is 17.5%. Enter a custom rate above.</p>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-slate-700 mb-1">Long Service Leave (hours)</label>
@@ -182882,6 +182950,11 @@
                                             </div>
                                             <div class="px-4 py-3" id="tsp-params"></div>
                                         </div>
+                                        <!-- Export PDF Button -->
+                                        <button id="tsp-export-pdf-btn"
+                                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 rounded-lg hover:from-rose-600 hover:to-pink-700 transition-all shadow-sm">
+                                            <i class="fa-solid fa-file-pdf text-sm"></i>Export Calculation as PDF
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -182959,8 +183032,61 @@
                 codeComponents: [],
                 selectedComponents: [],
                 hoursPerWeek: 38,
-                overAward: 0
+                overAward: 0,
+                customSalaryMode: false
             };
+
+            // ===== CUSTOM SALARY TOGGLE =====
+            const tspCustomToggle = document.getElementById('tsp-custom-salary-toggle');
+            const tspVhiaSection = document.getElementById('tsp-vhia-section');
+            const tspCustomSalarySection = document.getElementById('tsp-custom-salary-section');
+            const tspOverAwardSection = document.getElementById('tsp-over-award-section');
+
+            tspCustomToggle.addEventListener('change', function () {
+                tspState.customSalaryMode = this.checked;
+                if (this.checked) {
+                    tspVhiaSection.classList.add('hidden');
+                    tspOverAwardSection.classList.add('hidden');
+                    tspCustomSalarySection.classList.remove('hidden');
+                } else {
+                    tspVhiaSection.classList.remove('hidden');
+                    tspOverAwardSection.classList.remove('hidden');
+                    tspCustomSalarySection.classList.add('hidden');
+                }
+            });
+
+            function getCustomHourlyRate() {
+                const amount = parseFloat(document.getElementById('tsp-custom-salary-amount').value) || 0;
+                const frequency = document.getElementById('tsp-custom-salary-frequency').value;
+                const hoursPerWeek = parseFloat(document.getElementById('tsp-hours-input').value) || 38;
+                switch (frequency) {
+                    case 'hourly': return amount;
+                    case 'weekly': return hoursPerWeek > 0 ? amount / hoursPerWeek : 0;
+                    case 'fortnightly': return hoursPerWeek > 0 ? amount / (hoursPerWeek * 2) : 0;
+                    case 'annual': return hoursPerWeek > 0 ? amount / (hoursPerWeek * 52) : 0;
+                    default: return amount;
+                }
+            }
+
+            // ===== AL LOADING OVERRIDE =====
+            const alLoadingOverride = document.getElementById('tsp-al-loading-override');
+            const alLoadingPopup = document.getElementById('tsp-al-loading-popup');
+
+            alLoadingOverride.addEventListener('change', function () {
+                if (this.checked) {
+                    alLoadingPopup.classList.remove('hidden');
+                } else {
+                    alLoadingPopup.classList.add('hidden');
+                    document.getElementById('tsp-al-loading-rate').value = '17.5';
+                }
+            });
+
+            function getAlLoadingRate() {
+                if (alLoadingOverride.checked) {
+                    return (parseFloat(document.getElementById('tsp-al-loading-rate').value) || 0) / 100;
+                }
+                return 0.175; // Default 17.5%
+            }
 
             // ===== WIZARD NAVIGATION =====
             function goToStep(step) {
@@ -182968,13 +183094,24 @@
 
                 // Validation before advancing
                 if (step > currentStep) {
-                    if (currentStep === 0 && !tspState.selectedCode) {
-                        alert('Please select a classification.'); return;
+                    if (currentStep === 0) {
+                        if (tspState.customSalaryMode) {
+                            const customAmt = parseFloat(document.getElementById('tsp-custom-salary-amount').value) || 0;
+                            if (customAmt <= 0) { alert('Please enter a salary amount.'); return; }
+                        } else {
+                            if (!tspState.selectedCode) { alert('Please select a classification.'); return; }
+                        }
                     }
                     if (currentStep === 2) {
                         if (!document.getElementById('tsp-dob').value) { alert('Please enter the employee\'s date of birth.'); return; }
                         if (!document.getElementById('tsp-start-date').value) { alert('Please enter the employee\'s start date.'); return; }
                     }
+                }
+
+                // Skip Step 2 (Pay Components) when using custom salary
+                if (tspState.customSalaryMode) {
+                    if (step === 1 && step > currentStep) { step = 2; }
+                    if (step === 1 && step < currentStep) { step = 0; }
                 }
 
                 // If arriving at results step, run calculation
@@ -183187,20 +183324,27 @@
                 const effectiveServiceDays = Math.max(0, totalServiceDays - lwopDays);
                 const yearsOfService = Math.floor(effectiveServiceDays / 365.25);
 
-                let baseRate = 0;
-                const baseComp = tspState.codeComponents.find(c => c.name === 'Base Pay Rate' && tspState.selectedComponents.includes('Base Pay Rate'));
-                const casualComp = tspState.codeComponents.find(c => c.name === 'Casual Rate' && tspState.selectedComponents.includes('Casual Rate'));
-                if (baseComp) baseRate = typeof baseComp.amount === 'number' ? baseComp.amount : parseFloat(baseComp.amount) || 0;
-                else if (casualComp) baseRate = typeof casualComp.amount === 'number' ? casualComp.amount : parseFloat(casualComp.amount) || 0;
-
                 let totalHourlyRate = 0;
-                tspState.selectedComponents.forEach(compName => {
-                    const comp = tspState.codeComponents.find(c => c.name === compName);
-                    if (!comp) return;
-                    if (typeof comp.amount === 'string' && comp.amount.includes('%')) totalHourlyRate += baseRate * (parseFloat(comp.amount) / 100);
-                    else totalHourlyRate += (typeof comp.amount === 'number' ? comp.amount : parseFloat(comp.amount) || 0);
-                });
-                totalHourlyRate += overAwardHourly;
+
+                if (tspState.customSalaryMode) {
+                    // Custom salary mode: derive hourly rate from the entered salary
+                    totalHourlyRate = getCustomHourlyRate();
+                } else {
+                    // VHIA code mode: calculate from components
+                    let baseRate = 0;
+                    const baseComp = tspState.codeComponents.find(c => c.name === 'Base Pay Rate' && tspState.selectedComponents.includes('Base Pay Rate'));
+                    const casualComp = tspState.codeComponents.find(c => c.name === 'Casual Rate' && tspState.selectedComponents.includes('Casual Rate'));
+                    if (baseComp) baseRate = typeof baseComp.amount === 'number' ? baseComp.amount : parseFloat(baseComp.amount) || 0;
+                    else if (casualComp) baseRate = typeof casualComp.amount === 'number' ? casualComp.amount : parseFloat(casualComp.amount) || 0;
+
+                    tspState.selectedComponents.forEach(compName => {
+                        const comp = tspState.codeComponents.find(c => c.name === compName);
+                        if (!comp) return;
+                        if (typeof comp.amount === 'string' && comp.amount.includes('%')) totalHourlyRate += baseRate * (parseFloat(comp.amount) / 100);
+                        else totalHourlyRate += (typeof comp.amount === 'number' ? comp.amount : parseFloat(comp.amount) || 0);
+                    });
+                    totalHourlyRate += overAwardHourly;
+                }
 
                 const weeklyPay = totalHourlyRate * hoursPerWeek;
                 const weeklyPayAvgFte = totalHourlyRate * avgHoursPerWeek;
@@ -183315,7 +183459,10 @@
 
                 // --- 2. Leave Payouts ---
                 const LEAVE_TAX_RATE = 0.32;
-                const alGross = alHours * totalHourlyRate;
+                const alLoadingRate = getAlLoadingRate();
+                const alBase = alHours * totalHourlyRate;
+                const alLoading = alBase * alLoadingRate;
+                const alGross = alBase + alLoading;
                 const lslGross = lslHours * totalHourlyRate;
                 const totalLeaveGross = alGross + lslGross;
                 const totalLeaveTax = totalLeaveGross * LEAVE_TAX_RATE;
@@ -183337,7 +183484,13 @@
                             + `<td class="px-4 py-3 text-right font-mono ${isBold ? 'font-semibold text-green-700' : 'text-green-600'}">${fmt(gross - tax)}</td>`;
                         leaveBody.appendChild(r);
                     }
-                    if (alHours > 0) leaveRow(`Annual Leave`, alGross, false);
+                    if (alHours > 0) {
+                        leaveRow(`Annual Leave`, alBase, false);
+                        if (alLoading > 0) {
+                            const loadingPct = (alLoadingRate * 100).toFixed(1).replace(/\.0$/, '');
+                            leaveRow(`\u00A0\u00A0\u00A0Leave Loading (${loadingPct}%)`, alLoading, false);
+                        }
+                    }
                     if (lslHours > 0) leaveRow(`Long Service`, lslGross, false);
                 } else {
                     leaveSection.classList.add('hidden');
@@ -183355,8 +183508,9 @@
                 document.getElementById('tsp-net-pay').textContent = fmt(grandNet);
 
                 // --- Right sidebar: Calculation Parameters ---
+                const roleLabel = tspState.customSalaryMode ? 'Custom Salary' : tspState.selectedCode;
                 const paramItems = [
-                    ['Role / Age', `${tspState.selectedCode} / ${employeeAge}y`],
+                    ['Role / Age', `${roleLabel} / ${employeeAge}y`],
                     ['Base Rate', `${fmt(weeklyPay)}/wk`],
                     ['Service', `${yearsOfService} yrs effective service`],
                     ['Preservation Age', preservationAge],
@@ -183372,6 +183526,182 @@
 
             function fmt(amount) {
                 return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+            }
+
+            // ===== PDF EXPORT =====
+            document.getElementById('tsp-export-pdf-btn').addEventListener('click', exportToPdf);
+
+            function exportToPdf() {
+                // Gather all rendered data from the DOM
+                const netPay = document.getElementById('tsp-net-pay').textContent;
+                const finalSummaryEl = document.getElementById('tsp-final-summary');
+                const summaryDivs = finalSummaryEl.querySelectorAll('.flex.justify-between');
+                let totalGross = '', totalTaxWithheld = '';
+                summaryDivs.forEach(div => {
+                    const spans = div.querySelectorAll('span');
+                    if (spans[0] && spans[0].textContent.includes('Total Gross')) totalGross = spans[1].textContent;
+                    if (spans[0] && spans[0].textContent.includes('Tax Withheld')) totalTaxWithheld = spans[1].textContent;
+                });
+
+                // Separation Package table
+                const sepRows = document.getElementById('tsp-results-body').querySelectorAll('tr');
+                let sepTableHtml = '';
+                sepRows.forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length >= 2) {
+                        const label = tds[0].innerHTML;
+                        const amount = tds[1].textContent.trim();
+                        const isBold = tr.classList.contains('bg-slate-50') || tr.classList.contains('bg-green-50/50');
+                        const isNet = tr.classList.contains('bg-green-50/50');
+                        const fontWeight = isBold ? 'font-weight:700;' : '';
+                        const bgColor = isNet ? 'background:#f0fdf4;' : (isBold ? 'background:#f8fafc;' : '');
+                        const amtColor = isNet ? 'color:#15803d;' : (amount.startsWith('-') ? 'color:#e11d48;' : '');
+                        sepTableHtml += `<tr style="${bgColor}">
+                            <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;${fontWeight}">${label}</td>
+                            <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;${fontWeight}${amtColor}">${amount}</td>
+                        </tr>`;
+                    }
+                });
+
+                // Tax note
+                const taxNote = document.getElementById('tsp-tax-note-text').innerHTML;
+
+                // Leave table
+                const leaveSection = document.getElementById('tsp-leave-section');
+                const leaveVisible = !leaveSection.classList.contains('hidden');
+                let leaveTableHtml = '';
+                if (leaveVisible) {
+                    const leaveRows = document.getElementById('tsp-leave-body').querySelectorAll('tr');
+                    leaveRows.forEach(tr => {
+                        const tds = tr.querySelectorAll('td');
+                        if (tds.length >= 4) {
+                            leaveTableHtml += `<tr>
+                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;">${tds[0].textContent}</td>
+                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;">${tds[1].textContent}</td>
+                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#e11d48;">${tds[2].textContent}</td>
+                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#15803d;">${tds[3].textContent}</td>
+                            </tr>`;
+                        }
+                    });
+                }
+
+                // Parameters
+                const paramDivs = document.getElementById('tsp-params').querySelectorAll('.flex.justify-between');
+                let paramsHtml = '';
+                paramDivs.forEach(div => {
+                    const spans = div.querySelectorAll('span');
+                    if (spans.length >= 2) {
+                        paramsHtml += `<tr>
+                            <td style="padding:5px 12px;border-bottom:1px solid #f1f5f9;color:#94a3b8;font-size:11px;">${spans[0].textContent}</td>
+                            <td style="padding:5px 12px;border-bottom:1px solid #f1f5f9;text-align:right;font-family:monospace;font-size:11px;">${spans[1].textContent}</td>
+                        </tr>`;
+                    }
+                });
+
+                const today = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>TSP Calculation Export</title>
+<style>
+    @media print {
+        body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .no-break { page-break-inside: avoid; }
+    }
+    body { font-family: Arial, Helvetica, sans-serif; color: #1e293b; margin: 0; padding: 40px; font-size: 13px; line-height: 1.5; }
+    .header { border-bottom: 3px solid #4338ca; padding-bottom: 16px; margin-bottom: 24px; }
+    .header h1 { margin: 0 0 4px 0; font-size: 22px; color: #1e1b4b; }
+    .header p { margin: 0; color: #6b7280; font-size: 11px; }
+    .section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 8px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .summary-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 24px 0; }
+    .summary-row { display: flex; justify-content: space-between; padding: 4px 0; }
+    .summary-label { color: #64748b; }
+    .summary-value { font-family: monospace; font-weight: 600; }
+    .net-box { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 2px solid #86efac; border-radius: 8px; padding: 20px; text-align: center; margin: 16px 0; }
+    .net-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+    .net-amount { font-size: 28px; font-weight: 800; color: #15803d; font-family: monospace; margin-top: 4px; }
+    .disclaimer { margin-top: 32px; padding: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 10px; color: #92400e; line-height: 1.6; }
+    .disclaimer strong { display: block; margin-bottom: 4px; font-size: 11px; color: #78350f; }
+    .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 9px; color: #cbd5e1; text-align: center; }
+</style></head><body>
+
+<div class="header">
+    <h1>Termination & Separation Pay \u2014 Calculation Summary</h1>
+    <p>Generated on ${today}</p>
+</div>
+
+<div class="section-title">1. Separation Package</div>
+<div class="no-break">
+<table style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+    <thead><tr style="background:#4338ca;color:#fff;">
+        <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;">Component</th>
+        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Amount</th>
+    </tr></thead>
+    <tbody>${sepTableHtml}</tbody>
+</table>
+<div style="margin-top:8px;font-size:11px;color:#64748b;">
+    <span style="color:#94a3b8;">\u2139\uFE0F</span> ${taxNote}
+</div>
+</div>
+
+${leaveVisible ? `
+<div class="section-title">2. Leave Payouts</div>
+<div class="no-break">
+<table style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+    <thead><tr style="background:#4338ca;color:#fff;">
+        <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;">Type</th>
+        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Gross</th>
+        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Tax (32%)</th>
+        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Net</th>
+    </tr></thead>
+    <tbody>${leaveTableHtml}</tbody>
+</table>
+</div>
+` : ''}
+
+<div class="section-title">Final Summary</div>
+<div class="summary-box no-break">
+    <div class="summary-row"><span class="summary-label">Total Gross</span><span class="summary-value">${totalGross}</span></div>
+    <div class="summary-row"><span class="summary-label">Total Tax Withheld</span><span class="summary-value" style="color:#e11d48;">${totalTaxWithheld}</span></div>
+</div>
+
+<div class="net-box no-break">
+    <div class="net-label">Total Net Pay</div>
+    <div class="net-amount">${netPay}</div>
+</div>
+
+<div class="section-title">Calculation Parameters</div>
+<div class="no-break">
+<table style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+    ${paramsHtml}
+</table>
+</div>
+
+<div class="disclaimer no-break">
+    <strong>\u26A0\uFE0F Important Disclaimer</strong>
+    This calculation is an estimate only and is provided for informational purposes. The final termination and separation payment may vary based on actual termination dates, individual circumstances, applicable enterprise agreements, legislative changes, and system rounding. This estimate is based on the information available and the parameters entered at the time of calculation. It does not constitute financial, legal or taxation advice. Employees and employers should refer to the relevant award, enterprise agreement, and seek independent professional advice where appropriate. The organisation accepts no liability for any discrepancy between this estimate and the final payment.
+</div>
+
+<div class="footer">
+    TSP Calculator &bull; Estimate generated ${today} &bull; Not a binding offer of payment
+</div>
+
+</body></html>`;
+
+                // Open print dialog in a new window
+                const printWindow = window.open('', '_blank', 'width=800,height=900');
+                if (!printWindow) {
+                    alert('Please allow pop-ups to export the PDF.');
+                    return;
+                }
+                printWindow.document.write(html);
+                printWindow.document.close();
+                printWindow.onload = function () {
+                    setTimeout(() => {
+                        printWindow.focus();
+                        printWindow.print();
+                    }, 300);
+                };
             }
         })();
     </script>
