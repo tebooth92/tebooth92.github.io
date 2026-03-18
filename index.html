@@ -182811,14 +182811,49 @@
                         <!-- Step 5: Notice & Additional Payments -->
                         <div class="tsp-step" data-tsp-step="4">
                             <h3 class="text-sm font-bold text-slate-800 mb-4"><i class="fa-solid fa-hand-holding-dollar text-indigo-500 mr-2"></i>Notice & Additional Payments</h3>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-4">
+                                <!-- Payment in Lieu of Notice toggle -->
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment in Lieu of Notice (weeks)</label>
-                                    <input type="number" id="tsp-notice-weeks"
-                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
-                                        value="0" min="0" step="1" placeholder="0" />
-                                    <p class="text-xs text-slate-400 mt-1">hours &times; rate (incl. allowances) &times; weeks</p>
+                                    <div class="flex items-center gap-2.5 mb-3">
+                                        <input type="checkbox" id="tsp-notice-toggle"
+                                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer" />
+                                        <label for="tsp-notice-toggle" class="text-sm font-medium text-slate-700 cursor-pointer select-none">
+                                            Employee will receive payment in lieu of notice
+                                        </label>
+                                    </div>
+
+                                    <!-- Notice fields (hidden until toggled) -->
+                                    <div id="tsp-notice-fields" class="hidden space-y-3 pl-6 border-l-2 border-indigo-100">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Notice Period (weeks)</label>
+                                            <input type="number" id="tsp-notice-weeks"
+                                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                                value="0" min="0" step="1" placeholder="0" />
+                                            <p class="text-xs text-slate-400 mt-1">hours &times; rate (incl. allowances) &times; weeks</p>
+                                        </div>
+
+                                        <!-- Age Loading Banner (conditionally shown by JS) -->
+                                        <div id="tsp-notice-age-loading" class="hidden">
+                                            <div class="flex items-start gap-2.5 px-3.5 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                                <div class="shrink-0 mt-0.5">
+                                                    <i class="fa-solid fa-circle-plus text-amber-500 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm font-semibold text-amber-800 mb-0.5">+1 Week Age Loading Applied</p>
+                                                    <p class="text-xs text-amber-700 leading-relaxed">
+                                                        The National Employment Standards increase the minimum notice
+                                                        period by 1 week if the <strong>employee</strong> is over 45 years old
+                                                        and has completed at least 2 years of <strong>continuous service</strong>
+                                                        with the <strong>employer</strong> at the end of the day the notice is given.
+                                                    </p>
+                                                    <p class="text-xs font-mono text-amber-600 mt-1.5" id="tsp-notice-total-display"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <!-- Discretionary Severance -->
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">Discretionary Severance ($)</label>
                                     <div class="relative">
@@ -183171,6 +183206,61 @@
 
                 // Scroll panel to top
                 tspPanel.closest('.overflow-y-auto').scrollTop = 0;
+
+                // When arriving at Notice step (4), check age loading eligibility
+                if (step === 4) {
+                    updateNoticeAgeLoading();
+                }
+            }
+
+            // ===== NOTICE TOGGLE & AGE LOADING =====
+            const noticeToggle = document.getElementById('tsp-notice-toggle');
+            const noticeFields = document.getElementById('tsp-notice-fields');
+            const noticeWeeksInput = document.getElementById('tsp-notice-weeks');
+
+            noticeToggle.addEventListener('change', function () {
+                if (this.checked) {
+                    noticeFields.classList.remove('hidden');
+                } else {
+                    noticeFields.classList.add('hidden');
+                    noticeWeeksInput.value = 0;
+                }
+            });
+
+            // Re-evaluate the age loading banner whenever the user changes notice weeks
+            noticeWeeksInput.addEventListener('input', updateNoticeAgeLoading);
+
+            function getNoticeAgeLoadingEligible() {
+                const dobStr = document.getElementById('tsp-dob').value;
+                const startDateStr = document.getElementById('tsp-start-date').value;
+                const separationDateStr = document.getElementById('tsp-separation-date').value;
+                if (!dobStr || !startDateStr) return false;
+
+                const dob = new Date(dobStr);
+                const startDate = new Date(startDateStr);
+                const separationDate = separationDateStr ? new Date(separationDateStr) : new Date();
+
+                const employeeAge = getAge(dob, separationDate);
+                const lwopWeeks = parseFloat(document.getElementById('tsp-lwop-weeks').value) || 0;
+                const totalServiceDays = Math.max(0, (separationDate - startDate) / (1000 * 60 * 60 * 24));
+                const effectiveServiceDays = Math.max(0, totalServiceDays - (lwopWeeks * 7));
+                const yearsOfService = Math.floor(effectiveServiceDays / 365.25);
+
+                return employeeAge >= 45 && yearsOfService >= 2;
+            }
+
+            function updateNoticeAgeLoading() {
+                const banner = document.getElementById('tsp-notice-age-loading');
+                const totalDisplay = document.getElementById('tsp-notice-total-display');
+                const eligible = getNoticeAgeLoadingEligible();
+
+                if (eligible && noticeToggle.checked) {
+                    banner.classList.remove('hidden');
+                    const enteredWeeks = parseFloat(noticeWeeksInput.value) || 0;
+                    totalDisplay.textContent = `Entered: ${enteredWeeks}w + 1w age loading = ${enteredWeeks + 1}w total notice`;
+                } else {
+                    banner.classList.add('hidden');
+                }
             }
 
             nextBtn.addEventListener('click', () => {
@@ -183302,7 +183392,6 @@
                 const startDateStr = document.getElementById('tsp-start-date').value;
                 const avgHoursPerWeek = parseFloat(document.getElementById('tsp-avg-hours').value) || 38;
                 const lwopWeeks = parseFloat(document.getElementById('tsp-lwop-weeks').value) || 0;
-                const noticeWeeks = parseFloat(document.getElementById('tsp-notice-weeks').value) || 0;
                 const goldenHandshake = parseFloat(document.getElementById('tsp-golden-handshake').value) || 0;
                 const alHours = parseFloat(document.getElementById('tsp-al-hours').value) || 0;
                 const lslHours = parseFloat(document.getElementById('tsp-lsl-hours').value) || 0;
@@ -183349,6 +183438,9 @@
                 const weeklyPay = totalHourlyRate * hoursPerWeek;
                 const weeklyPayAvgFte = totalHourlyRate * avgHoursPerWeek;
 
+                // Stash rates for PDF export
+                tspState.lastCalc = { totalHourlyRate, weeklyPay, weeklyPayAvgFte, hoursPerWeek, avgHoursPerWeek };
+
                 // TSP Entitlement
                 const baseWeeks = 4;
                 const over45Weeks = (isOver45 && yearsOfService >= 2) ? 1 : 0;
@@ -183360,6 +183452,11 @@
                 const totalWeeks = baseWeeks + over45Weeks + serviceWeeks;
                 const totalTsp = basePay + over45Pay + servicePay;
 
+                // Notice in lieu
+                const noticeToggleChecked = document.getElementById('tsp-notice-toggle').checked;
+                const enteredNoticeWeeks = noticeToggleChecked ? (parseFloat(document.getElementById('tsp-notice-weeks').value) || 0) : 0;
+                const noticeAgeLoading = (noticeToggleChecked && isOver45 && yearsOfService >= 2) ? 1 : 0;
+                const noticeWeeks = enteredNoticeWeeks + noticeAgeLoading;
                 const noticeGross = noticeWeeks * weeklyPay;
 
                 // Tax
@@ -183397,23 +183494,26 @@
                     tbody.appendChild(r);
                 }
 
-                pkgRow(`Base Entitlement (${baseWeeks}w)`, null, basePay, false);
+                pkgRow(`Base Entitlement (${baseWeeks} weeks)`, null, basePay, false);
                 if (isOver45 && yearsOfService >= 2) {
-                    pkgRow(`Over 45 Entitlement (${over45Weeks}w)`, null, over45Pay, false);
+                    pkgRow(`Over 45 Years Entitlement (${over45Weeks} week)`, null, over45Pay, false);
                 }
 
                 const svcSub = [
-                    `${cappedYears} yrs &times; 2 wks`,
-                    yearsOfService > 10 ? 'capped 10' : null,
-                    lwopWeeks > 0 ? `${lwopWeeks} wks LWOP` : null
+                    `${cappedYears} years &times; 2 weeks`,
+                    yearsOfService > 10 ? 'capped at 10 years' : null,
+                    lwopWeeks > 0 ? `${lwopWeeks} weeks LWOP deducted` : null
                 ].filter(Boolean).join(', ');
-                pkgRow('Service Component', svcSub, servicePay, false);
+                pkgRow('Service Entitlement', svcSub, servicePay, false);
 
                 if (noticeGross > 0) {
-                    pkgRow(`Notice in lieu (${noticeWeeks}w)`, null, noticeGross, false);
+                    const noticeSub = noticeAgeLoading
+                        ? `${enteredNoticeWeeks} weeks entered + 1 week age loading (over 45, 2+ years service)`
+                        : null;
+                    pkgRow(`Payment in Lieu of Notice (${noticeWeeks} weeks)`, noticeSub, noticeGross, false);
                 }
                 if (goldenHandshake > 0) {
-                    pkgRow('Discretionary severance', null, goldenHandshake, false);
+                    pkgRow('Discretionary Severance Payment', null, goldenHandshake, false);
                 }
 
                 pkgRow('Total Separation Package', null, totalGenuineRedundancyPayment, true);
@@ -183517,8 +183617,8 @@
                     ['Tax Rate applied', concessionalRateLabel],
                     ['Financial Year', fy]
                 ];
-                if (avgHoursPerWeek !== hoursPerWeek) paramItems.splice(2, 0, ['Avg FTE Rate', `${fmt(weeklyPayAvgFte)}/wk (${avgHoursPerWeek} hrs)`]);
-                if (lwopWeeks > 0) paramItems.splice(3, 0, ['LWOP Deducted', `${lwopWeeks} weeks`]);
+                if (avgHoursPerWeek !== hoursPerWeek) paramItems.splice(2, 0, ['Avg Hours (prior 10 yrs)', `${fmt(weeklyPayAvgFte)}/wk (${avgHoursPerWeek} hrs)`]);
+                if (lwopWeeks > 0) paramItems.splice(3, 0, ['LWOP (employment period)', `${lwopWeeks} weeks`]);
                 document.getElementById('tsp-params').innerHTML = paramItems.map(([k, v]) =>
                     `<div class="flex justify-between text-xs py-1.5 border-b border-slate-50 last:border-0"><span class="text-slate-400">${k}</span><span class="font-mono text-slate-700 text-right">${v}</span></div>`
                 ).join('');
@@ -183532,7 +183632,37 @@
             document.getElementById('tsp-export-pdf-btn').addEventListener('click', exportToPdf);
 
             function exportToPdf() {
-                // Gather all rendered data from the DOM
+                // ── Gather all input parameters directly ──
+                const dobStr = document.getElementById('tsp-dob').value;
+                const startDateStr = document.getElementById('tsp-start-date').value;
+                const separationDateStr = document.getElementById('tsp-separation-date').value;
+                const hoursPerWeek = parseFloat(document.getElementById('tsp-hours-input').value) || 38;
+                const avgHoursPerWeek = parseFloat(document.getElementById('tsp-avg-hours').value) || 38;
+                const lwopWeeks = parseFloat(document.getElementById('tsp-lwop-weeks').value) || 0;
+                const alHours = parseFloat(document.getElementById('tsp-al-hours').value) || 0;
+                const lslHours = parseFloat(document.getElementById('tsp-lsl-hours').value) || 0;
+                const fy = document.getElementById('tsp-fy').value;
+
+                const dob = new Date(dobStr);
+                const startDate = new Date(startDateStr);
+                const separationDate = separationDateStr ? new Date(separationDateStr) : new Date();
+
+                const employeeAge = getAge(dob, separationDate);
+                const preservationAge = getPreservationAge(dob);
+                const totalServiceDays = Math.max(0, (separationDate - startDate) / (1000 * 60 * 60 * 24));
+                const effectiveServiceDays = Math.max(0, totalServiceDays - (lwopWeeks * 7));
+                const yearsOfService = Math.floor(effectiveServiceDays / 365.25);
+                const isOver45 = employeeAge >= 45;
+                const noticeToggleChecked = document.getElementById('tsp-notice-toggle').checked;
+                const enteredNoticeWeeks = noticeToggleChecked ? (parseFloat(document.getElementById('tsp-notice-weeks').value) || 0) : 0;
+                const noticeAgeLoadingApplied = noticeToggleChecked && isOver45 && yearsOfService >= 2;
+
+                const roleLabel = tspState.customSalaryMode ? 'Custom Salary' : tspState.selectedCode;
+
+                const fmtDate = (d) => d.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+                const today = fmtDate(new Date());
+
+                // ── Gather rendered financial data from the DOM ──
                 const netPay = document.getElementById('tsp-net-pay').textContent;
                 const finalSummaryEl = document.getElementById('tsp-final-summary');
                 const summaryDivs = finalSummaryEl.querySelectorAll('.flex.justify-between');
@@ -183540,158 +183670,251 @@
                 summaryDivs.forEach(div => {
                     const spans = div.querySelectorAll('span');
                     if (spans[0] && spans[0].textContent.includes('Total Gross')) totalGross = spans[1].textContent;
-                    if (spans[0] && spans[0].textContent.includes('Tax Withheld')) totalTaxWithheld = spans[1].textContent;
+                    if (spans[0] && spans[0].textContent.includes('Tax Withheld')) totalTaxWithheld = spans[1].textContent.replace('-', '');
                 });
+                const taxNote = document.getElementById('tsp-tax-note-text').innerHTML;
 
-                // Separation Package table
+                // ── Separation Package rows ──
                 const sepRows = document.getElementById('tsp-results-body').querySelectorAll('tr');
-                let sepTableHtml = '';
+                const leaveSection = document.getElementById('tsp-leave-section');
+                const leaveVisible = !leaveSection.classList.contains('hidden');
+
+                let sepHtml = '';
                 sepRows.forEach(tr => {
                     const tds = tr.querySelectorAll('td');
-                    if (tds.length >= 2) {
-                        const label = tds[0].innerHTML;
-                        const amount = tds[1].textContent.trim();
-                        const isBold = tr.classList.contains('bg-slate-50') || tr.classList.contains('bg-green-50/50');
-                        const isNet = tr.classList.contains('bg-green-50/50');
-                        const fontWeight = isBold ? 'font-weight:700;' : '';
-                        const bgColor = isNet ? 'background:#f0fdf4;' : (isBold ? 'background:#f8fafc;' : '');
-                        const amtColor = isNet ? 'color:#15803d;' : (amount.startsWith('-') ? 'color:#e11d48;' : '');
-                        sepTableHtml += `<tr style="${bgColor}">
-                            <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;${fontWeight}">${label}</td>
-                            <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;${fontWeight}${amtColor}">${amount}</td>
-                        </tr>`;
+                    if (tds.length < 2) return;
+                    let label = tds[0].innerHTML
+                        .replace(/Notice in lieu/g, 'Payment in Lieu of Notice')
+                        .replace(/Discretionary severance/g, 'Discretionary Severance Payment')
+                        .replace(/(\d+)w\b/g, '$1 weeks').replace(/\bwks\b/g, 'weeks')
+                        .replace(/\byrs\b/g, 'years').replace(/\bcapped 10\b/g, 'capped at 10 years');
+                    const amount = tds[1].textContent.trim();
+                    const isTotalRow = tr.classList.contains('bg-slate-50');
+                    const isNetRow = tr.classList.contains('bg-green-50/50');
+                    const isDeduction = amount.startsWith('-');
+
+                    if (isTotalRow || isNetRow) {
+                        sepHtml += `<tr style="background:#f8fafc;border-top:2px solid #cbd5e1;">
+                            <td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;font-weight:600;">${label}</td>
+                            <td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:'Courier New',monospace;font-size:12px;color:#111827;font-weight:600;">${amount}</td></tr>`;
+                    } else {
+                        sepHtml += `<tr>
+                            <td style="padding:9px 14px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#374151;">${label}</td>
+                            <td style="padding:9px 14px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:'Courier New',monospace;font-size:12px;${isDeduction ? 'color:#b91c1c;' : 'color:#374151;'}">${amount}</td></tr>`;
                     }
                 });
 
-                // Tax note
-                const taxNote = document.getElementById('tsp-tax-note-text').innerHTML;
-
-                // Leave table
-                const leaveSection = document.getElementById('tsp-leave-section');
-                const leaveVisible = !leaveSection.classList.contains('hidden');
-                let leaveTableHtml = '';
+                let leaveHtml = '';
                 if (leaveVisible) {
                     const leaveRows = document.getElementById('tsp-leave-body').querySelectorAll('tr');
                     leaveRows.forEach(tr => {
                         const tds = tr.querySelectorAll('td');
-                        if (tds.length >= 4) {
-                            leaveTableHtml += `<tr>
-                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;">${tds[0].textContent}</td>
-                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;">${tds[1].textContent}</td>
-                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#e11d48;">${tds[2].textContent}</td>
-                                <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#15803d;">${tds[3].textContent}</td>
-                            </tr>`;
-                        }
+                        if (tds.length < 4) return;
+                        let label = tds[0].textContent.trim();
+                        if (label === 'Annual Leave') label = 'Annual Leave Entitlement';
+                        if (label === 'Long Service') label = 'Long Service Leave Entitlement';
+                        if (label.match(/Leave Loading/)) label = label.replace(/\u00A0/g, '').trim();
+                        const cs = 'padding:9px 14px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#374151;';
+                        const as = 'padding:9px 14px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:\"Courier New\",monospace;font-size:12px;color:#374151;';
+                        leaveHtml += `<tr>
+                            <td style="${cs}">${label}</td>
+                            <td style="${as}">${tds[1].textContent}</td>
+                            <td style="${as}color:#b91c1c;">${tds[2].textContent}</td>
+                            <td style="${as}">${tds[3].textContent}</td></tr>`;
                     });
                 }
 
-                // Parameters
-                const paramDivs = document.getElementById('tsp-params').querySelectorAll('.flex.justify-between');
-                let paramsHtml = '';
-                paramDivs.forEach(div => {
-                    const spans = div.querySelectorAll('span');
-                    if (spans.length >= 2) {
-                        paramsHtml += `<tr>
-                            <td style="padding:5px 12px;border-bottom:1px solid #f1f5f9;color:#94a3b8;font-size:11px;">${spans[0].textContent}</td>
-                            <td style="padding:5px 12px;border-bottom:1px solid #f1f5f9;text-align:right;font-family:monospace;font-size:11px;">${spans[1].textContent}</td>
-                        </tr>`;
-                    }
+                // ── Employee & Calculation Parameters table ──
+                const calc = tspState.lastCalc || {};
+                const fmtCur = (v) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+                const wpWeekly = calc.weeklyPay || 0;
+                const wpAvgFte = calc.weeklyPayAvgFte || 0;
+                const hrRate = calc.totalHourlyRate || 0;
+                const cHours = calc.hoursPerWeek || hoursPerWeek;
+                const aHours = calc.avgHoursPerWeek || avgHoursPerWeek;
+
+                const paramRows = [
+                    ['Classification', roleLabel],
+                    ['Hourly Rate of Pay', fmtCur(hrRate) + ' per hour'],
+                    ['Contracted Hours per Week', cHours + ' hours'],
+                    ['Weekly Rate of Pay', fmtCur(wpWeekly) + ' per week'],
+                ];
+                if (aHours !== cHours) {
+                    paramRows.push(
+                        ['Average Hours per Week (prior 10 years)', aHours + ' hours'],
+                        ['Adjusted Weekly Rate (Service Entitlement basis)', fmtCur(wpAvgFte) + ' per week']
+                    );
+                }
+                paramRows.push(
+                    ['Date of Birth', fmtDate(dob)],
+                    ['Age at Separation', employeeAge + ' years'],
+                    ['Employment Commencement Date', fmtDate(startDate)],
+                    ['Date of Separation', fmtDate(separationDate)],
+                    ['Completed Years of Service', yearsOfService + ' years'],
+                );
+                if (lwopWeeks > 0) {
+                    paramRows.push(['Leave Without Pay (over employment period)', lwopWeeks + ' weeks']);
+                }
+                paramRows.push(
+                    ['Preservation Age', preservationAge + ' years'],
+                    ['Applicable Financial Year', fy.replace('-', '\u2013')],
+                    ['Applicable Tax Rate on Excess', (employeeAge >= preservationAge ? '17%' : '32%') + ' (concessional)']
+                );
+                if (noticeToggleChecked) {
+                    let noticeDesc = enteredNoticeWeeks + ' weeks';
+                    if (noticeAgeLoadingApplied) noticeDesc += ' + 1 week (age loading)';
+                    paramRows.push(['Payment in Lieu of Notice Period', noticeDesc]);
+                }
+                if (alHours > 0) paramRows.push(['Annual Leave Balance', alHours + ' hours']);
+                if (lslHours > 0) paramRows.push(['Long Service Leave Balance', lslHours + ' hours']);
+
+                let paramHtml = '';
+                paramRows.forEach(([label, value], i) => {
+                    const bg = i % 2 === 0 ? 'background:#fafafa;' : '';
+                    paramHtml += `<tr style="${bg}">
+                        <td style="padding:8px 14px;border-bottom:1px solid #f3f4f6;font-size:11px;color:#6b7280;width:55%;">${label}</td>
+                        <td style="padding:8px 14px;border-bottom:1px solid #f3f4f6;font-size:11px;color:#111827;text-align:right;font-family:'Courier New',monospace;">${value}</td></tr>`;
                 });
 
-                const today = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
-
+                // ── Build the document ──
                 const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>TSP Calculation Export</title>
+<html><head><meta charset="utf-8"><title>Targeted Separation Package \u2014 Calculation Statement</title>
 <style>
+    @page { size: A4; margin: 20mm 18mm 20mm 18mm; }
     @media print {
         body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .no-break { page-break-inside: avoid; }
     }
-    body { font-family: Arial, Helvetica, sans-serif; color: #1e293b; margin: 0; padding: 40px; font-size: 13px; line-height: 1.5; }
-    .header { border-bottom: 3px solid #4338ca; padding-bottom: 16px; margin-bottom: 24px; }
-    .header h1 { margin: 0 0 4px 0; font-size: 22px; color: #1e1b4b; }
-    .header p { margin: 0; color: #6b7280; font-size: 11px; }
-    .section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 8px 0; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .summary-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 24px 0; }
-    .summary-row { display: flex; justify-content: space-between; padding: 4px 0; }
-    .summary-label { color: #64748b; }
-    .summary-value { font-family: monospace; font-weight: 600; }
-    .net-box { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 2px solid #86efac; border-radius: 8px; padding: 20px; text-align: center; margin: 16px 0; }
-    .net-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
-    .net-amount { font-size: 28px; font-weight: 800; color: #15803d; font-family: monospace; margin-top: 4px; }
-    .disclaimer { margin-top: 32px; padding: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 10px; color: #92400e; line-height: 1.6; }
-    .disclaimer strong { display: block; margin-bottom: 4px; font-size: 11px; color: #78350f; }
-    .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 9px; color: #cbd5e1; text-align: center; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; color: #1f2937; margin: 0; padding: 48px 40px; font-size: 12px; line-height: 1.55; }
+    table { width: 100%; border-collapse: collapse; }
+
+    .doc-header { margin-bottom: 32px; }
+    .doc-header-bar { height: 4px; background: linear-gradient(to right, #1e3a5f, #2563eb); margin-bottom: 20px; }
+    .doc-title { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 2px 0; letter-spacing: -0.3px; }
+    .doc-subtitle { font-size: 12px; color: #6b7280; margin: 0; }
+    .doc-ref { font-size: 10px; color: #9ca3af; margin-top: 6px; }
+
+    .section { margin-top: 28px; }
+    .section-heading { font-size: 13px; font-weight: 700; color: #111827; margin: 0 0 10px 0; padding-bottom: 6px; border-bottom: 2px solid #1e3a5f; }
+    .section-subheading { font-size: 11px; color: #6b7280; margin: -6px 0 10px 0; }
+
+    .data-table { border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; }
+    .data-table thead th { background: #1e3a5f; color: #ffffff; padding: 10px 14px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
+    .data-table thead th.text-right { text-align: right; }
+    .data-table thead th.text-left { text-align: left; }
+
+    .summary-table { border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; margin-top: 24px; }
+
+    .tax-note { font-size: 10px; color: #4b5563; margin-top: 8px; padding: 8px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; line-height: 1.5; }
+
+    .disclaimer { margin-top: 36px; padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb; }
+    .disclaimer-title { font-size: 10px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .disclaimer-text { font-size: 9.5px; color: #6b7280; line-height: 1.65; margin: 0; }
+
+    .doc-footer { margin-top: 28px; padding-top: 10px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 9px; color: #9ca3af; }
 </style></head><body>
 
-<div class="header">
-    <h1>Termination & Separation Pay \u2014 Calculation Summary</h1>
-    <p>Generated on ${today}</p>
+<div class="doc-header">
+    <div class="doc-header-bar"></div>
+    <h1 class="doc-title">Targeted Separation Package</h1>
+    <p class="doc-subtitle">Estimated Calculation Statement</p>
+    <p class="doc-ref">Prepared: ${today} &nbsp;&middot;&nbsp; Reference: TSP-${Date.now().toString(36).toUpperCase()}</p>
 </div>
 
-<div class="section-title">1. Separation Package</div>
-<div class="no-break">
-<table style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-    <thead><tr style="background:#4338ca;color:#fff;">
-        <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;">Component</th>
-        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Amount</th>
-    </tr></thead>
-    <tbody>${sepTableHtml}</tbody>
-</table>
-<div style="margin-top:8px;font-size:11px;color:#64748b;">
-    <span style="color:#94a3b8;">\u2139\uFE0F</span> ${taxNote}
+<!-- ═══ SECTION 1: EMPLOYEE & CALCULATION PARAMETERS ═══ -->
+<div class="section no-break">
+    <h2 class="section-heading">Employee and Calculation Parameters</h2>
+    <table class="data-table">
+        <thead><tr>
+            <th class="text-left" style="width:55%;">Parameter</th>
+            <th class="text-right">Value</th>
+        </tr></thead>
+        <tbody>${paramHtml}</tbody>
+    </table>
 </div>
+
+<!-- ═══ SECTION 2: SEPARATION PACKAGE ═══ -->
+<div class="section no-break">
+    <h2 class="section-heading">Separation Entitlements and Taxation</h2>
+    <p class="section-subheading">Calculated under the applicable enterprise agreement and the Income Tax Assessment Act 1997 (genuine redundancy provisions).</p>
+    <table class="data-table">
+        <thead><tr>
+            <th class="text-left">Description</th>
+            <th class="text-right">Amount (AUD)</th>
+        </tr></thead>
+        <tbody>${sepHtml}</tbody>
+    </table>
+    <div class="tax-note">${taxNote.replace(/&times;/g, '\u00d7')}</div>
 </div>
 
 ${leaveVisible ? `
-<div class="section-title">2. Leave Payouts</div>
-<div class="no-break">
-<table style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-    <thead><tr style="background:#4338ca;color:#fff;">
-        <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;">Type</th>
-        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Gross</th>
-        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Tax (32%)</th>
-        <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;">Net</th>
-    </tr></thead>
-    <tbody>${leaveTableHtml}</tbody>
-</table>
+<!-- ═══ SECTION 3: LEAVE ENTITLEMENTS ═══ -->
+<div class="section no-break">
+    <h2 class="section-heading">Leave Entitlements on Termination</h2>
+    <p class="section-subheading">Leave balances paid at the applicable hourly rate. Tax withheld at the marginal rate applicable to employment termination payments.</p>
+    <table class="data-table">
+        <thead><tr>
+            <th class="text-left">Entitlement</th>
+            <th class="text-right">Gross (AUD)</th>
+            <th class="text-right">Tax Withheld (AUD)</th>
+            <th class="text-right">Net (AUD)</th>
+        </tr></thead>
+        <tbody>${leaveHtml}</tbody>
+    </table>
 </div>
 ` : ''}
 
-<div class="section-title">Final Summary</div>
-<div class="summary-box no-break">
-    <div class="summary-row"><span class="summary-label">Total Gross</span><span class="summary-value">${totalGross}</span></div>
-    <div class="summary-row"><span class="summary-label">Total Tax Withheld</span><span class="summary-value" style="color:#e11d48;">${totalTaxWithheld}</span></div>
+<!-- ═══ SECTION 4: TOTAL PAYMENT SUMMARY ═══ -->
+<div class="section no-break">
+    <h2 class="section-heading">Total Estimated Payment Summary</h2>
+    <table class="summary-table">
+        <tbody>
+            <tr style="background:#fafafa;">
+                <td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#374151;width:55%;">Total Gross Entitlement</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:'Courier New',monospace;font-size:12px;color:#374151;">${totalGross}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#374151;">Less: Total Tax Withheld</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:'Courier New',monospace;font-size:12px;color:#b91c1c;">(${totalTaxWithheld})</td>
+            </tr>
+            <tr style="background:#f8fafc;border-top:2px solid #1e3a5f;">
+                <td style="padding:12px 14px;font-size:13px;color:#111827;font-weight:700;">Estimated Net Payment</td>
+                <td style="padding:12px 14px;text-align:right;font-family:'Courier New',monospace;font-size:14px;color:#111827;font-weight:700;">${netPay}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
-<div class="net-box no-break">
-    <div class="net-label">Total Net Pay</div>
-    <div class="net-amount">${netPay}</div>
-</div>
-
-<div class="section-title">Calculation Parameters</div>
-<div class="no-break">
-<table style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-    ${paramsHtml}
-</table>
-</div>
-
+<!-- ═══ DISCLAIMER ═══ -->
 <div class="disclaimer no-break">
-    <strong>\u26A0\uFE0F Important Disclaimer</strong>
-    This calculation is an estimate only and is provided for informational purposes. The final termination and separation payment may vary based on actual termination dates, individual circumstances, applicable enterprise agreements, legislative changes, and system rounding. This estimate is based on the information available and the parameters entered at the time of calculation. It does not constitute financial, legal or taxation advice. Employees and employers should refer to the relevant award, enterprise agreement, and seek independent professional advice where appropriate. The organisation accepts no liability for any discrepancy between this estimate and the final payment.
+    <div class="disclaimer-title">Important Disclaimer</div>
+    <p class="disclaimer-text">
+        This document is an estimate only and is provided for informational purposes. The final termination and
+        separation payment may vary based on actual termination dates, individual circumstances, applicable enterprise
+        agreement provisions, legislative changes, and system rounding. This estimate has been prepared on the basis of
+        the information available and the parameters entered at the time of calculation. It does not constitute financial,
+        legal, or taxation advice. Employees and employers should refer to the relevant industrial instrument and seek
+        independent professional advice where appropriate.
+    </p>
+    <p class="disclaimer-text" style="margin-top:6px;">
+        Taxation estimates are calculated in accordance with the Income Tax Assessment Act 1997, Division 83-C (genuine
+        redundancy payments) and are subject to the individual employee's personal tax circumstances. The employer accepts
+        no liability for any variance between this estimated calculation and the final payment.
+    </p>
 </div>
 
-<div class="footer">
-    TSP Calculator &bull; Estimate generated ${today} &bull; Not a binding offer of payment
+<div class="doc-footer">
+    <span>Targeted Separation Package \u2014 Estimated Calculation Statement</span>
+    <span>${today}</span>
 </div>
 
 </body></html>`;
 
                 // Open print dialog in a new window
-                const printWindow = window.open('', '_blank', 'width=800,height=900');
+                const printWindow = window.open('', '_blank', 'width=800,height=1000');
                 if (!printWindow) {
-                    alert('Please allow pop-ups to export the PDF.');
+                    alert('Please allow pop-ups to export this document as a PDF.');
                     return;
                 }
                 printWindow.document.write(html);
@@ -183700,7 +183923,7 @@ ${leaveVisible ? `
                     setTimeout(() => {
                         printWindow.focus();
                         printWindow.print();
-                    }, 300);
+                    }, 400);
                 };
             }
         })();
