@@ -1,0 +1,78 @@
+/* Visually-hidden synonym block. Still indexed by search. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Small clause metadata pill row at the top of each clause page. */
+.clause-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.25rem 0 1rem 0;
+  font-size: 0.78rem;
+}
+.clause-meta .pill {
+  background: var(--md-code-bg-color);
+  color: var(--md-default-fg-color--light);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.clause-meta .pill-eba {
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 600;
+}
+
+/* Archive banner */
+.archive-banner {
+  background: #fff3cd;
+  border-left: 4px solid #e0a800;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem 0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+[data-md-color-scheme="slate"] .archive-banner {
+  background: #3b3526;
+  color: #f3e4b4;
+}
+
+/* Search-drawer EBA filter dropdown. Injected by javascripts/eba-filter.js */
+.eba-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  font-size: 0.72rem;
+}
+.eba-filter__label {
+  font-weight: 600;
+  color: var(--md-default-fg-color--light);
+  white-space: nowrap;
+}
+.eba-filter__select {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.eba-filter__select:focus {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 1px;
+}
