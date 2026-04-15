@@ -49,11 +49,22 @@
 /* Search-drawer EBA filter dropdown. Injected by javascripts/eba-filter.js */
 .eba-filter {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.35rem;
   padding: 0.5rem 0.8rem;
   border-top: 1px solid var(--md-default-fg-color--lightest);
   font-size: 0.72rem;
+}
+.eba-filter__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.eba-filter__hint {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.66rem;
+  line-height: 1.3;
+  font-style: italic;
 }
 .eba-filter__label {
   font-weight: 600;

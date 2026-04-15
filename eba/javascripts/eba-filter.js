@@ -1,23 +1,30 @@
 // EBA filter dropdown for Material's search drawer.
 //
-// Two-part strategy to keep filtered results inside Material's top-N window:
+// Strategy:
 //
-//   1. Each clause page has a hidden compound-word token (ebafilter<slug>)
-//      injected by overrides/main.html. When a filter is active we append
-//      that token to the search input so Material biases the ranker toward
-//      pages of that EBA. Without this, rare-in-filter queries ("classification"
-//      with Allied Health selected) return nothing because the matching pages
-//      never make it into the rendered top ~10.
+//   1. Each clause page carries a hidden compound-word token (ebafilter<slug>)
+//      injected into its markdown by scripts/hooks.py. The token survives the
+//      search plugin's tokenizer as a single term and is indexed as ordinary
+//      page text.
 //
-//   2. A lightweight post-hoc DOM filter then hides any results whose URL is
-//      outside /ebas/<slug>/, which removes the small number of false
-//      positives that still sneak in.
+//   2. When an EBA is selected in the dropdown, we append that token to the
+//      search input's value and fire an input event. Material's ranker then
+//      heavily favours pages of that EBA, which keeps matching results
+//      inside the rendered top-N window. Without this, rare-in-filter
+//      queries ("classification" with Allied Health selected) return
+//      nothing because the matching pages never reach the render window.
+//
+//   3. A lightweight post-hoc DOM filter then hides any residual results
+//      whose URL is outside /ebas/<slug>/.
+//
+// The appended token is visible in the search box. A small helper line
+// below the filter dropdown tells the user what it is.
 //
 // Design goals:
 //  - No inline scripts or styles (CSP-safe).
-//  - Cheap to run: the observer is scoped to the search-result list only,
-//    and applyFilter is debounced.
-//  - No feedback loops: input rewriting uses a guard flag.
+//  - Cheap to run: observer scoped to the result list only, debounced.
+//  - No feedback loops: a guard flag prevents our own input events from
+//    re-triggering the user-input handler.
 
 (function () {
   "use strict";
@@ -45,13 +52,11 @@
   var listObserver = null;
   var pending = null;
   var syncing = false;
+  var TOKEN_RE = /\s*ebafilter[a-z]+\s*/gi;
 
   function tokenFor(slug) {
     return slug ? "ebafilter" + slug.replace(/-/g, "") : "";
   }
-
-  // Matches any ebafilter token so we can strip old ones on filter change.
-  var TOKEN_RE = /\s*ebafilter[a-z]+\s*/gi;
 
   function needle() {
     return currentSlug ? "/ebas/" + currentSlug + "/" : "";
@@ -64,9 +69,27 @@
     return slug;
   }
 
+  function updateHelperText() {
+    var helper = document.querySelector(".eba-filter__hint");
+    if (!helper) return;
+    if (currentSlug) {
+      helper.textContent =
+        "Filter tag " + tokenFor(currentSlug) +
+        " is appended to your search to bias results toward " +
+        slugLabel(currentSlug) + ".";
+      helper.style.display = "";
+    } else {
+      helper.textContent = "";
+      helper.style.display = "none";
+    }
+  }
+
   function buildSelect() {
     var wrap = document.createElement("div");
     wrap.className = "eba-filter";
+
+    var row = document.createElement("div");
+    row.className = "eba-filter__row";
 
     var label = document.createElement("label");
     label.className = "eba-filter__label";
@@ -92,55 +115,34 @@
           window.localStorage.setItem(STORAGE_KEY, currentSlug);
         }
       } catch (err) { /* ignore */ }
+      updateHelperText();
       syncInput();
       scheduleApply();
     });
 
-    wrap.appendChild(label);
-    wrap.appendChild(select);
+    row.appendChild(label);
+    row.appendChild(select);
+
+    var hint = document.createElement("div");
+    hint.className = "eba-filter__hint";
+
+    wrap.appendChild(row);
+    wrap.appendChild(hint);
     return wrap;
   }
 
-  // Override the input's `value` getter so that when Material reads the
-  // search query, it sees the user's text plus the hidden per-EBA token,
-  // but the native input's rendered text stays exactly what the user
-  // typed. This avoids polluting the visible search box.
-  //
-  // Implementation: define an instance-level property on the input that
-  // delegates set to the native setter but augments get with the token.
-  // A plain input event (without writing a new value) is then enough to
-  // make Material re-run its search against the augmented string.
-  function installValueProxy(input) {
-    if (input.__ebaProxied) return;
-    var proto = HTMLInputElement.prototype;
-    var nativeDesc = Object.getOwnPropertyDescriptor(proto, "value");
-    if (!nativeDesc || !nativeDesc.get || !nativeDesc.set) return;
-
-    Object.defineProperty(input, "value", {
-      configurable: true,
-      enumerable: true,
-      get: function () {
-        var raw = nativeDesc.get.call(input);
-        var suffix = tokenFor(currentSlug);
-        if (!suffix) return raw;
-        if (!raw) return raw;
-        // Don't double-append if something else already added it.
-        if (raw.indexOf(suffix) !== -1) return raw;
-        return raw + " " + suffix;
-      },
-      set: function (val) {
-        nativeDesc.set.call(input, val);
-      }
-    });
-    input.__ebaProxied = true;
-  }
-
-  // Nudge Material to re-run the current search without touching the
-  // visible text. Fires an input event on the input so Material's
-  // listener re-reads input.value (which goes through our proxy).
-  function retriggerSearch() {
+  // Rewrite the search input so Material sees the token appended to the
+  // user's query. Fires a fresh input event so Material's observable
+  // re-reads the input value and re-runs the search.
+  function syncInput() {
     var input = document.querySelector(".md-search__input");
     if (!input) return;
+    var suffix = tokenFor(currentSlug);
+    var base = (input.value || "").replace(TOKEN_RE, " ").trim();
+    var next = suffix ? (base ? base + " " + suffix : "") : base;
+    if (input.value === next) return;
+    syncing = true;
+    input.value = next;
     try {
       input.dispatchEvent(new Event("input", { bubbles: true }));
     } catch (err) {
@@ -148,19 +150,23 @@
       evt.initEvent("input", true, true);
       input.dispatchEvent(evt);
     }
-  }
-
-  function syncInput() {
-    // Kept for compatibility with the filter-change handler. The proxy
-    // makes the input's value *read* correctly; all we need here is to
-    // ask Material to re-query.
-    retriggerSearch();
+    syncing = false;
   }
 
   function attachInputHook() {
     var input = document.querySelector(".md-search__input");
-    if (!input) return false;
-    installValueProxy(input);
+    if (!input || input.__ebaHooked) return !!input;
+    input.__ebaHooked = true;
+    input.addEventListener("input", function () {
+      if (syncing) return;
+      if (!currentSlug) return;
+      var suffix = tokenFor(currentSlug);
+      if (input.value.indexOf(suffix) !== -1) return;
+      // User either cleared the box or hasn't had the token appended yet.
+      // Only append if there's meaningful user input to search on.
+      if (!input.value.trim()) return;
+      syncInput();
+    });
     return true;
   }
 
@@ -180,6 +186,14 @@
     if (!items.length) return;
     var n = needle();
     var shown = 0;
+
+    // Open any collapsed "more results" so our filter can reach them.
+    if (n) {
+      var dets = list.querySelectorAll("details.md-search-result__more");
+      for (var k = 0; k < dets.length; k++) {
+        if (!dets[k].open) dets[k].open = true;
+      }
+    }
 
     for (var i = 0; i < items.length; i++) {
       var item = items[i];
@@ -218,6 +232,7 @@
       document.querySelector(".md-search__form");
     if (!host) return false;
     host.insertBefore(buildSelect(), host.firstChild);
+    updateHelperText();
     return true;
   }
 
@@ -238,8 +253,6 @@
       var attached = attachListObserver();
       var hooked = attachInputHook();
       if (mounted && attached && hooked) {
-        // If there's a persisted filter, push the token into the input now
-        // so a page-reload-with-query state still biases correctly.
         if (currentSlug) syncInput();
         return;
       }
