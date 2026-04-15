@@ -235,8 +235,22 @@
     var meta = document.querySelector(".md-search-result__meta");
     if (meta && n) {
       meta.textContent =
-        shown + " match" + (shown === 1 ? "" : "es") +
+        shown + " of " + items.length + " match" +
+        (shown === 1 ? "" : "es") +
         " under " + (slugLabel(currentSlug) || "selected EBA");
+    }
+
+    // Debug: expose last sample of URLs we checked so we can diagnose
+    // when shown=0 but items were returned.
+    var hint = document.querySelector(".eba-filter__hint");
+    if (hint && n && items.length > 0 && shown === 0) {
+      var sample = "";
+      var firstItem = items[0];
+      var firstLink = firstItem.querySelector(".md-search-result__link");
+      if (firstLink) sample = firstLink.href || firstLink.getAttribute("href") || "";
+      hint.textContent =
+        "Filter returned 0 of " + items.length + " rendered results. " +
+        "Needle: " + n + " | First URL: " + sample.slice(0, 120);
     }
   }
 
