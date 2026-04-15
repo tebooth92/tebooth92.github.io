@@ -1,13 +1,23 @@
 // EBA filter dropdown for Material's search drawer.
 //
-// Adds a <select> inside the search output that hides any result whose
-// resolved URL does not contain /ebas/<slug>/. "All EBAs" clears it.
+// Two-part strategy to keep filtered results inside Material's top-N window:
+//
+//   1. Each clause page has a hidden compound-word token (ebafilter<slug>)
+//      injected by overrides/main.html. When a filter is active we append
+//      that token to the search input so Material biases the ranker toward
+//      pages of that EBA. Without this, rare-in-filter queries ("classification"
+//      with Allied Health selected) return nothing because the matching pages
+//      never make it into the rendered top ~10.
+//
+//   2. A lightweight post-hoc DOM filter then hides any results whose URL is
+//      outside /ebas/<slug>/, which removes the small number of false
+//      positives that still sneak in.
 //
 // Design goals:
 //  - No inline scripts or styles (CSP-safe).
 //  - Cheap to run: the observer is scoped to the search-result list only,
-//    and applyFilter is debounced so a burst of mutations from a single
-//    keystroke coalesces into one pass.
+//    and applyFilter is debounced.
+//  - No feedback loops: input rewriting uses a guard flag.
 
 (function () {
   "use strict";
@@ -34,6 +44,14 @@
 
   var listObserver = null;
   var pending = null;
+  var syncing = false;
+
+  function tokenFor(slug) {
+    return slug ? "ebafilter" + slug.replace(/-/g, "") : "";
+  }
+
+  // Matches any ebafilter token so we can strip old ones on filter change.
+  var TOKEN_RE = /\s*ebafilter[a-z]+\s*/gi;
 
   function needle() {
     return currentSlug ? "/ebas/" + currentSlug + "/" : "";
@@ -74,12 +92,52 @@
           window.localStorage.setItem(STORAGE_KEY, currentSlug);
         }
       } catch (err) { /* ignore */ }
+      syncInput();
       scheduleApply();
     });
 
     wrap.appendChild(label);
     wrap.appendChild(select);
     return wrap;
+  }
+
+  // Rewrite the search input so Material's ranker sees the hidden
+  // per-EBA token as part of the query. Uses a guard flag to avoid
+  // feedback when we dispatch our own input event.
+  function syncInput() {
+    var input = document.querySelector(".md-search__input");
+    if (!input) return;
+    var suffix = tokenFor(currentSlug);
+    // Strip any previously-added token.
+    var base = (input.value || "").replace(TOKEN_RE, " ").trim();
+    var next = suffix ? (base + " " + suffix).trim() : base;
+    if (input.value === next) return;
+    syncing = true;
+    input.value = next;
+    try {
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    } catch (err) {
+      // Older browsers: fall back to a plain Event.
+      var evt = document.createEvent("Event");
+      evt.initEvent("input", true, true);
+      input.dispatchEvent(evt);
+    }
+    syncing = false;
+  }
+
+  function attachInputHook() {
+    var input = document.querySelector(".md-search__input");
+    if (!input || input.__ebaHooked) return !!input;
+    input.__ebaHooked = true;
+    input.addEventListener("input", function () {
+      if (syncing) return;
+      if (!currentSlug) return;
+      // User typed: re-append the token if they removed it.
+      var suffix = tokenFor(currentSlug);
+      if (input.value.indexOf(suffix) !== -1) return;
+      syncInput();
+    });
+    return true;
   }
 
   function linkMatches(link) {
@@ -144,8 +202,6 @@
     var list = document.querySelector(".md-search-result__list");
     if (!list) return false;
     listObserver = new MutationObserver(scheduleApply);
-    // childList only, no subtree: results are appended as children of
-    // the list. Much cheaper than watching the whole body.
     listObserver.observe(list, { childList: true });
     scheduleApply();
     return true;
@@ -156,8 +212,14 @@
     function tick() {
       var mounted = mountFilter();
       var attached = attachListObserver();
-      if (mounted && attached) return;
-      if (++tries > 80) return; // give up after ~8s
+      var hooked = attachInputHook();
+      if (mounted && attached && hooked) {
+        // If there's a persisted filter, push the token into the input now
+        // so a page-reload-with-query state still biases correctly.
+        if (currentSlug) syncInput();
+        return;
+      }
+      if (++tries > 80) return;
       setTimeout(tick, 100);
     }
     tick();
