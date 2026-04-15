@@ -101,42 +101,66 @@
     return wrap;
   }
 
-  // Rewrite the search input so Material's ranker sees the hidden
-  // per-EBA token as part of the query. Uses a guard flag to avoid
-  // feedback when we dispatch our own input event.
-  function syncInput() {
+  // Override the input's `value` getter so that when Material reads the
+  // search query, it sees the user's text plus the hidden per-EBA token,
+  // but the native input's rendered text stays exactly what the user
+  // typed. This avoids polluting the visible search box.
+  //
+  // Implementation: define an instance-level property on the input that
+  // delegates set to the native setter but augments get with the token.
+  // A plain input event (without writing a new value) is then enough to
+  // make Material re-run its search against the augmented string.
+  function installValueProxy(input) {
+    if (input.__ebaProxied) return;
+    var proto = HTMLInputElement.prototype;
+    var nativeDesc = Object.getOwnPropertyDescriptor(proto, "value");
+    if (!nativeDesc || !nativeDesc.get || !nativeDesc.set) return;
+
+    Object.defineProperty(input, "value", {
+      configurable: true,
+      enumerable: true,
+      get: function () {
+        var raw = nativeDesc.get.call(input);
+        var suffix = tokenFor(currentSlug);
+        if (!suffix) return raw;
+        if (!raw) return raw;
+        // Don't double-append if something else already added it.
+        if (raw.indexOf(suffix) !== -1) return raw;
+        return raw + " " + suffix;
+      },
+      set: function (val) {
+        nativeDesc.set.call(input, val);
+      }
+    });
+    input.__ebaProxied = true;
+  }
+
+  // Nudge Material to re-run the current search without touching the
+  // visible text. Fires an input event on the input so Material's
+  // listener re-reads input.value (which goes through our proxy).
+  function retriggerSearch() {
     var input = document.querySelector(".md-search__input");
     if (!input) return;
-    var suffix = tokenFor(currentSlug);
-    // Strip any previously-added token.
-    var base = (input.value || "").replace(TOKEN_RE, " ").trim();
-    var next = suffix ? (base + " " + suffix).trim() : base;
-    if (input.value === next) return;
-    syncing = true;
-    input.value = next;
     try {
       input.dispatchEvent(new Event("input", { bubbles: true }));
     } catch (err) {
-      // Older browsers: fall back to a plain Event.
       var evt = document.createEvent("Event");
       evt.initEvent("input", true, true);
       input.dispatchEvent(evt);
     }
-    syncing = false;
+  }
+
+  function syncInput() {
+    // Kept for compatibility with the filter-change handler. The proxy
+    // makes the input's value *read* correctly; all we need here is to
+    // ask Material to re-query.
+    retriggerSearch();
   }
 
   function attachInputHook() {
     var input = document.querySelector(".md-search__input");
-    if (!input || input.__ebaHooked) return !!input;
-    input.__ebaHooked = true;
-    input.addEventListener("input", function () {
-      if (syncing) return;
-      if (!currentSlug) return;
-      // User typed: re-append the token if they removed it.
-      var suffix = tokenFor(currentSlug);
-      if (input.value.indexOf(suffix) !== -1) return;
-      syncInput();
-    });
+    if (!input) return false;
+    installValueProxy(input);
     return true;
   }
 
