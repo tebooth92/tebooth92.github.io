@@ -150,14 +150,27 @@
         input.setSelectionRange(base.length, base.length);
       } catch (err) { /* older browsers */ }
     }
-    try {
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    } catch (err) {
-      var evt = document.createEvent("Event");
-      evt.initEvent("input", true, true);
-      input.dispatchEvent(evt);
-    }
+    // Material's search pipeline subscribes to 'keyup' (not 'input'), so
+    // we must fire a keyup to make it re-read the augmented value. Fire
+    // 'input' too in case other listeners depend on it.
+    fireKeyLikeEvents(input);
     syncing = false;
+  }
+
+  function fireKeyLikeEvents(input) {
+    function fire(name, EvtCtor) {
+      try {
+        input.dispatchEvent(new EvtCtor(name, { bubbles: true }));
+      } catch (err) {
+        var evt = document.createEvent("Event");
+        evt.initEvent(name, true, true);
+        input.dispatchEvent(evt);
+      }
+    }
+    fire("input", Event);
+    // KeyboardEvent is what 'keyup' listeners typically expect.
+    var KbdCtor = (typeof KeyboardEvent !== "undefined") ? KeyboardEvent : Event;
+    fire("keyup", KbdCtor);
   }
 
   function attachInputHook() {
