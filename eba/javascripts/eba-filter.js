@@ -143,6 +143,13 @@
     if (input.value === next) return;
     syncing = true;
     input.value = next;
+    // Keep the caret at the end of the base (user-typed) portion, so further
+    // typing extends the query rather than tearing up the trailing token.
+    if (suffix && base) {
+      try {
+        input.setSelectionRange(base.length, base.length);
+      } catch (err) { /* older browsers */ }
+    }
     try {
       input.dispatchEvent(new Event("input", { bubbles: true }));
     } catch (err) {
@@ -160,11 +167,11 @@
     input.addEventListener("input", function () {
       if (syncing) return;
       if (!currentSlug) return;
-      var suffix = tokenFor(currentSlug);
-      if (input.value.indexOf(suffix) !== -1) return;
-      // User either cleared the box or hasn't had the token appended yet.
-      // Only append if there's meaningful user input to search on.
       if (!input.value.trim()) return;
+      // Always normalise: strip any existing ebafilter* fragments (in case
+      // the user typed into or next to a previous token) and re-append the
+      // canonical token at the end. This guarantees Material sees a clean,
+      // whole-word token regardless of where the caret is.
       syncInput();
     });
     return true;
@@ -238,10 +245,16 @@
 
   function attachListObserver() {
     if (listObserver) return true;
-    var list = document.querySelector(".md-search-result__list");
-    if (!list) return false;
+    // Observe the whole search output (not just the list), with subtree,
+    // so we catch the case where Material replaces the list element on a
+    // new search. scheduleApply debounces bursts so this is cheap.
+    var root =
+      document.querySelector(".md-search__output") ||
+      document.querySelector(".md-search__inner") ||
+      document.querySelector(".md-search-result");
+    if (!root) return false;
     listObserver = new MutationObserver(scheduleApply);
-    listObserver.observe(list, { childList: true });
+    listObserver.observe(root, { childList: true, subtree: true });
     scheduleApply();
     return true;
   }
