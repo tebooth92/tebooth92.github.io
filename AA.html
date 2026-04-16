@@ -2027,7 +2027,23 @@
                         }
                     }
 
-                    // VALIDATION 6: Austin Health EMP Benefit account should never appear
+                    // VALIDATION 6: Test accounts should never appear
+                    if (bankAccountName.toLowerCase() === 'test') {
+                        this.errors.push({
+                            row: rowNumber,
+                            payrollId: row['Payroll ID'],
+                            firstName: row['First Name'],
+                            lastName: row['Last Name'],
+                            packageItem: packageItem,
+                            field: 'Bank Account Name',
+                            value: bankAccountName,
+                            type: 'austin-account',
+                            category: 'Test Account',
+                            errorMessage: `Test account "${bankAccountName}" must not be used as a payment account`
+                        });
+                    }
+
+                    // VALIDATION 7: Austin Health EMP Benefit account should never appear
                     if ((bsb === '033077' && accountNumber === '00243618') || bankAccountName === 'Austin Health EMP Benefit') {
                         this.errors.push({
                             row: rowNumber,
