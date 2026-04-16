@@ -2027,8 +2027,8 @@
                         }
                     }
 
-                    // VALIDATION 6: Test accounts should never appear
-                    if (bankAccountName.toLowerCase() === 'test') {
+                    // VALIDATION 6: Test accounts should never appear (except NL - Finance)
+                    if (bankAccountName.toLowerCase() === 'test' && packageItem !== 'NL - Finance' && packageItem !== 'NL \u2013 Finance') {
                         this.errors.push({
                             row: rowNumber,
                             payrollId: row['Payroll ID'],
