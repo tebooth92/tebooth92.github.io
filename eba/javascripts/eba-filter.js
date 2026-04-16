@@ -157,31 +157,63 @@
     fire("change", Event);
   }
 
-  // Intercept Worker.prototype.postMessage. When Material's search dispatch
-  // sends a type=2 message (lunr query) to its search worker, rewrite the
-  // query string to append our filter token. This sits right before the
-  // worker runs lunr and is immune to any event-timing quirks in Material's
-  // input observables. Patching the prototype means it applies to already-
-  // constructed Worker instances too (including Material's search worker
-  // which may have been created before this script ran).
+  // Diagnostic: record the last message seen so we can confirm the patch
+  // is actually intercepting Material's query dispatch.
+  var lastPatched = { original: null, rewritten: null };
+
+  function rewriteMsg(msg) {
+    if (!currentSlug) return msg;
+    if (!msg || typeof msg !== "object") return msg;
+    // Material sends {type: 2, data: "<query>"} for search queries.
+    // Be permissive: if data is a string, augment it.
+    var data = msg.data;
+    if (typeof data !== "string") return msg;
+    var suffix = tokenFor(currentSlug);
+    if (!suffix) return msg;
+    var q = data.replace(TOKEN_RE, " ").trim();
+    if (!q) return msg;
+    lastPatched.original = data;
+    lastPatched.rewritten = q + " " + suffix;
+    return { type: msg.type, data: lastPatched.rewritten };
+  }
+
+  // Intercept Material's query dispatch at two layers:
+  //   a) Worker.prototype.postMessage — catches already-constructed workers.
+  //   b) window.Worker constructor wrapper — also overrides postMessage on
+  //      each new instance, belt-and-braces in case a) is bypassed (some
+  //      browsers treat prototype methods on host objects differently).
   function patchWorkerPostMessage() {
     if (window.__ebaWorkerPatched) return;
-    if (typeof Worker === "undefined" || !Worker.prototype) return;
-    var orig = Worker.prototype.postMessage;
-    if (!orig) return;
-    Worker.prototype.postMessage = function (msg) {
-      try {
-        if (currentSlug && msg && typeof msg === "object" &&
-            msg.type === 2 && typeof msg.data === "string") {
-          var suffix = tokenFor(currentSlug);
-          var q = msg.data.replace(TOKEN_RE, " ").trim();
-          if (suffix && q) {
-            arguments[0] = { type: msg.type, data: q + " " + suffix };
-          }
-        }
-      } catch (err) { /* fall through */ }
-      return orig.apply(this, arguments);
-    };
+    if (typeof Worker === "undefined") return;
+
+    // Layer a): prototype
+    try {
+      var protoOrig = Worker.prototype.postMessage;
+      if (protoOrig) {
+        Worker.prototype.postMessage = function (msg) {
+          try { arguments[0] = rewriteMsg(msg); } catch (err) {}
+          return protoOrig.apply(this, arguments);
+        };
+      }
+    } catch (err) { /* ignore */ }
+
+    // Layer b): constructor wrapper
+    try {
+      var Native = window.Worker;
+      var Wrapper = function (url, opts) {
+        var w = new Native(url, opts);
+        var instOrig = w.postMessage.bind(w);
+        w.postMessage = function (msg) {
+          try { msg = rewriteMsg(msg); } catch (err) {}
+          return instOrig(msg);
+        };
+        return w;
+      };
+      Wrapper.prototype = Native.prototype;
+      try { Object.setPrototypeOf(Wrapper, Native); } catch (e) {}
+      window.Worker = Wrapper;
+    } catch (err) { /* ignore */ }
+
     window.__ebaWorkerPatched = true;
   }
   patchWorkerPostMessage();
@@ -250,9 +282,12 @@
       var firstItem = items[0];
       var firstLink = firstItem.querySelector(".md-search-result__link");
       if (firstLink) sample = firstLink.href || firstLink.getAttribute("href") || "";
+      var patchState = lastPatched.rewritten
+        ? "patched: " + lastPatched.rewritten.slice(0, 80)
+        : "patch NEVER fired";
       hint.textContent =
-        "Filter returned 0 of " + items.length + " rendered results. " +
-        "Needle: " + n + " | First URL: " + sample.slice(0, 120);
+        "0 of " + items.length + " shown | " + patchState +
+        " | URL: " + sample.slice(0, 80);
     }
   }
 
