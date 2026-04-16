@@ -276,7 +276,7 @@
                             d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
                         </path>
                     </svg>
-                    <span class="font-medium">EML Remittance</span>
+                    <span class="font-medium">Remittance</span>
                 </a>
             </div>
 
@@ -747,9 +747,8 @@
             <div id="view-eml-remittance" class="view-section hidden p-8 max-w-5xl mx-auto">
                 <!-- Header -->
                 <header class="mb-10 text-center relative">
-                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">EML Remittance Generator</h2>
-                    <p class="text-slate-600">Upload 'Payment Transaction Report' to generate EML Remittance File.
-                    </p>
+                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">Remittance Generator</h2>
+                    <p class="text-slate-600">Upload 'Payment Transaction Report' to generate remittance files.</p>
 
                     <!-- Help Tooltip -->
                     <a href="https://ah.eziway.net.au/ASPX/Employers/EmployerTranstionalReport.aspx" target="_blank"
@@ -782,12 +781,6 @@
                         class="hidden bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-green-800">
                     </div>
 
-                    <!-- Action Button -->
-                    <button id="eml-generate-btn" disabled
-                        class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-8">
-                        Generate Remittance File
-                    </button>
-
                     <!-- Loading -->
                     <div id="eml-loading" class="hidden text-center py-8">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4">
@@ -797,30 +790,89 @@
 
                     <!-- Results Section -->
                     <div id="eml-results-section" class="hidden">
-                        <!-- Stats -->
-                        <div id="eml-stats" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
 
-                        <!-- Errors -->
-                        <div id="eml-errors-container"
-                            class="hidden bg-white rounded-lg shadow border border-red-200 overflow-hidden mb-6">
-                            <div class="p-4 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center">
-                                <span class="mr-2">⚠️</span> Validation Issues Detected
+                        <!-- EML Card Remittance Panel -->
+                        <div class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden mb-6">
+                            <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-2 text-lg">💳</span>
+                                    <span class="font-bold text-indigo-900">EML Card Remittance</span>
+                                </div>
+                                <button id="eml-generate-btn" disabled
+                                    class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+                                    Export EML CSV
+                                </button>
                             </div>
-                            <div class="p-4 overflow-x-auto">
-                                <table class="w-full text-sm">
-                                    <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-                                        <tr>
-                                            <th class="py-2 px-3 text-left">Row</th>
-                                            <th class="py-2 px-3 text-left">Employee</th>
-                                            <th class="py-2 px-3 text-left">Item Name</th>
-                                            <th class="py-2 px-3 text-left">Issue</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="eml-errors-body" class="divide-y divide-slate-100 text-slate-700">
-                                    </tbody>
-                                </table>
+                            <div class="p-4">
+                                <div id="eml-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
+                                <!-- EML Errors -->
+                                <div id="eml-errors-container"
+                                    class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
+                                    <div class="p-3 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-sm">
+                                        <span class="mr-2">&#9888;&#65039;</span> Validation Issues
+                                    </div>
+                                    <div class="p-3 overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                                                <tr>
+                                                    <th class="py-2 px-3 text-left">Row</th>
+                                                    <th class="py-2 px-3 text-left">Employee</th>
+                                                    <th class="py-2 px-3 text-left">Item Name</th>
+                                                    <th class="py-2 px-3 text-left">Issue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="eml-errors-body" class="divide-y divide-slate-100 text-slate-700">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Novated Remittance Panel -->
+                        <div class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden mb-6">
+                            <div class="p-4 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-2 text-lg">&#128663;</span>
+                                    <span class="font-bold text-emerald-900">Novated Remittance</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button id="novated-easifleet-btn" disabled
+                                        class="bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+                                        Export Easifleet
+                                    </button>
+                                    <button id="novated-smartleasing-btn" disabled
+                                        class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+                                        Export Smartleasing
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div id="novated-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
+                                <!-- Novated Errors -->
+                                <div id="novated-errors-container"
+                                    class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
+                                    <div class="p-3 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-sm">
+                                        <span class="mr-2">&#9888;&#65039;</span> Validation Issues
+                                    </div>
+                                    <div class="p-3 overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                                                <tr>
+                                                    <th class="py-2 px-3 text-left">Row</th>
+                                                    <th class="py-2 px-3 text-left">Employee</th>
+                                                    <th class="py-2 px-3 text-left">Account</th>
+                                                    <th class="py-2 px-3 text-left">Issue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="novated-errors-body" class="divide-y divide-slate-100 text-slate-700">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -2106,30 +2158,41 @@
             }
         };
 
-        // --- EML Remittance Tool (Namespaced) ---
-        const EMLRemittanceTool = {
+        // --- Remittance Tool (Namespaced) ---
+        const RemittanceTool = {
             workbook: null,
             data: [],
-            validRows: [],
-            errors: [],
+            // EML data
+            emlValidRows: [],
+            emlErrors: [],
+            // Novated data
+            novatedEasifleetRows: [],
+            novatedSmartleasingRows: [],
+            novatedErrors: [],
 
             elements: {
                 uploadBox: 'eml-upload-box',
                 fileInput: 'eml-file-input',
-                generateBtn: 'eml-generate-btn',
                 fileInfo: 'eml-file-info',
                 loading: 'eml-loading',
                 resultsSection: 'eml-results-section',
-                stats: 'eml-stats',
-                errorsContainer: 'eml-errors-container',
-                errorsBody: 'eml-errors-body'
+                // EML
+                emlGenerateBtn: 'eml-generate-btn',
+                emlStats: 'eml-stats',
+                emlErrorsContainer: 'eml-errors-container',
+                emlErrorsBody: 'eml-errors-body',
+                // Novated
+                novatedEasifleetBtn: 'novated-easifleet-btn',
+                novatedSmartleasingBtn: 'novated-smartleasing-btn',
+                novatedStats: 'novated-stats',
+                novatedErrorsContainer: 'novated-errors-container',
+                novatedErrorsBody: 'novated-errors-body'
             },
 
             init: function () {
                 const el = (id) => document.getElementById(id);
                 const uploadBox = el(this.elements.uploadBox);
                 const fileInput = el(this.elements.fileInput);
-                const generateBtn = el(this.elements.generateBtn);
 
                 if (!uploadBox) return;
 
@@ -2154,7 +2217,9 @@
                     if (e.target.files.length > 0) this.handleFile(e.target.files[0]);
                 });
 
-                generateBtn.addEventListener('click', () => this.generateCSV());
+                el(this.elements.emlGenerateBtn).addEventListener('click', () => this.generateEmlCSV());
+                el(this.elements.novatedEasifleetBtn).addEventListener('click', () => this.generateNovatedCSV('Easifleet'));
+                el(this.elements.novatedSmartleasingBtn).addEventListener('click', () => this.generateNovatedCSV('Smartleasing'));
             },
 
             handleFile: function (file) {
@@ -2172,9 +2237,8 @@
                         const worksheet = this.workbook.Sheets[this.workbook.SheetNames[0]];
                         this.data = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-                        // Update UI
                         const fileInfo = el(this.elements.fileInfo);
-                        fileInfo.innerHTML = `<p class="font-bold">✅ File Loaded: ${file.name}</p><p class="text-sm">Total Rows: ${this.data.length}</p>`;
+                        fileInfo.innerHTML = '<p class="font-bold">File Loaded: ' + file.name + '</p><p class="text-sm">Total Rows: ' + this.data.length + '</p>';
                         fileInfo.classList.remove('hidden');
 
                         this.processData();
@@ -2186,127 +2250,237 @@
                 reader.readAsArrayBuffer(file);
             },
 
+            // Helper to get a column value by key (case-insensitive, trimmed)
+            getField: function (row, key) {
+                const foundKey = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                return foundKey ? row[foundKey] : "";
+            },
+
             processData: function () {
                 const el = (id) => document.getElementById(id);
                 const loading = el(this.elements.loading);
                 const resultsSection = el(this.elements.resultsSection);
-                const generateBtn = el(this.elements.generateBtn);
 
                 loading.classList.remove('hidden');
                 resultsSection.classList.add('hidden');
-                generateBtn.disabled = true;
+
+                // Disable all buttons while processing
+                el(this.elements.emlGenerateBtn).disabled = true;
+                el(this.elements.novatedEasifleetBtn).disabled = true;
+                el(this.elements.novatedSmartleasingBtn).disabled = true;
 
                 setTimeout(() => {
-                    this.validRows = [];
-                    this.errors = [];
+                    // Reset all
+                    this.emlValidRows = [];
+                    this.emlErrors = [];
+                    this.novatedEasifleetRows = [];
+                    this.novatedSmartleasingRows = [];
+                    this.novatedErrors = [];
                     let emlCount = 0;
+                    let novatedCount = 0;
 
                     this.data.forEach((row, index) => {
-                        // Normalize keys (trim spaces)
-                        const get = (key) => {
-                            const foundKey = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
-                            return foundKey ? row[foundKey] : "";
-                        };
-
+                        const get = (key) => this.getField(row, key);
                         const accountName = String(get("Account Name") || get("Bank Account Name") || "").trim();
-
-                        // Filter Logic: Only Account Name == "EML Card"
-                        if (accountName !== "EML Card") return;
-
-                        emlCount++;
-                        const rowNum = index + 2;
                         const itemName = String(get("Item Name") || get("Salary Package Item") || "").trim();
-                        const payment = parseFloat(get("Payment") || get("Amount") || 0); // "Payment" maps to amount
+                        const payment = parseFloat(get("Payment") || get("Amount") || 0);
                         const bankRef = String(get("Bank Reference") || get("Bank Ref") || "").trim();
                         const empName = String(get("Employee Name") || get("Name") || "").trim();
+                        const rowNum = index + 2;
 
-                        // Validation: Item Name must be EMLMEC or EMLEBC
-                        if (itemName !== "EMLMEC" && itemName !== "EMLEBC") {
-                            this.errors.push({
-                                row: rowNum,
-                                employee: empName,
-                                item: itemName,
-                                issue: `Invalid Item Name: "${itemName}". Must be EMLMEC or EMLEBC.`
-                            });
-                        } else {
-                            // Map Data
-                            this.validRows.push({
-                                amount: payment.toFixed(4), // Output shows 4 decimals in sample
-                                destination_account_id: bankRef,
-                                transaction_type: "2901",
-                                destination_reference: `${empName} ${itemName}`, // concat Employee Name + Item Name
-                                source_reference: "",
-                                source_account_id: "LQVKR11N3"
-                            });
+                        // --- EML Card Processing ---
+                        if (accountName === "EML Card") {
+                            emlCount++;
+                            if (itemName !== "EMLMEC" && itemName !== "EMLEBC") {
+                                this.emlErrors.push({
+                                    row: rowNum,
+                                    employee: empName,
+                                    item: itemName,
+                                    issue: 'Invalid Item Name: "' + itemName + '". Must be EMLMEC or EMLEBC.'
+                                });
+                            } else {
+                                this.emlValidRows.push({
+                                    amount: payment.toFixed(4),
+                                    destination_account_id: bankRef,
+                                    transaction_type: "2901",
+                                    destination_reference: empName + ' ' + itemName,
+                                    source_reference: "",
+                                    source_account_id: "LQVKR11N3"
+                                });
+                            }
+                        }
+
+                        // --- Novated Lease Processing (NL - Finance items only) ---
+                        if (itemName === "NL - Finance") {
+                            novatedCount++;
+                            const accountLower = accountName.toLowerCase();
+
+                            if (accountLower.indexOf("easifleet") !== -1) {
+                                this.novatedEasifleetRows.push({
+                                    employee_name: empName,
+                                    item_name: itemName,
+                                    account_name: accountName,
+                                    bank_reference: bankRef,
+                                    payment: payment
+                                });
+                            } else if (accountLower.indexOf("smartleasing") !== -1) {
+                                this.novatedSmartleasingRows.push({
+                                    employee_name: empName,
+                                    item_name: itemName,
+                                    account_name: accountName,
+                                    bank_reference: bankRef,
+                                    payment: payment
+                                });
+                            } else {
+                                this.novatedErrors.push({
+                                    row: rowNum,
+                                    employee: empName,
+                                    account: accountName,
+                                    issue: 'Unrecognised supplier account: "' + accountName + '". Expected Easifleet or Smartleasing.'
+                                });
+                            }
                         }
                     });
 
-                    this.displayResults(emlCount);
+                    this.displayEmlResults(emlCount);
+                    this.displayNovatedResults(novatedCount);
+
                     loading.classList.add('hidden');
                     resultsSection.classList.remove('hidden');
 
-                    if (this.validRows.length > 0 && this.errors.length === 0) {
-                        generateBtn.disabled = false;
-                        generateBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-                        generateBtn.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700');
+                    // Enable EML button if valid
+                    if (this.emlValidRows.length > 0 && this.emlErrors.length === 0) {
+                        el(this.elements.emlGenerateBtn).disabled = false;
+                    }
+                    // Enable Novated buttons if valid
+                    if (this.novatedEasifleetRows.length > 0 && this.novatedErrors.length === 0) {
+                        el(this.elements.novatedEasifleetBtn).disabled = false;
+                    }
+                    if (this.novatedSmartleasingRows.length > 0 && this.novatedErrors.length === 0) {
+                        el(this.elements.novatedSmartleasingBtn).disabled = false;
                     }
                 }, 100);
             },
 
-            displayResults: function (totalEml) {
+            displayEmlResults: function (totalEml) {
                 const el = (id) => document.getElementById(id);
-                const stats = el(this.elements.stats);
-                const errorsContainer = el(this.elements.errorsContainer);
-                const errorsBody = el(this.elements.errorsBody);
+                const stats = el(this.elements.emlStats);
+                const errorsContainer = el(this.elements.emlErrorsContainer);
+                const errorsBody = el(this.elements.emlErrorsBody);
 
-                stats.innerHTML = `
-                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 text-center">
-                        <h3 class="text-2xl font-bold text-slate-800">${totalEml}</h3>
-                        <p class="text-slate-500 text-sm">EML Card Rows Found</p>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 text-center">
-                        <h3 class="text-2xl font-bold text-green-600">${this.validRows.length}</h3>
-                        <p class="text-slate-500 text-sm">Valid Rows</p>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 text-center ${this.errors.length > 0 ? 'bg-red-50 border-red-200' : ''}">
-                        <h3 class="text-2xl font-bold ${this.errors.length > 0 ? 'text-red-600' : 'text-slate-400'}">${this.errors.length}</h3>
-                        <p class="text-slate-500 text-sm">Errors</p>
-                    </div>
-                `;
+                stats.innerHTML =
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-slate-800">' + totalEml + '</h3>' +
+                        '<p class="text-slate-500 text-xs">EML Card Rows</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-green-600">' + this.emlValidRows.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Valid</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center ' + (this.emlErrors.length > 0 ? 'bg-red-50 border-red-200' : '') + '">' +
+                        '<h3 class="text-xl font-bold ' + (this.emlErrors.length > 0 ? 'text-red-600' : 'text-slate-400') + '">' + this.emlErrors.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Errors</p>' +
+                    '</div>';
 
-                if (this.errors.length > 0) {
+                if (this.emlErrors.length > 0) {
                     errorsContainer.classList.remove('hidden');
-                    errorsBody.innerHTML = this.errors.map(e => `
-                        <tr>
-                            <td class="py-2 px-3 font-mono text-xs text-slate-500">${e.row}</td>
-                            <td class="py-2 px-3 font-medium">${e.employee}</td>
-                            <td class="py-2 px-3">${e.item}</td>
-                            <td class="py-2 px-3 text-red-600 font-medium">${e.issue}</td>
-                        </tr>
-                    `).join('');
+                    errorsBody.innerHTML = this.emlErrors.map(function(e) {
+                        return '<tr>' +
+                            '<td class="py-2 px-3 font-mono text-xs text-slate-500">' + e.row + '</td>' +
+                            '<td class="py-2 px-3 font-medium">' + e.employee + '</td>' +
+                            '<td class="py-2 px-3">' + e.item + '</td>' +
+                            '<td class="py-2 px-3 text-red-600 font-medium">' + e.issue + '</td>' +
+                        '</tr>';
+                    }).join('');
                 } else {
                     errorsContainer.classList.add('hidden');
                 }
             },
 
-            generateCSV: function () {
-                if (this.validRows.length === 0) return;
+            displayNovatedResults: function (totalNovated) {
+                const el = (id) => document.getElementById(id);
+                const stats = el(this.elements.novatedStats);
+                const errorsContainer = el(this.elements.novatedErrorsContainer);
+                const errorsBody = el(this.elements.novatedErrorsBody);
 
-                const headers = ["amount", "destination_account_id", "transaction_type", "destination_reference", "source_reference", "source_account_id"];
-                const rows = this.validRows.map(r => [
-                    r.amount,
-                    r.destination_account_id,
-                    r.transaction_type,
-                    `"${r.destination_reference}"`, // Quote reference
-                    r.source_reference,
-                    r.source_account_id
-                ].join(','));
+                var easiTotal = this.novatedEasifleetRows.reduce(function(sum, r) { return sum + r.payment; }, 0);
+                var smartTotal = this.novatedSmartleasingRows.reduce(function(sum, r) { return sum + r.payment; }, 0);
 
-                const csvContent = [headers.join(',')].concat(rows).join('\n');
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
+                stats.innerHTML =
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-slate-800">' + totalNovated + '</h3>' +
+                        '<p class="text-slate-500 text-xs">NL - Finance Rows</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-emerald-600">' + this.novatedEasifleetRows.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Easifleet ($' + easiTotal.toFixed(2) + ')</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-teal-600">' + this.novatedSmartleasingRows.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Smartleasing ($' + smartTotal.toFixed(2) + ')</p>' +
+                    '</div>';
+
+                if (this.novatedErrors.length > 0) {
+                    errorsContainer.classList.remove('hidden');
+                    errorsBody.innerHTML = this.novatedErrors.map(function(e) {
+                        return '<tr>' +
+                            '<td class="py-2 px-3 font-mono text-xs text-slate-500">' + e.row + '</td>' +
+                            '<td class="py-2 px-3 font-medium">' + e.employee + '</td>' +
+                            '<td class="py-2 px-3">' + e.account + '</td>' +
+                            '<td class="py-2 px-3 text-red-600 font-medium">' + e.issue + '</td>' +
+                        '</tr>';
+                    }).join('');
+                } else {
+                    errorsContainer.classList.add('hidden');
+                }
+            },
+
+            generateEmlCSV: function () {
+                if (this.emlValidRows.length === 0) return;
+
+                var headers = ["amount", "destination_account_id", "transaction_type", "destination_reference", "source_reference", "source_account_id"];
+                var rows = this.emlValidRows.map(function(r) {
+                    return [
+                        r.amount,
+                        r.destination_account_id,
+                        r.transaction_type,
+                        '"' + r.destination_reference + '"',
+                        r.source_reference,
+                        r.source_account_id
+                    ].join(',');
+                });
+
+                var csvContent = [headers.join(',')].concat(rows).join('\n');
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `AUSTIN_EMLCARD_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}_1.csv`; // Match format roughly
+                link.download = 'AUSTIN_EMLCARD_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_1.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            },
+
+            generateNovatedCSV: function (supplier) {
+                var rows = supplier === 'Easifleet' ? this.novatedEasifleetRows : this.novatedSmartleasingRows;
+                if (rows.length === 0) return;
+
+                var headers = ["Employee Name", "Item Name", "Account Name", "Bank Reference", "Payment"];
+                var csvRows = rows.map(function(r) {
+                    return [
+                        '"' + r.employee_name + '"',
+                        '"' + r.item_name + '"',
+                        '"' + r.account_name + '"',
+                        '"' + r.bank_reference + '"',
+                        r.payment.toFixed(2)
+                    ].join(',');
+                });
+
+                var csvContent = [headers.join(',')].concat(csvRows).join('\n');
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                var supplierTag = supplier === 'Easifleet' ? 'EASIFLEET' : 'SMARTLEASING';
+                link.download = 'AUSTIN_NOVATED_' + supplierTag + '_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.csv';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -2316,7 +2490,7 @@
         // Initialize Tools
         document.addEventListener('DOMContentLoaded', () => {
             ValidatorTool.init();
-            EMLRemittanceTool.init();
+            RemittanceTool.init();
 
             // Default View
             switchView('pay-processing');
