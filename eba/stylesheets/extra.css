@@ -87,3 +87,100 @@
   outline: 2px solid var(--md-accent-fg-color);
   outline-offset: 1px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Pay-rate tables (structured HTML rendered from appendix text blocks) */
+/* ------------------------------------------------------------------ */
+
+.pay-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 1.5rem 0;
+}
+.pay-table caption {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.5rem 0;
+  color: var(--md-default-fg-color);
+  caption-side: top;
+}
+.pay-table thead th {
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.pay-table thead th.pt-rate {
+  text-align: right;
+}
+.pay-table tbody td {
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  vertical-align: top;
+}
+.pay-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 4%, transparent);
+}
+.pay-table tbody tr:hover {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 10%, transparent);
+}
+.pay-table td.pt-code {
+  font-family: var(--md-code-font-family, "Roboto Mono", monospace);
+  font-size: 0.8rem;
+  color: var(--md-primary-fg-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pay-table td.pt-rate {
+  text-align: right;
+  font-family: var(--md-code-font-family, "Roboto Mono", monospace);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.pay-table td.pt-class {
+  font-weight: 500;
+}
+
+/* Group sub-header row (e.g. "General On-call - public holidays") */
+.pay-table tr.pt-group td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, transparent);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--md-primary-fg-color);
+  padding-top: 0.7rem;
+  border-bottom: 2px solid var(--md-primary-fg-color);
+}
+
+/* Footnote row */
+.pay-table tr.pt-footnote td {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--md-default-fg-color--light);
+  padding: 0.4rem 0.7rem;
+  border-bottom: 1px dashed var(--md-default-fg-color--lightest);
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] .pay-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, transparent);
+}
+[data-md-color-scheme="slate"] .pay-table tbody tr:hover {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 14%, transparent);
+}
+
+/* Responsive: horizontal scroll on narrow viewports */
+@media (max-width: 76.25em) {
+  .pay-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
