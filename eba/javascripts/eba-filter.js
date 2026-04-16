@@ -7,24 +7,20 @@
 //      search plugin's tokenizer as a single term and is indexed as ordinary
 //      page text.
 //
-//   2. When an EBA is selected in the dropdown, we append that token to the
-//      search input's value and fire an input event. Material's ranker then
-//      heavily favours pages of that EBA, which keeps matching results
-//      inside the rendered top-N window. Without this, rare-in-filter
-//      queries ("classification" with Allied Health selected) return
-//      nothing because the matching pages never reach the render window.
+//   2. We patch Worker.prototype.postMessage. When Material dispatches a
+//      type=2 message (lunr query) to its search worker, we transparently
+//      append the selected EBA's token to the query string. Material's
+//      ranker then heavily favours pages of that EBA, so matching results
+//      stay inside the rendered top-N window. The user's visible input
+//      text is never touched.
 //
-//   3. A lightweight post-hoc DOM filter then hides any residual results
-//      whose URL is outside /ebas/<slug>/.
-//
-// The appended token is visible in the search box. A small helper line
-// below the filter dropdown tells the user what it is.
+//   3. A lightweight post-hoc DOM filter hides any residual results whose
+//      URL is outside /ebas/<slug>/.
 //
 // Design goals:
 //  - No inline scripts or styles (CSP-safe).
-//  - Cheap to run: observer scoped to the result list only, debounced.
-//  - No feedback loops: a guard flag prevents our own input events from
-//    re-triggering the user-input handler.
+//  - Cheap to run: observer scoped to the search output, debounced.
+//  - Visible search input stays clean — no token pollution.
 
 (function () {
   "use strict";
@@ -74,9 +70,8 @@
     if (!helper) return;
     if (currentSlug) {
       helper.textContent =
-        "Filter tag " + tokenFor(currentSlug) +
-        " is appended to your search to bias results toward " +
-        slugLabel(currentSlug) + ".";
+        "Results biased toward " + slugLabel(currentSlug) +
+        ". Other EBAs hidden.";
       helper.style.display = "";
     } else {
       helper.textContent = "";
@@ -116,7 +111,9 @@
         }
       } catch (err) { /* ignore */ }
       updateHelperText();
-      syncInput();
+      // Retrigger Material's search so the worker receives a fresh
+      // postMessage that our patched postMessage will augment.
+      retriggerSearch();
       scheduleApply();
     });
 
@@ -134,27 +131,13 @@
   // Rewrite the search input so Material sees the token appended to the
   // user's query. Fires a fresh input event so Material's observable
   // re-reads the input value and re-runs the search.
-  function syncInput() {
+  // Retrigger Material's search pipeline without touching the visible
+  // input value. Our Worker.postMessage patch adds the token at dispatch
+  // time, so we just need Material to send a fresh query to the worker.
+  function retriggerSearch() {
     var input = document.querySelector(".md-search__input");
     if (!input) return;
-    var suffix = tokenFor(currentSlug);
-    var base = (input.value || "").replace(TOKEN_RE, " ").trim();
-    var next = suffix ? (base ? base + " " + suffix : "") : base;
-    if (input.value === next) return;
-    syncing = true;
-    input.value = next;
-    // Keep the caret at the end of the base (user-typed) portion, so further
-    // typing extends the query rather than tearing up the trailing token.
-    if (suffix && base) {
-      try {
-        input.setSelectionRange(base.length, base.length);
-      } catch (err) { /* older browsers */ }
-    }
-    // Material's search pipeline subscribes to 'keyup' (not 'input'), so
-    // we must fire a keyup to make it re-read the augmented value. Fire
-    // 'input' too in case other listeners depend on it.
     fireKeyLikeEvents(input);
-    syncing = false;
   }
 
   function fireKeyLikeEvents(input) {
@@ -168,26 +151,45 @@
       }
     }
     fire("input", Event);
-    // KeyboardEvent is what 'keyup' listeners typically expect.
     var KbdCtor = (typeof KeyboardEvent !== "undefined") ? KeyboardEvent : Event;
+    fire("keydown", KbdCtor);
     fire("keyup", KbdCtor);
+    fire("change", Event);
   }
 
+  // Intercept Worker.prototype.postMessage. When Material's search dispatch
+  // sends a type=2 message (lunr query) to its search worker, rewrite the
+  // query string to append our filter token. This sits right before the
+  // worker runs lunr and is immune to any event-timing quirks in Material's
+  // input observables. Patching the prototype means it applies to already-
+  // constructed Worker instances too (including Material's search worker
+  // which may have been created before this script ran).
+  function patchWorkerPostMessage() {
+    if (window.__ebaWorkerPatched) return;
+    if (typeof Worker === "undefined" || !Worker.prototype) return;
+    var orig = Worker.prototype.postMessage;
+    if (!orig) return;
+    Worker.prototype.postMessage = function (msg) {
+      try {
+        if (currentSlug && msg && typeof msg === "object" &&
+            msg.type === 2 && typeof msg.data === "string") {
+          var suffix = tokenFor(currentSlug);
+          var q = msg.data.replace(TOKEN_RE, " ").trim();
+          if (suffix && q) {
+            arguments[0] = { type: msg.type, data: q + " " + suffix };
+          }
+        }
+      } catch (err) { /* fall through */ }
+      return orig.apply(this, arguments);
+    };
+    window.__ebaWorkerPatched = true;
+  }
+  patchWorkerPostMessage();
+
   function attachInputHook() {
-    var input = document.querySelector(".md-search__input");
-    if (!input || input.__ebaHooked) return !!input;
-    input.__ebaHooked = true;
-    input.addEventListener("input", function () {
-      if (syncing) return;
-      if (!currentSlug) return;
-      if (!input.value.trim()) return;
-      // Always normalise: strip any existing ebafilter* fragments (in case
-      // the user typed into or next to a previous token) and re-append the
-      // canonical token at the end. This guarantees Material sees a clean,
-      // whole-word token regardless of where the caret is.
-      syncInput();
-    });
-    return true;
+    // No-op: the Worker.postMessage patch augments the query at dispatch
+    // time, so we don't need to touch the input element's value.
+    return !!document.querySelector(".md-search__input");
   }
 
   function linkMatches(link) {
@@ -293,7 +295,6 @@
       var attached = attachListObserver();
       var hooked = attachInputHook();
       if (mounted && attached && hooked) {
-        if (currentSlug) syncInput();
         return;
       }
       if (++tries > 80) return;
