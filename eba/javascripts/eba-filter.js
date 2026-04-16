@@ -7,12 +7,13 @@
 //      search plugin's tokenizer as a single term and is indexed as ordinary
 //      page text.
 //
-//   2. We patch Worker.prototype.postMessage. When Material dispatches a
-//      type=2 message (lunr query) to its search worker, we transparently
-//      append the selected EBA's token to the query string. Material's
-//      ranker then heavily favours pages of that EBA, so matching results
-//      stay inside the rendered top-N window. The user's visible input
-//      text is never touched.
+//   2. eba-worker-patch.js (loaded in <head> before Material's bundle)
+//      monkey-patches Worker.postMessage. When Material dispatches a lunr
+//      query to its search worker, the patch transparently appends the
+//      selected EBA's token so Material's ranker biases results toward
+//      that EBA. The visible search input is never modified. This script
+//      only has to set window.__ebaFilter.currentSlug for the patch to
+//      pick up.
 //
 //   3. A lightweight post-hoc DOM filter hides any residual results whose
 //      URL is outside /ebas/<slug>/.
@@ -20,7 +21,7 @@
 // Design goals:
 //  - No inline scripts or styles (CSP-safe).
 //  - Cheap to run: observer scoped to the search output, debounced.
-//  - Visible search input stays clean — no token pollution.
+//  - Visible search input stays clean, no token pollution.
 
 (function () {
   "use strict";
@@ -38,24 +39,26 @@
     { slug: "childrens-services",   label: "Children's Services Award 2010" }
   ];
 
+  // Shared state with eba-worker-patch.js. That file initialises the
+  // object in <head> before bundle.js; we just read/write currentSlug here.
+  var state = window.__ebaFilter = window.__ebaFilter || {
+    currentSlug: "",
+    patched: false,
+    lastOriginal: null,
+    lastRewritten: null
+  };
+
   var STORAGE_KEY = "eba-wiki.search-filter";
-  var currentSlug = "";
   try {
     var saved = window.localStorage && window.localStorage.getItem(STORAGE_KEY);
-    if (saved) currentSlug = saved;
+    if (saved) state.currentSlug = saved;
   } catch (err) { /* ignore */ }
 
   var listObserver = null;
   var pending = null;
-  var syncing = false;
-  var TOKEN_RE = /\s*ebafilter[a-z]+\s*/gi;
-
-  function tokenFor(slug) {
-    return slug ? "ebafilter" + slug.replace(/-/g, "") : "";
-  }
 
   function needle() {
-    return currentSlug ? "/ebas/" + currentSlug + "/" : "";
+    return state.currentSlug ? "/ebas/" + state.currentSlug + "/" : "";
   }
 
   function slugLabel(slug) {
@@ -68,9 +71,9 @@
   function updateHelperText() {
     var helper = document.querySelector(".eba-filter__hint");
     if (!helper) return;
-    if (currentSlug) {
+    if (state.currentSlug) {
       helper.textContent =
-        "Results biased toward " + slugLabel(currentSlug) +
+        "Results biased toward " + slugLabel(state.currentSlug) +
         ". Other EBAs hidden.";
       helper.style.display = "";
     } else {
@@ -99,20 +102,20 @@
       var opt = document.createElement("option");
       opt.value = EBAS[i].slug;
       opt.textContent = EBAS[i].label;
-      if (EBAS[i].slug === currentSlug) opt.selected = true;
+      if (EBAS[i].slug === state.currentSlug) opt.selected = true;
       select.appendChild(opt);
     }
 
     select.addEventListener("change", function () {
-      currentSlug = select.value;
+      state.currentSlug = select.value;
       try {
         if (window.localStorage) {
-          window.localStorage.setItem(STORAGE_KEY, currentSlug);
+          window.localStorage.setItem(STORAGE_KEY, state.currentSlug);
         }
       } catch (err) { /* ignore */ }
       updateHelperText();
       // Retrigger Material's search so the worker receives a fresh
-      // postMessage that our patched postMessage will augment.
+      // postMessage that the patched postMessage will augment.
       retriggerSearch();
       scheduleApply();
     });
@@ -128,9 +131,6 @@
     return wrap;
   }
 
-  // Rewrite the search input so Material sees the token appended to the
-  // user's query. Fires a fresh input event so Material's observable
-  // re-reads the input value and re-runs the search.
   // Retrigger Material's search pipeline without touching the visible
   // input value. Our Worker.postMessage patch adds the token at dispatch
   // time, so we just need Material to send a fresh query to the worker.
@@ -157,73 +157,6 @@
     fire("change", Event);
   }
 
-  // Diagnostic: record the last message seen so we can confirm the patch
-  // is actually intercepting Material's query dispatch.
-  var lastPatched = { original: null, rewritten: null };
-
-  function rewriteMsg(msg) {
-    if (!currentSlug) return msg;
-    if (!msg || typeof msg !== "object") return msg;
-    // Material sends {type: 2, data: "<query>"} for search queries.
-    // Be permissive: if data is a string, augment it.
-    var data = msg.data;
-    if (typeof data !== "string") return msg;
-    var suffix = tokenFor(currentSlug);
-    if (!suffix) return msg;
-    var q = data.replace(TOKEN_RE, " ").trim();
-    if (!q) return msg;
-    lastPatched.original = data;
-    lastPatched.rewritten = q + " " + suffix;
-    return { type: msg.type, data: lastPatched.rewritten };
-  }
-
-  // Intercept Material's query dispatch at two layers:
-  //   a) Worker.prototype.postMessage — catches already-constructed workers.
-  //   b) window.Worker constructor wrapper — also overrides postMessage on
-  //      each new instance, belt-and-braces in case a) is bypassed (some
-  //      browsers treat prototype methods on host objects differently).
-  function patchWorkerPostMessage() {
-    if (window.__ebaWorkerPatched) return;
-    if (typeof Worker === "undefined") return;
-
-    // Layer a): prototype
-    try {
-      var protoOrig = Worker.prototype.postMessage;
-      if (protoOrig) {
-        Worker.prototype.postMessage = function (msg) {
-          try { arguments[0] = rewriteMsg(msg); } catch (err) {}
-          return protoOrig.apply(this, arguments);
-        };
-      }
-    } catch (err) { /* ignore */ }
-
-    // Layer b): constructor wrapper
-    try {
-      var Native = window.Worker;
-      var Wrapper = function (url, opts) {
-        var w = new Native(url, opts);
-        var instOrig = w.postMessage.bind(w);
-        w.postMessage = function (msg) {
-          try { msg = rewriteMsg(msg); } catch (err) {}
-          return instOrig(msg);
-        };
-        return w;
-      };
-      Wrapper.prototype = Native.prototype;
-      try { Object.setPrototypeOf(Wrapper, Native); } catch (e) {}
-      window.Worker = Wrapper;
-    } catch (err) { /* ignore */ }
-
-    window.__ebaWorkerPatched = true;
-  }
-  patchWorkerPostMessage();
-
-  function attachInputHook() {
-    // No-op: the Worker.postMessage patch augments the query at dispatch
-    // time, so we don't need to touch the input element's value.
-    return !!document.querySelector(".md-search__input");
-  }
-
   function linkMatches(link) {
     if (!link) return true;
     var url = link.href || link.getAttribute("href") || "";
@@ -241,7 +174,7 @@
     var n = needle();
     var shown = 0;
 
-    // Open any collapsed "more results" so our filter can reach them.
+    // Open any collapsed "more results" so the filter can reach them.
     if (n) {
       var dets = list.querySelectorAll("details.md-search-result__more");
       for (var k = 0; k < dets.length; k++) {
@@ -271,23 +204,7 @@
       meta.textContent =
         shown + " of " + items.length + " match" +
         (shown === 1 ? "" : "es") +
-        " under " + (slugLabel(currentSlug) || "selected EBA");
-    }
-
-    // Debug: expose last sample of URLs we checked so we can diagnose
-    // when shown=0 but items were returned.
-    var hint = document.querySelector(".eba-filter__hint");
-    if (hint && n && items.length > 0 && shown === 0) {
-      var sample = "";
-      var firstItem = items[0];
-      var firstLink = firstItem.querySelector(".md-search-result__link");
-      if (firstLink) sample = firstLink.href || firstLink.getAttribute("href") || "";
-      var patchState = lastPatched.rewritten
-        ? "patched: " + lastPatched.rewritten.slice(0, 80)
-        : "patch NEVER fired";
-      hint.textContent =
-        "0 of " + items.length + " shown | " + patchState +
-        " | URL: " + sample.slice(0, 80);
+        " under " + (slugLabel(state.currentSlug) || "selected EBA");
     }
   }
 
@@ -309,9 +226,6 @@
 
   function attachListObserver() {
     if (listObserver) return true;
-    // Observe the whole search output (not just the list), with subtree,
-    // so we catch the case where Material replaces the list element on a
-    // new search. scheduleApply debounces bursts so this is cheap.
     var root =
       document.querySelector(".md-search__output") ||
       document.querySelector(".md-search__inner") ||
@@ -328,8 +242,7 @@
     function tick() {
       var mounted = mountFilter();
       var attached = attachListObserver();
-      var hooked = attachInputHook();
-      if (mounted && attached && hooked) {
+      if (mounted && attached) {
         return;
       }
       if (++tries > 80) return;
