@@ -2026,6 +2026,22 @@
                             });
                         }
                     }
+
+                    // VALIDATION 6: Austin Health EMP Benefit account should never appear
+                    if ((bsb === '033077' && accountNumber === '00243618') || bankAccountName === 'Austin Health EMP Benefit') {
+                        this.errors.push({
+                            row: rowNumber,
+                            payrollId: row['Payroll ID'],
+                            firstName: row['First Name'],
+                            lastName: row['Last Name'],
+                            packageItem: packageItem,
+                            field: 'Bank Account',
+                            value: `${bankAccountName} (${bsb}-${accountNumber})`,
+                            type: 'austin-account',
+                            category: 'Blocked Account',
+                            errorMessage: `Austin Health EMP Benefit account (033077-243618) must not be used as a payment account`
+                        });
+                    }
                 });
             },
 
