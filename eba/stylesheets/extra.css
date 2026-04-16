@@ -102,12 +102,12 @@
 }
 
 .pay-table {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.76rem;
   margin: 0;
+  table-layout: auto;
 }
 .pay-table caption {
   text-align: left;
