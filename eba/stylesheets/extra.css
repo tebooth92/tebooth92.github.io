@@ -32,6 +32,16 @@
   font-weight: 600;
 }
 
+/* Schedule text blocks – preserves indentation without code-box styling */
+.schedule-text {
+  white-space: pre-wrap;
+  font-family: var(--md-text-font, "Roboto"), sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  padding: 0.5rem 0;
+  color: var(--md-default-fg-color);
+}
+
 /* Archive banner */
 .archive-banner {
   background: #fff3cd;
