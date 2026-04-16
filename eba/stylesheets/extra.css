@@ -92,95 +92,163 @@
 /* Pay-rate tables (structured HTML rendered from appendix text blocks) */
 /* ------------------------------------------------------------------ */
 
-.pay-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
+/* Scroll wrapper -- always allow horizontal scroll */
+.pay-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin: 1.5rem 0;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+}
+
+.pay-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.76rem;
+  margin: 0;
 }
 .pay-table caption {
   text-align: left;
   font-weight: 700;
-  font-size: 0.95rem;
-  padding: 0.5rem 0;
+  font-size: 0.88rem;
+  padding: 0.45rem 0.6rem;
   color: var(--md-default-fg-color);
   caption-side: top;
 }
+
+/* --- Header row --- */
 .pay-table thead th {
   background: var(--md-primary-fg-color);
   color: var(--md-primary-bg-color);
   text-align: left;
-  padding: 0.55rem 0.7rem;
+  padding: 0.4rem 0.5rem;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   white-space: nowrap;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 3;
 }
 .pay-table thead th.pt-rate {
   text-align: right;
 }
+
+/* Sticky Classification column (col 1) */
+.pay-table thead th.pt-class {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  min-width: 10rem;
+}
+/* Sticky Pay Code column (col 2) */
+.pay-table thead th.pt-code {
+  position: sticky;
+  left: 10rem;
+  z-index: 4;
+  min-width: 4.5rem;
+}
+
+/* --- Body cells --- */
 .pay-table tbody td {
-  padding: 0.45rem 0.7rem;
+  padding: 0.3rem 0.5rem;
   border-bottom: 1px solid var(--md-default-fg-color--lightest);
   vertical-align: top;
 }
-.pay-table tbody tr:nth-child(even) {
-  background: color-mix(in srgb, var(--md-primary-fg-color) 4%, transparent);
+
+/* Sticky body cells - Classification */
+.pay-table td.pt-class {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  font-weight: 500;
+  min-width: 10rem;
+  background: var(--md-default-bg-color);
 }
-.pay-table tbody tr:hover {
-  background: color-mix(in srgb, var(--md-primary-fg-color) 10%, transparent);
-}
+/* Sticky body cells - Pay Code */
 .pay-table td.pt-code {
+  position: sticky;
+  left: 10rem;
+  z-index: 2;
   font-family: var(--md-code-font-family, "Roboto Mono", monospace);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--md-primary-fg-color);
   font-weight: 600;
   white-space: nowrap;
+  min-width: 4.5rem;
+  background: var(--md-default-bg-color);
+  /* Subtle right edge shadow to hint at frozen columns */
+  box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.1);
 }
+
 .pay-table td.pt-rate {
   text-align: right;
   font-family: var(--md-code-font-family, "Roboto Mono", monospace);
-  font-size: 0.82rem;
+  font-size: 0.73rem;
   white-space: nowrap;
 }
-.pay-table td.pt-class {
-  font-weight: 500;
+
+/* Alternating row stripe - must also apply to sticky cells */
+.pay-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 4%, var(--md-default-bg-color));
+}
+.pay-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 10%, var(--md-default-bg-color));
 }
 
 /* Group sub-header row (e.g. "General On-call - public holidays") */
 .pay-table tr.pt-group td {
-  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, transparent);
+  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color));
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   color: var(--md-primary-fg-color);
-  padding-top: 0.7rem;
+  padding-top: 0.55rem;
   border-bottom: 2px solid var(--md-primary-fg-color);
+}
+/* Ensure group-row sticky cells also get group background */
+.pay-table tr.pt-group td.pt-class,
+.pay-table tr.pt-group td.pt-code {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color));
 }
 
 /* Footnote row */
 .pay-table tr.pt-footnote td {
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-style: italic;
   color: var(--md-default-fg-color--light);
-  padding: 0.4rem 0.7rem;
+  padding: 0.3rem 0.5rem;
   border-bottom: 1px dashed var(--md-default-fg-color--lightest);
 }
 
-/* Dark mode adjustments */
-[data-md-color-scheme="slate"] .pay-table tbody tr:nth-child(even) {
-  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, transparent);
+/* --- Dark mode adjustments --- */
+[data-md-color-scheme="slate"] .pay-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, var(--md-default-bg-color));
 }
-[data-md-color-scheme="slate"] .pay-table tbody tr:hover {
-  background: color-mix(in srgb, var(--md-primary-fg-color) 14%, transparent);
+[data-md-color-scheme="slate"] .pay-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 14%, var(--md-default-bg-color));
+}
+[data-md-color-scheme="slate"] .pay-table td.pt-class,
+[data-md-color-scheme="slate"] .pay-table td.pt-code {
+  background: var(--md-default-bg-color);
+}
+[data-md-color-scheme="slate"] .pay-table td.pt-code {
+  box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.3);
+}
+[data-md-color-scheme="slate"] .pay-table tbody tr:nth-child(even) td.pt-class,
+[data-md-color-scheme="slate"] .pay-table tbody tr:nth-child(even) td.pt-code {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, var(--md-default-bg-color));
 }
 
-/* Responsive: horizontal scroll on narrow viewports */
-@media (max-width: 76.25em) {
-  .pay-table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+/* --- Narrow viewports: tighter sticky widths --- */
+@media (max-width: 48em) {
+  .pay-table thead th.pt-class,
+  .pay-table td.pt-class {
+    min-width: 7rem;
+  }
+  .pay-table thead th.pt-code,
+  .pay-table td.pt-code {
+    left: 7rem;
+    min-width: 3.5rem;
   }
 }
