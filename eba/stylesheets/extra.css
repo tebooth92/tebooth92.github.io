@@ -32,14 +32,48 @@
   font-weight: 600;
 }
 
-/* Schedule text blocks – preserves indentation without code-box styling */
-.schedule-text {
-  white-space: pre-wrap;
-  font-family: var(--md-text-font, "Roboto"), sans-serif;
-  font-size: 0.82rem;
-  line-height: 1.65;
-  padding: 0.5rem 0;
-  color: var(--md-default-fg-color);
+/* Schedule / classification structure pages */
+.clause-item {
+  margin-left: 2rem;
+  text-indent: -2rem;
+  padding-left: 2rem;
+}
+.clause-subitem {
+  margin-left: 4rem;
+  text-indent: -2rem;
+  padding-left: 2rem;
+}
+
+/* Benchmark descriptor tables */
+.benchmark-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+.benchmark-table th {
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.benchmark-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  vertical-align: top;
+}
+.benchmark-table td:first-child {
+  font-weight: 500;
+  white-space: nowrap;
+  width: 1%;
+}
+.benchmark-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 4%, var(--md-default-bg-color));
+}
+[data-md-color-scheme="slate"] .benchmark-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, var(--md-default-bg-color));
 }
 
 /* Archive banner */
