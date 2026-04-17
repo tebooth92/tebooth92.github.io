@@ -3385,9 +3385,9 @@
 <button class="pay-tab" data-col="8">1 July 2025 (Aged Care)</button>
 </div>
 
+<div class="pay-tabbed-caption">Nurses &amp; Midwives - Weekly Wage Rates (Salary Circular 870)</div>
 <div class="pay-tabbed-scroll">
 <table class="pay-table pay-table-tabbed">
-<caption>Nurses &amp; Midwives - Weekly Wage Rates (Salary Circular 870)</caption>
 <thead><tr>
 <th class="pt-class">Classification</th>
 <th class="pt-code">Pay Code</th>
@@ -6699,29 +6699,27 @@
   font-weight: 600;
 }
 
+/* Caption bar above scroll area */
+.pay-tabbed-caption {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  color: var(--md-default-fg-color);
+  background: var(--md-default-bg-color);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
 /* Scrollable table area with fixed header */
 .pay-tabbed-scroll {
   max-height: 70vh;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 .pay-table-tabbed {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.85rem;
-}
-.pay-table-tabbed caption {
-  text-align: left;
-  font-weight: 700;
-  font-size: 0.9rem;
-  padding: 0.6rem 0.8rem;
-  color: var(--md-default-fg-color);
-  caption-side: top;
-  background: var(--md-default-bg-color);
-  position: sticky;
-  top: 0;
-  z-index: 4;
 }
 .pay-table-tabbed thead th {
   position: sticky;
@@ -6769,16 +6767,16 @@
   background: color-mix(in srgb, var(--md-primary-fg-color) 10%, var(--md-default-bg-color));
 }
 
-/* Group headers - sticky below the thead */
+/* Group headers - sticky just below the column headers */
 .pay-table-tabbed tr.pt-group td {
-  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color));
+  background: color-mix(in srgb, var(--md-primary-fg-color) 15%, var(--md-default-bg-color));
   font-weight: 700;
   font-size: 0.82rem;
   color: var(--md-primary-fg-color);
   padding-top: 0.6rem;
   border-bottom: 2px solid var(--md-primary-fg-color);
   position: sticky;
-  top: 2.2rem;
+  top: 2.3rem;
   z-index: 2;
 }
 
