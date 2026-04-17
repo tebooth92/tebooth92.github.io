@@ -6732,6 +6732,8 @@
   font-size: 0.8rem;
   text-align: left;
   white-space: nowrap;
+  /* Prevent sub-pixel bleed from rows scrolling beneath */
+  box-shadow: 0 1px 0 0 var(--md-primary-fg-color);
 }
 .pay-table-tabbed thead th.pt-rate {
   text-align: right;
@@ -6778,6 +6780,8 @@
   position: sticky;
   top: 2.3rem;
   z-index: 2;
+  /* Prevent bleed-through from rows scrolling beneath */
+  box-shadow: 0 2px 0 0 var(--md-primary-fg-color);
 }
 
 /* Dark mode */
