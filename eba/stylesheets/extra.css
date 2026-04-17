@@ -392,3 +392,88 @@
   background: var(--md-primary-fg-color);
   color: var(--md-primary-bg-color);
 }
+
+/* ── Clause Navigation (bottom of each clause page) ─────────── */
+
+.clause-nav {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.clause-nav-section {
+  display: block;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--md-primary-fg-color) 8%, var(--md-default-bg-color));
+  color: var(--md-primary-fg-color);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.clause-nav-section:hover {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 16%, var(--md-default-bg-color));
+  text-decoration: none;
+}
+
+.clause-nav-dir {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 0.15rem;
+}
+
+.clause-nav-label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clause-nav-prevnext {
+  display: flex;
+  gap: 1rem;
+}
+
+.clause-nav-prev,
+.clause-nav-next {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--md-default-fg-color);
+  flex: 1;
+  min-width: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.clause-nav-prev:hover,
+.clause-nav-next:hover {
+  border-color: var(--md-primary-fg-color);
+  background: color-mix(in srgb, var(--md-primary-fg-color) 5%, var(--md-default-bg-color));
+  text-decoration: none;
+}
+
+.clause-nav-next {
+  text-align: right;
+  margin-left: auto;
+}
+
+.clause-nav-placeholder {
+  flex: 1;
+}
+
+@media (max-width: 600px) {
+  .clause-nav-prevnext {
+    flex-direction: column;
+  }
+  .clause-nav-next {
+    text-align: left;
+  }
+}
