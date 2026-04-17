@@ -48,7 +48,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../stylesheets/extra.css?v=2">
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css?v=3">
     
     <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -3842,39 +3842,45 @@
 </tbody>
 </table>
 </div>
-<div class="pay-table-wrap">
-<table class="pay-table">
-<caption>AHP 2 Classifications - Research Technologist (Research Scientist)</caption>
+<div class="pay-tabbed">
+<div class="pay-tabs-bar">
+<button class="pay-tab" data-col="0">1 Mar 2025</button>
+<button class="pay-tab active" data-col="1">1 Mar 2024 (Correction)</button>
+</div>
+<div class="pay-tabbed-caption">AHP 2 Classifications - Research Technologist (Research Scientist)</div>
+<div class="pay-tabbed-scroll">
+<table class="pay-table pay-table-tabbed">
 <thead>
 <tr>
 <th class="pt-class">Description</th>
-<th class="pt-rate">1 Mar 2025</th>
-<th class="pt-rate">1 Mar 2024 (Correction)</th>
+<th class="pt-rate pay-col-0" style="display:none">1 Mar 2025</th>
+<th class="pt-rate pay-col-1">1 Mar 2024 (Correction)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td class="pt-class">Morning Shift</td>
-<td class="pt-rate">$35.45</td>
-<td class="pt-rate">$34.75</td>
+<td class="pt-rate pay-col-0" style="display:none">$35.45</td>
+<td class="pt-rate pay-col-1">$34.75</td>
 </tr>
 <tr>
 <td class="pt-class">Afternoon Shift</td>
-<td class="pt-rate">$35.45</td>
-<td class="pt-rate">$34.75</td>
+<td class="pt-rate pay-col-0" style="display:none">$35.45</td>
+<td class="pt-rate pay-col-1">$34.75</td>
 </tr>
 <tr>
 <td class="pt-class">Night Shift</td>
-<td class="pt-rate">$86</td>
-<td class="pt-rate"></td>
+<td class="pt-rate pay-col-0" style="display:none">$86</td>
+<td class="pt-rate pay-col-1"></td>
 </tr>
 <tr>
 <td class="pt-class">Change of Shift</td>
-<td class="pt-rate">$75.10</td>
-<td class="pt-rate"></td>
+<td class="pt-rate pay-col-0" style="display:none">$75.10</td>
+<td class="pt-rate pay-col-1"></td>
 </tr>
 </tbody>
 </table>
+</div>
 </div>
 <div class="pay-table-wrap">
 <table class="pay-table">
@@ -3985,29 +3991,35 @@
 </tbody>
 </table>
 </div>
-<div class="pay-table-wrap">
-<table class="pay-table">
-<caption>Other Allowances - On Call Allowance</caption>
+<div class="pay-tabbed">
+<div class="pay-tabs-bar">
+<button class="pay-tab" data-col="0">1 Mar 2025</button>
+<button class="pay-tab active" data-col="1">1 Mar 2024 (Correction)</button>
+</div>
+<div class="pay-tabbed-caption">Other Allowances - On Call Allowance</div>
+<div class="pay-tabbed-scroll">
+<table class="pay-table pay-table-tabbed">
 <thead>
 <tr>
 <th class="pt-class">Description</th>
-<th class="pt-rate">1 Mar 2025</th>
-<th class="pt-rate">1 Mar 2024 (Correction)</th>
+<th class="pt-rate pay-col-0" style="display:none">1 Mar 2025</th>
+<th class="pt-rate pay-col-1">1 Mar 2024 (Correction)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td class="pt-class">Weekday - 2.5% of AHP1 Grade 1, Year 1</td>
-<td class="pt-rate">$33.94</td>
-<td class="pt-rate">$33.27</td>
+<td class="pt-rate pay-col-0" style="display:none">$33.94</td>
+<td class="pt-rate pay-col-1">$33.27</td>
 </tr>
 <tr>
 <td class="pt-class">Weekends and Public Holidays - 5% of AHP1 Grade 1, Year 1</td>
-<td class="pt-rate">$67.88</td>
-<td class="pt-rate">$66.55</td>
+<td class="pt-rate pay-col-0" style="display:none">$67.88</td>
+<td class="pt-rate pay-col-1">$66.55</td>
 </tr>
 </tbody>
 </table>
+</div>
 </div>
 <div class="pay-table-wrap">
 <table class="pay-table">
@@ -4719,6 +4731,8 @@
       <script src="../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
         <script src="../../../../javascripts/eba-filter.js"></script>
+      
+        <script src="../../../../javascripts/pay-tabs.js"></script>
       
     
   </body>

@@ -252,3 +252,143 @@
     min-width: 3.5rem;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Tabbed pay tables                                                   */
+/* ------------------------------------------------------------------ */
+
+/* Outer container */
+.pay-tabbed {
+  margin: 1.5rem 0;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Tab bar */
+.pay-tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, var(--md-default-bg-color));
+  border-bottom: 2px solid var(--md-primary-fg-color);
+  padding: 0.3rem 0.3rem 0 0.3rem;
+}
+.pay-tab {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: var(--md-default-fg-color--light);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.pay-tab:hover {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 15%, var(--md-default-bg-color));
+  color: var(--md-default-fg-color);
+}
+.pay-tab.active {
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 600;
+}
+
+/* Caption bar above scroll area */
+.pay-tabbed-caption {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  color: var(--md-default-fg-color);
+  background: var(--md-default-bg-color);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Scrollable table area */
+.pay-tabbed-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Tabbed table base */
+.pay-table-tabbed {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85rem;
+}
+.pay-table-tabbed thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  padding: 0.5rem 0.8rem 0.6rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 3px solid var(--md-primary-fg-color);
+}
+.pay-table-tabbed thead th.pt-rate {
+  text-align: right;
+  min-width: 7rem;
+}
+.pay-table-tabbed tbody td {
+  padding: 0.45rem 0.8rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  vertical-align: top;
+}
+.pay-table-tabbed td.pt-class {
+  font-weight: 500;
+}
+.pay-table-tabbed td.pt-code {
+  font-family: var(--md-code-font-family, "Roboto Mono", monospace);
+  font-size: 0.8rem;
+  color: var(--md-primary-fg-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pay-table-tabbed td.pt-rate {
+  text-align: right;
+  font-family: var(--md-code-font-family, "Roboto Mono", monospace);
+  font-size: 0.83rem;
+  white-space: nowrap;
+}
+
+/* Alternating rows */
+.pay-table-tabbed tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 4%, var(--md-default-bg-color));
+}
+.pay-table-tabbed tbody tr:hover td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 10%, var(--md-default-bg-color));
+}
+
+/* Group headers */
+.pay-table-tabbed tr.pt-group td {
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.5rem 0.8rem;
+  border-bottom: none;
+}
+
+/* Dark mode */
+[data-md-color-scheme="slate"] .pay-tabs-bar {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 10%, var(--md-default-bg-color));
+}
+[data-md-color-scheme="slate"] .pay-table-tabbed tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, var(--md-default-bg-color));
+}
+[data-md-color-scheme="slate"] .pay-table-tabbed tbody tr:hover td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 14%, var(--md-default-bg-color));
+}
+[data-md-color-scheme="slate"] .pay-table-tabbed tr.pt-group td {
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+}
