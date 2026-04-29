@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pay Calculator Tests</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif; }
+  .pass { color: #15803d; }
+  .fail { color: #b91c1c; }
+  pre { white-space: pre-wrap; word-break: break-word; }
+</style>
+</head>
+<body class="bg-slate-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold text-slate-900 mb-2">Pay Calculator Tests</h1>
+    <p class="text-sm text-slate-600 mb-6">Run by opening this file in a browser. Tests validate calculation logic and data invariants against <code>pay-data.json</code>.</p>
+    <div id="summary" class="mb-4 p-4 rounded-lg bg-white border border-slate-200"></div>
+    <div id="results" class="space-y-2"></div>
+  </div>
+
+<script type="module">
+// === Pure calculation helpers (mirrored from index.html) ===
+const SUPER_RATE = 0.12;
+const ANNUAL_SUPER_CAP = 29932.20;
+const HRS_WK = 38;
+
+function calcExistingOverAwardHourly(state) {
+  if (!state.existingOverAwardEnabled || state.existingOverAwardAmount <= 0) return 0;
+  const hpw = state.hoursPerWeek || HRS_WK;
+  switch (state.existingOverAwardFrequency) {
+    case 'hourly': return state.existingOverAwardAmount;
+    case 'weekly': return state.existingOverAwardAmount / hpw;
+    case 'fortnightly': return state.existingOverAwardAmount / (hpw * 2);
+    case 'annual': return state.existingOverAwardAmount / (hpw * 52);
+    default: return 0;
+  }
+}
+
+function calcHDAClassification(srcBase, tgtBase) {
+  return Math.max(0, tgtBase - srcBase);
+}
+
+function calcHDAPercentage(base, pct, includeOverAward, overAwardHourly) {
+  let pctBase = base;
+  if (includeOverAward) pctBase += overAwardHourly;
+  if (pctBase > 0 && pct > 0) return pctBase * (pct / 100);
+  return 0;
+}
+
+function calcHDATotalRemuneration(currentAnnualSalary, targetAnnual, superInclusion, hpw) {
+  let targetSalaryBeforeSuper;
+  if (superInclusion === 'excluding') {
+    targetSalaryBeforeSuper = targetAnnual;
+  } else {
+    const est = targetAnnual / (1 + SUPER_RATE);
+    if (est * SUPER_RATE <= ANNUAL_SUPER_CAP) targetSalaryBeforeSuper = est;
+    else targetSalaryBeforeSuper = targetAnnual - ANNUAL_SUPER_CAP;
+  }
+  const overAward = Math.max(0, targetSalaryBeforeSuper - currentAnnualSalary);
+  return hpw > 0 ? overAward / (hpw * 52) : 0;
+}
+
+function applySuperCap(annualPay) {
+  const pre = annualPay * SUPER_RATE;
+  return Math.min(pre, ANNUAL_SUPER_CAP);
+}
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+}
+function formatRate(amount) {
+  return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 5 }).format(amount);
+}
+
+// === Test runner ===
+const results = [];
+function approx(a, b, eps=1e-4) { return Math.abs(a - b) < eps; }
+function test(name, fn) {
+  try {
+    const detail = fn();
+    results.push({ name, pass: true, detail: detail || '' });
+  } catch (e) {
+    results.push({ name, pass: false, detail: e.message });
+  }
+}
+function assert(cond, msg) { if (!cond) throw new Error(msg || 'assertion failed'); }
+
+// === 1. formatCurrency / formatRate ===
+test('formatCurrency renders 2 decimal places for money totals', () => {
+  const out = formatCurrency(1234.5);
+  assert(out === '$1,234.50', `expected $1,234.50, got ${out}`);
+  return out;
+});
+test('formatRate renders up to 5 decimal places for hourly rates', () => {
+  const out = formatRate(43.83421);
+  assert(out === '$43.83421', `expected $43.83421, got ${out}`);
+  return out;
+});
+
+// === 2. Existing Over Award frequency conversions ===
+test('Over-award: hourly amount returned as-is', () => {
+  const h = calcExistingOverAwardHourly({ existingOverAwardEnabled: true, existingOverAwardAmount: 5, existingOverAwardFrequency: 'hourly', hoursPerWeek: 38 });
+  assert(h === 5);
+  return `${h}/hr`;
+});
+test('Over-award: weekly $190 / 38 = $5/hr', () => {
+  const h = calcExistingOverAwardHourly({ existingOverAwardEnabled: true, existingOverAwardAmount: 190, existingOverAwardFrequency: 'weekly', hoursPerWeek: 38 });
+  assert(approx(h, 5), `got ${h}`);
+  return `${h}/hr`;
+});
+test('Over-award: annual $9,880 / (38*52) = $5/hr', () => {
+  const h = calcExistingOverAwardHourly({ existingOverAwardEnabled: true, existingOverAwardAmount: 9880, existingOverAwardFrequency: 'annual', hoursPerWeek: 38 });
+  assert(approx(h, 5), `got ${h}`);
+  return `${h.toFixed(5)}/hr`;
+});
+
+// === 3. HDA classification: target - source ===
+test('HDA classification: target $50 - base $44 = $6 HDA', () => {
+  const h = calcHDAClassification(44, 50);
+  assert(h === 6);
+  return '$6/hr';
+});
+test('HDA classification: target lower than source -> 0', () => {
+  const h = calcHDAClassification(50, 44);
+  assert(h === 0);
+  return '$0/hr';
+});
+
+// === 4. HDA percentage with toggle ===
+test('HDA %: 10% of $44 base, over-award NOT included by default = $4.40', () => {
+  const h = calcHDAPercentage(44, 10, false, 5);
+  assert(approx(h, 4.4), `got ${h}`);
+  return '$4.40/hr';
+});
+test('HDA %: 10% of $44 base + $5 over-award when toggle on = $4.90', () => {
+  const h = calcHDAPercentage(44, 10, true, 5);
+  assert(approx(h, 4.9), `got ${h}`);
+  return '$4.90/hr';
+});
+
+// === 5. HDA total remuneration ===
+test('HDA TotalRem: $100k excluding super -> over-award annual = ($100k - current)', () => {
+  const hourly = calcHDATotalRemuneration(80000, 100000, 'excluding', 38);
+  const annualOA = hourly * 38 * 52;
+  assert(approx(annualOA, 20000, 1), `got ${annualOA}`);
+  return `$${annualOA.toFixed(0)} annual over-award`;
+});
+test('HDA TotalRem: $100k including super (under cap) -> targetBeforeSuper = $100k/(1+0.12) ≈ $89,285.71', () => {
+  // current=0 so HDA hourly = targetSalaryBeforeSuper / (38*52)
+  const hourly = calcHDATotalRemuneration(0, 100000, 'including', 38);
+  const annual = hourly * 38 * 52;
+  assert(approx(annual, 100000/1.12, 1), `got ${annual}`);
+  return `$${annual.toFixed(2)} salary before super`;
+});
+test('HDA TotalRem: super-inclusive package above cap subtracts ANNUAL_SUPER_CAP', () => {
+  // Target $400k, est=400k/1.12=357142, super=357142*0.12=42857 > cap. So target = 400000 - 29932.20 = 370067.80
+  const hourly = calcHDATotalRemuneration(0, 400000, 'including', 38);
+  const annual = hourly * 38 * 52;
+  assert(approx(annual, 400000 - 29932.20, 1), `got ${annual}, expected ${400000 - 29932.20}`);
+  return `$${annual.toFixed(2)} salary before super`;
+});
+
+// === 6. Super capping ===
+test('Super: $100k annual @12% = $12,000 (under cap)', () => {
+  const s = applySuperCap(100000);
+  assert(approx(s, 12000, 0.01), `got ${s}`);
+  return formatCurrency(s);
+});
+test('Super: $300k annual @12% = $36,000 capped to $29,932.20', () => {
+  const s = applySuperCap(300000);
+  assert(approx(s, 29932.20, 0.01), `got ${s}`);
+  return formatCurrency(s);
+});
+
+// === 7. Data invariants (require pay-data.json) ===
+const dataResults = document.getElementById('data-results');
+async function dataTests() {
+  let payData;
+  try {
+    const r = await fetch('pay-data.json');
+    if (!r.ok) throw new Error('fetch failed: ' + r.status);
+    payData = await r.json();
+  } catch (e) {
+    test('Load pay-data.json', () => { throw new Error(e.message); });
+    return;
+  }
+  test('pay-data.json: has both VHIA and Mental Health agreements', () => {
+    assert(payData.metadata && payData.metadata.agreements);
+    assert(payData.metadata.agreements.includes('VHIA'));
+    assert(payData.metadata.agreements.includes('Mental Health'));
+    return payData.metadata.agreements.join(', ');
+  });
+  test('pay-data.json: VHIA:1ME1 exists with Base Pay Rate', () => {
+    const c = payData.codes['VHIA:1ME1'];
+    assert(c, 'VHIA:1ME1 missing');
+    const dr0 = c.dateRanges[0];
+    const base = dr0.components.find(x => x.name === 'Base Pay Rate');
+    assert(base, 'no Base Pay Rate');
+    return `$${base.amount}/hr`;
+  });
+  test('pay-data.json: MH:RP70 exists with weekly base + hourly base', () => {
+    const c = payData.codes['MH:RP70'];
+    assert(c, 'MH:RP70 missing');
+    const dr0 = c.dateRanges[0];
+    const weekly = dr0.components.find(x => x.name === 'Base Rate (Weekly)');
+    const hourly = dr0.components.find(x => x.name === 'Base Pay Rate');
+    assert(weekly && hourly);
+    assert(approx(hourly.amount, weekly.amount / 38, 0.001), `weekly/38 != hourly`);
+    return `$${weekly.amount}/wk → $${hourly.amount}/hr`;
+  });
+  test('pay-data.json: MH codes have casual = base × 1.25', () => {
+    const c = payData.codes['MH:RP70'].dateRanges[0];
+    const base = c.components.find(x => x.name === 'Base Pay Rate').amount;
+    const casual = c.components.find(x => x.name === 'Casual Rate').amount;
+    assert(approx(casual, base * 1.25, 0.001), `expected ${base*1.25}, got ${casual}`);
+    return `base=$${base}, casual=$${casual}`;
+  });
+  test('pay-data.json: MH RPN codes have Uniform + Laundry components', () => {
+    const c = payData.codes['MH:NP11'] || payData.codes['MH:RP70'];
+    assert(c, 'no MH RPN code');
+    const dr = c.dateRanges[c.dateRanges.length - 1];
+    const u = dr.components.find(x => x.name === 'Uniform Allowance');
+    const l = dr.components.find(x => x.name === 'Laundry Allowance');
+    assert(u && l, `Uniform=${!!u} Laundry=${!!l}`);
+    return `Uniform=$${u.amount}/hr, Laundry=$${l.amount}/hr`;
+  });
+  test('pay-data.json: qualificationAllowances populated for RPN/MHO/AHP1', () => {
+    const qa = payData.qualificationAllowances || {};
+    const keys = Object.keys(qa);
+    assert(keys.length >= 3, `got ${keys.length}: ${keys.join(', ')}`);
+    return keys.join(' | ');
+  });
+}
+
+await dataTests();
+
+// Render
+const passed = results.filter(r => r.pass).length;
+const failed = results.length - passed;
+const summary = document.getElementById('summary');
+summary.innerHTML = `<div class="text-lg font-semibold ${failed === 0 ? 'pass' : 'fail'}">
+  ${passed} passed, ${failed} failed (of ${results.length})
+</div>`;
+const out = document.getElementById('results');
+results.forEach(r => {
+  const div = document.createElement('div');
+  div.className = `p-3 rounded-lg border ${r.pass ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`;
+  div.innerHTML = `<div class="flex items-start gap-3">
+    <span class="font-mono ${r.pass ? 'pass' : 'fail'}">${r.pass ? '✓' : '✗'}</span>
+    <div class="flex-1">
+      <div class="text-sm font-medium text-slate-800">${r.name}</div>
+      <div class="text-xs text-slate-500 font-mono mt-1">${r.detail || ''}</div>
+    </div>
+  </div>`;
+  out.appendChild(div);
+});
+</script>
+</body>
+</html>
