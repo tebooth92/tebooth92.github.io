@@ -186,43 +186,57 @@ async function dataTests() {
     test('Load pay-data.json', () => { throw new Error(e.message); });
     return;
   }
-  test('pay-data.json: has both VHIA and Mental Health agreements', () => {
-    assert(payData.metadata && payData.metadata.agreements);
-    assert(payData.metadata.agreements.includes('VHIA'));
-    assert(payData.metadata.agreements.includes('Mental Health'));
-    return payData.metadata.agreements.join(', ');
+  test('pay-data.json: codes are bare-keyed (no VHIA:/MH: prefixes)', () => {
+    const keys = Object.keys(payData.codes);
+    assert(!keys.some(k => k.startsWith('VHIA:') || k.startsWith('MH:')), 'still has compound keys');
+    return `${keys.length} codes`;
   });
-  test('pay-data.json: VHIA:1ME1 exists with Base Pay Rate', () => {
-    const c = payData.codes['VHIA:1ME1'];
-    assert(c, 'VHIA:1ME1 missing');
-    const dr0 = c.dateRanges[0];
-    const base = dr0.components.find(x => x.name === 'Base Pay Rate');
+  test('pay-data.json: 1ME1 exists with Base Pay Rate', () => {
+    const c = payData.codes['1ME1'];
+    assert(c, '1ME1 missing');
+    const base = c.dateRanges[0].components.find(x => x.name === 'Base Pay Rate');
     assert(base, 'no Base Pay Rate');
     return `$${base.amount}/hr`;
   });
-  test('pay-data.json: MH:RP70 exists with weekly base + hourly base', () => {
-    const c = payData.codes['MH:RP70'];
-    assert(c, 'MH:RP70 missing');
-    const dr0 = c.dateRanges[0];
-    const weekly = dr0.components.find(x => x.name === 'Base Rate (Weekly)');
-    const hourly = dr0.components.find(x => x.name === 'Base Pay Rate');
-    assert(weekly && hourly);
-    assert(approx(hourly.amount, weekly.amount / 38, 0.001), `weekly/38 != hourly`);
-    return `$${weekly.amount}/wk → $${hourly.amount}/hr`;
+  test('pay-data.json: RP70 has both pre-2025 and post-2025 ranges (merged)', () => {
+    const c = payData.codes['RP70'];
+    assert(c, 'RP70 missing');
+    const r = c.dateRanges;
+    assert(r.length >= 2, `expected multiple ranges, got ${r.length}`);
+    assert(r[0].startDate < '2025-05-20', 'no pre-2025 range');
+    assert(r[r.length-1].endDate === '9999-12-31', 'no open range');
+    return `${r.length} ranges, ${r[0].startDate} → ${r[r.length-1].endDate}`;
   });
-  test('pay-data.json: MH codes have casual = base × 1.25', () => {
-    const c = payData.codes['MH:RP70'].dateRanges[0];
-    const base = c.components.find(x => x.name === 'Base Pay Rate').amount;
-    const casual = c.components.find(x => x.name === 'Casual Rate').amount;
-    assert(approx(casual, base * 1.25, 0.001), `expected ${base*1.25}, got ${casual}`);
+  test('pay-data.json: RP70 old range closed when MH circular took effect', () => {
+    const r = payData.codes['RP70'].dateRanges;
+    const old = r.find(x => x.startDate < '2025-05-20');
+    assert(old, 'no old range');
+    assert(old.endDate === '2025-05-19', `expected 2025-05-19, got ${old.endDate}`);
+    return `closed at ${old.endDate}`;
+  });
+  test('pay-data.json: RP70 new ranges have weekly base + hourly base (weekly/38)', () => {
+    const r = payData.codes['RP70'].dateRanges;
+    const newRange = r.find(x => x.startDate >= '2025-05-20');
+    assert(newRange, 'no new range');
+    const w = newRange.components.find(x => x.name === 'Base Rate (Weekly)');
+    const h = newRange.components.find(x => x.name === 'Base Pay Rate');
+    assert(w && h, 'missing weekly or hourly base');
+    assert(approx(h.amount, w.amount / 38, 0.001), `weekly/38 != hourly`);
+    return `$${w.amount}/wk → $${h.amount}/hr`;
+  });
+  test('pay-data.json: MH-period ranges have casual = base × 1.25', () => {
+    const r = payData.codes['RP70'].dateRanges;
+    const newRange = r.find(x => x.startDate >= '2025-05-20');
+    const base = newRange.components.find(x => x.name === 'Base Pay Rate').amount;
+    const casual = newRange.components.find(x => x.name === 'Casual Rate').amount;
+    assert(approx(casual, base * 1.25, 0.001));
     return `base=$${base}, casual=$${casual}`;
   });
-  test('pay-data.json: MH RPN codes have Uniform + Laundry components', () => {
-    const c = payData.codes['MH:NP11'] || payData.codes['MH:RP70'];
-    assert(c, 'no MH RPN code');
-    const dr = c.dateRanges[c.dateRanges.length - 1];
-    const u = dr.components.find(x => x.name === 'Uniform Allowance');
-    const l = dr.components.find(x => x.name === 'Laundry Allowance');
+  test('pay-data.json: RPN codes have Uniform + Laundry on MH-period ranges', () => {
+    const c = payData.codes['NP11'] || payData.codes['RP70'];
+    const r = c.dateRanges.find(x => x.startDate >= '2025-05-20');
+    const u = r.components.find(x => x.name === 'Uniform Allowance');
+    const l = r.components.find(x => x.name === 'Laundry Allowance');
     assert(u && l, `Uniform=${!!u} Laundry=${!!l}`);
     return `Uniform=$${u.amount}/hr, Laundry=$${l.amount}/hr`;
   });
