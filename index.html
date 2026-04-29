@@ -752,6 +752,28 @@
                 dateRangeSelect.addEventListener('change', (e) => {
                     const selectedIndex = parseInt(e.target.value);
                     handleDateRangeSelected(selectedIndex);
+                    // Refresh the component list — different ranges may have different components
+                    if (state.selectedDateRange && state.selectedDateRange.components) {
+                        state.codeComponents = state.selectedDateRange.components.map(comp => {
+                            let amount = comp.amount;
+                            if (typeof amount === 'string' && !amount.includes('%')) amount = parseFloat(amount);
+                            return { 'VHIA Code': state.selectedCode, 'Pay Component Name': comp.name, 'Hourly Amount': amount };
+                        });
+                        // Preserve user's selections that still apply; re-tick Base Pay Rate by default if it was selected before.
+                        const preserved = state.selectedComponents.filter(name => state.codeComponents.some(c => c['Pay Component Name'] === name));
+                        const hasBase = state.codeComponents.some(c => c['Pay Component Name'] === 'Base Pay Rate');
+                        const hasCasual = state.codeComponents.some(c => c['Pay Component Name'] === 'Casual Rate');
+                        if (preserved.length === 0) {
+                            if (hasBase) preserved.push('Base Pay Rate');
+                            else if (hasCasual) preserved.push('Casual Rate');
+                        }
+                        state.selectedComponents = preserved;
+                        renderComponents();
+                        // Re-render qualification allowances against the new range
+                        const codeData = state.vhiaCodes.find(c => c.code === state.selectedCode);
+                        if (codeData) renderQualificationAllowances(codeData);
+                        calculatePay();
+                    }
                 });
             }
 

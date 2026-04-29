@@ -92,17 +92,13 @@ def parse_rate_sheet(ws, category, has_commuted=False, excluded=None):
                 if isinstance(nv, (int, float)):
                     ed = date_cols[ni][1] - timedelta(days=1); break
             comps = [
-                {'name': 'Base Rate (Weekly)', 'amount': round(float(v), 4)},
                 {'name': 'Base Pay Rate', 'amount': to_hourly(v)},
                 {'name': 'Casual Rate', 'amount': round(to_hourly(v) * 1.25, 5)},
             ]
             if cc is not None:
                 cv = row[cc]
                 if isinstance(cv, (int, float)):
-                    comps += [
-                        {'name': 'Commuted Allowance (Weekly)', 'amount': round(float(cv), 4)},
-                        {'name': 'Commuted Allowance', 'amount': to_hourly(cv)},
-                    ]
+                    comps.append({'name': 'Commuted Allowance', 'amount': to_hourly(cv)})
             codes[pc]['dateRanges'].append({
                 'startDate': eff.isoformat(),
                 'endDate': ed.isoformat() if ed else '9999-12-31',
