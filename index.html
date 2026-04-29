@@ -211,6 +211,7 @@
                                         class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none cursor-pointer hover:bg-slate-100 transition-colors">
                                         <option value="">-- Select Date Range --</option>
                                     </select>
+                            <p id="weekly-rate-reference" class="hidden mt-2 text-xs text-slate-500"></p>
                                     <div
                                         class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
                                         <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -526,6 +527,7 @@
             // Update the UI
             renderComponents();
             calculatePay();
+            renderWeeklyRateReference();
         }
 
 
@@ -752,6 +754,28 @@
                 dateRangeSelect.addEventListener('change', (e) => {
                     const selectedIndex = parseInt(e.target.value);
                     handleDateRangeSelected(selectedIndex);
+                    // Refresh the component list — different ranges may have different components
+                    if (state.selectedDateRange && state.selectedDateRange.components) {
+                        state.codeComponents = state.selectedDateRange.components.map(comp => {
+                            let amount = comp.amount;
+                            if (typeof amount === 'string' && !amount.includes('%')) amount = parseFloat(amount);
+                            return { 'VHIA Code': state.selectedCode, 'Pay Component Name': comp.name, 'Hourly Amount': amount };
+                        });
+                        // Preserve user's selections that still apply; re-tick Base Pay Rate by default if it was selected before.
+                        const preserved = state.selectedComponents.filter(name => state.codeComponents.some(c => c['Pay Component Name'] === name));
+                        const hasBase = state.codeComponents.some(c => c['Pay Component Name'] === 'Base Pay Rate');
+                        const hasCasual = state.codeComponents.some(c => c['Pay Component Name'] === 'Casual Rate');
+                        if (preserved.length === 0) {
+                            if (hasBase) preserved.push('Base Pay Rate');
+                            else if (hasCasual) preserved.push('Casual Rate');
+                        }
+                        state.selectedComponents = preserved;
+                        renderComponents();
+                        // Re-render qualification allowances against the new range
+                        const codeData = state.vhiaCodes.find(c => c.code === state.selectedCode);
+                        if (codeData) renderQualificationAllowances(codeData);
+                        calculatePay();
+                    }
                 });
             }
 
@@ -1442,7 +1466,25 @@
         }
 
 
-        function formatCurrency(amount) {
+        function renderWeeklyRateReference() {
+            const el = document.getElementById('weekly-rate-reference');
+            if (!el) return;
+            const r = state.selectedDateRange;
+            if (!r) { el.classList.add('hidden'); el.textContent = ''; return; }
+            const parts = [];
+            if (typeof r.weeklyBaseRate === 'number') {
+                parts.push(`Source rate: $${r.weeklyBaseRate.toFixed(2)}/week`);
+            }
+            if (typeof r.weeklyCommutedAllowance === 'number') {
+                parts.push(`Commuted: $${r.weeklyCommutedAllowance.toFixed(2)}/week`);
+            }
+            if (r.sourceLabel) parts.push(`(${r.sourceLabel})`);
+            if (parts.length === 0) { el.classList.add('hidden'); el.textContent = ''; return; }
+            el.textContent = parts.join('  ·  ');
+            el.classList.remove('hidden');
+        }
+
+                function formatCurrency(amount) {
             // Money totals: 2dp.
             return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
         }
