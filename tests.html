@@ -246,6 +246,38 @@ async function dataTests() {
     assert(keys.length >= 3, `got ${keys.length}: ${keys.join(', ')}`);
     return keys.join(' | ');
   });
+
+  // === Default-to-today date range selection ===
+  function pickDefault(ranges, today) {
+    let i = ranges.findIndex(r => r.startDate <= today && (r.endDate === '9999-12-31' || r.endDate >= today));
+    if (i === -1) {
+      for (let k = ranges.length - 1; k >= 0; k--) if (ranges[k].startDate <= today) { i = k; break; }
+      if (i === -1) i = 0;
+    }
+    return i;
+  }
+  const TODAY = new Date().toISOString().slice(0, 10);
+  test('Default range: RP70 picks the range covering today', () => {
+    const r = payData.codes['RP70'].dateRanges;
+    const idx = pickDefault(r, TODAY);
+    const sel = r[idx];
+    assert(sel.startDate <= TODAY && (sel.endDate === '9999-12-31' || sel.endDate >= TODAY), `range ${sel.startDate}→${sel.endDate} doesn't cover ${TODAY}`);
+    return `${sel.startDate} → ${sel.endDate}`;
+  });
+  test('Default range: 1ME1 (VHIA-only) picks open-ended current range', () => {
+    const r = payData.codes['1ME1'].dateRanges;
+    const idx = pickDefault(r, TODAY);
+    assert(r[idx].endDate === '9999-12-31', `got ${r[idx].endDate}`);
+    return `${r[idx].startDate} → Current`;
+  });
+  test('Default range: future-only ranges fall back to first', () => {
+    const fake = [{startDate: '2099-01-01', endDate: '9999-12-31'}];
+    assert(pickDefault(fake, TODAY) === 0);
+  });
+  test('Default range: all-past ranges fall back to most-recent past', () => {
+    const fake = [{startDate: '2020-01-01', endDate: '2020-12-31'}];
+    assert(pickDefault(fake, TODAY) === 0);
+  });
 }
 
 await dataTests();

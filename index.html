@@ -942,8 +942,22 @@
 
                 state.availableDateRanges = codeData.dateRanges || [];
                 if (state.availableDateRanges.length > 0) {
-                    const mostRecentIndex = state.availableDateRanges.length - 1;
-                    state.selectedDateRange = state.availableDateRanges[mostRecentIndex];
+                    // Default to the range active as at today's date.
+                    // If no range is currently active (all future-dated), fall back to the
+                    // most recent past range so the calculator never shows a future rate
+                    // unless the user explicitly picks one.
+                    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+                    let defaultIndex = state.availableDateRanges.findIndex(r =>
+                        r.startDate <= today && (r.endDate === '9999-12-31' || r.endDate >= today)
+                    );
+                    if (defaultIndex === -1) {
+                        // No range covers today — pick the latest range whose startDate is in the past, else the first.
+                        for (let i = state.availableDateRanges.length - 1; i >= 0; i--) {
+                            if (state.availableDateRanges[i].startDate <= today) { defaultIndex = i; break; }
+                        }
+                        if (defaultIndex === -1) defaultIndex = 0;
+                    }
+                    state.selectedDateRange = state.availableDateRanges[defaultIndex];
 
                     const dateSelect = document.getElementById('date-range-select');
                     dateSelect.innerHTML = '';
@@ -952,12 +966,13 @@
                         opt.value = idx;
                         const sd = formatDateDisplay(range.startDate);
                         const ed = range.endDate === '9999-12-31' ? 'Current' : formatDateDisplay(range.endDate);
-                        opt.textContent = `${sd} to ${ed}`;
-                        if (idx === mostRecentIndex) opt.selected = true;
+                        const tag = idx === defaultIndex ? ' (current)' : (range.startDate > today ? ' (future)' : '');
+                        opt.textContent = `${sd} to ${ed}${tag}`;
+                        if (idx === defaultIndex) opt.selected = true;
                         dateSelect.appendChild(opt);
                     });
                     document.getElementById('date-range-container').classList.remove('hidden');
-                    handleDateRangeSelected(mostRecentIndex);
+                    handleDateRangeSelected(defaultIndex);
 
                     state.codeComponents = state.selectedDateRange.components.map(comp => {
                         let amount = comp.amount;
