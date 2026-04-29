@@ -91,22 +91,18 @@ def parse_rate_sheet(ws, category, has_commuted=False, excluded=None):
                 nv = row[date_cols[ni][0]]
                 if isinstance(nv, (int, float)):
                     ed = date_cols[ni][1] - timedelta(days=1); break
-            weekly_base = round(float(v), 4)
             comps = [
                 {'name': 'Base Pay Rate', 'amount': to_hourly(v)},
                 {'name': 'Casual Rate', 'amount': round(to_hourly(v) * 1.25, 5)},
             ]
-            range_extras = {'weeklyBaseRate': weekly_base}
             if cc is not None:
                 cv = row[cc]
                 if isinstance(cv, (int, float)):
                     comps.append({'name': 'Commuted Allowance', 'amount': to_hourly(cv)})
-                    range_extras['weeklyCommutedAllowance'] = round(float(cv), 4)
             codes[pc]['dateRanges'].append({
                 'startDate': eff.isoformat(),
                 'endDate': ed.isoformat() if ed else '9999-12-31',
-                'components': comps, 'sourceLabel': label,
-                **range_extras})
+                'components': comps, 'sourceLabel': label})
     return codes
 
 def find_date_cols_in_row(row):

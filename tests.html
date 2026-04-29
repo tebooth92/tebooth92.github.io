@@ -214,21 +214,26 @@ async function dataTests() {
     assert(old.endDate === '2025-05-19', `expected 2025-05-19, got ${old.endDate}`);
     return `closed at ${old.endDate}`;
   });
-  test('pay-data.json: RP70 new ranges have weeklyBaseRate metadata + hourly base (weekly/38)', () => {
-    const r = payData.codes['RP70'].dateRanges;
-    const newRange = r.find(x => x.startDate >= '2025-05-20');
-    assert(newRange, 'no new range');
-    const w = newRange.weeklyBaseRate;
-    const h = newRange.components.find(x => x.name === 'Base Pay Rate');
-    assert(typeof w === 'number' && h, 'missing weeklyBaseRate or Base Pay Rate component');
-    assert(approx(h.amount, w / 38, 0.001), 'weekly/38 != hourly');
-    return `$${w}/wk → $${h.amount}/hr`;
+  test('pay-data.json: every component is hourly (no Weekly entries anywhere)', () => {
+    let count = 0;
+    for (const c of Object.values(payData.codes)) {
+      for (const dr of c.dateRanges) {
+        for (const comp of dr.components) {
+          assert(!comp.name.toLowerCase().includes('weekly'), `${c.code} ${dr.startDate}: ${comp.name} is weekly`);
+          count++;
+        }
+      }
+    }
+    return `${count} components checked, all hourly`;
   });
-  test('pay-data.json: weekly is NOT a component (so it cannot be picked as hourly)', () => {
-    const newRange = payData.codes['RP70'].dateRanges.find(x => x.startDate >= '2025-05-20');
-    const wcomp = newRange.components.find(x => x.name === 'Base Rate (Weekly)');
-    assert(!wcomp, 'Base Rate (Weekly) is still in components — would cause $1,616/hr bug');
-    return 'no Base Rate (Weekly) in components';
+  test('pay-data.json: no weeklyBaseRate / weeklyCommutedAllowance metadata leftover', () => {
+    for (const c of Object.values(payData.codes)) {
+      for (const dr of c.dateRanges) {
+        assert(!('weeklyBaseRate' in dr), `${c.code}: weeklyBaseRate present`);
+        assert(!('weeklyCommutedAllowance' in dr), `${c.code}: weeklyCommutedAllowance present`);
+      }
+    }
+    return 'all clean';
   });
   test('pay-data.json: MH-period ranges have casual = base × 1.25', () => {
     const r = payData.codes['RP70'].dateRanges;
