@@ -192,12 +192,8 @@ def main():
     uniform = {**u_a, **u_b}; laundry = {**l_a, **l_b}; qualification = {**q_a, **q_b}
 
     vhia_raw = load_vhia_data(args.vhia_source)
-    unified = {}
-    for code, data in vhia_raw['codes'].items():
-        unified[f"VHIA:{code}"] = {
-            'code': code, 'agreement': 'VHIA',
-            'description': data.get('description', ''), 'level': data.get('level', ''),
-            'rateBasis': 'hourly', 'dateRanges': data.get('dateRanges', [])}
+
+    # First, attach Uniform/Laundry allowances to MH date ranges based on group
     for code, data in mh.items():
         sub = allowance_subgroup_for(data)
         data['allowanceSubgroup'] = sub
@@ -212,14 +208,59 @@ def main():
                 if l:
                     a = find_active_rate(l, sd)
                     if a is not None: dr['components'].append({'name': 'Laundry Allowance', 'amount': to_hourly(a)})
-        unified[f"MH:{code}"] = data
+
+    # Merge: one entry per code. For overlap codes, close any open VHIA range the day before
+    # the earliest MH range starts, then append MH ranges chronologically.
+    unified = {}
+    for code, data in vhia_raw['codes'].items():
+        unified[code] = {
+            'code': code,
+            'description': data.get('description', ''),
+            'level': data.get('level', ''),
+            'rateBasis': 'hourly',
+            'dateRanges': list(data.get('dateRanges', [])),
+        }
+    for code, mh_data in mh.items():
+        mh_ranges = sorted(mh_data['dateRanges'], key=lambda r: r['startDate'])
+        if not mh_ranges: continue
+        earliest_mh = mh_ranges[0]['startDate']
+        prior_day = (date.fromisoformat(earliest_mh) - timedelta(days=1)).isoformat()
+        if code in unified:
+            # Close any open VHIA range that overlaps the new MH ranges
+            for r in unified[code]['dateRanges']:
+                if r['endDate'] == '9999-12-31' or r['endDate'] >= earliest_mh:
+                    if r['startDate'] < earliest_mh:
+                        r['endDate'] = prior_day
+            # Append MH ranges
+            unified[code]['dateRanges'].extend(mh_ranges)
+            # Carry forward MH-specific metadata if not already present
+            unified[code].setdefault('category', mh_data.get('category'))
+            unified[code].setdefault('group', mh_data.get('group'))
+            if mh_data.get('hasCommuted'): unified[code]['hasCommuted'] = True
+            if mh_data.get('allowanceSubgroup'): unified[code]['allowanceSubgroup'] = mh_data['allowanceSubgroup']
+            unified[code]['hoursPerWeek'] = mh_data.get('hoursPerWeek', HRS_PER_WEEK)
+        else:
+            # MH-only code (new under the new EBA)
+            unified[code] = {
+                'code': code,
+                'description': mh_data.get('description', ''),
+                'category': mh_data.get('category'),
+                'group': mh_data.get('group'),
+                'rateBasis': 'mixed',  # may have weekly+hourly components
+                'hoursPerWeek': mh_data.get('hoursPerWeek', HRS_PER_WEEK),
+                'allowanceSubgroup': mh_data.get('allowanceSubgroup'),
+                'hasCommuted': mh_data.get('hasCommuted', False),
+                'dateRanges': mh_ranges,
+            }
+        # Sort all ranges chronologically and drop ranges that became invalid (start > end)
+        unified[code]['dateRanges'] = [r for r in sorted(unified[code]['dateRanges'], key=lambda x: x['startDate']) if r['startDate'] <= r['endDate']]
 
     pay_data = {
         'metadata': {
             'version': '2.0.0',
             'generatedAt': date.today().isoformat(),
             'generator': 'scripts/build-pay-data.py',
-            'agreements': ['VHIA', 'Mental Health'],
+            'agreements': ['Victorian public health (VHIA-negotiated)', 'Mental Health Salary Circular 880'],
             'sources': {
                 'VHIA': vhia_raw.get('metadata', {}),
                 'Mental Health': {
@@ -236,6 +277,8 @@ def main():
     with open(args.out, 'w') as f:
         json.dump(pay_data, f, indent=2 if args.pretty else None, separators=(',', ':') if not args.pretty else None, default=str)
     sz = os.path.getsize(args.out)
-    print(f"{args.out}: {len(unified)} codes ({sum(1 for k in unified if k.startswith('VHIA:'))} VHIA, {sum(1 for k in unified if k.startswith('MH:'))} MH); {sz/1024:.1f} KB")
+    mh_only = sum(1 for k in unified if k not in vhia_raw["codes"])
+    overlap = sum(1 for k in mh if k in vhia_raw["codes"])
+    print(f"{args.out}: {len(unified)} codes ({len(vhia_raw['codes'])} VHIA, {mh_only} MH-only new, {overlap} merged with new MH ranges); {sz/1024:.1f} KB")
 
 if __name__ == '__main__': main()

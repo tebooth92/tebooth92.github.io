@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TB Pay Calculator (VHIA + Mental Health EBA)</title>
+    <title>TB VHIA Pay Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -161,16 +161,6 @@
             <div id="calculator-content" class="hidden">
                 <div class="p-6 md:p-10 space-y-10">
                     <!-- Step 1: Classification -->
-                    <!-- Agreement Filter -->
-                    <div class="mb-6 pl-11">
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Filter by Agreement</label>
-                        <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1" role="tablist" aria-label="Agreement filter">
-                            <button type="button" data-filter="all" class="agreement-filter-btn px-3 py-1.5 text-xs font-medium rounded-md bg-white shadow-sm text-slate-900" aria-pressed="true">All</button>
-                            <button type="button" data-filter="VHIA" class="agreement-filter-btn px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900" aria-pressed="false">VHIA</button>
-                            <button type="button" data-filter="Mental Health" class="agreement-filter-btn px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900" aria-pressed="false">Mental Health</button>
-                        </div>
-                    </div>
-
                     <div class="space-y-4">
                         <div class="flex items-center gap-3 mb-2">
                             <div
@@ -629,11 +619,7 @@
         let state = {
             csvData: [],
             vhiaCodes: [],
-            agreementFilter: 'all',          // 'all' | 'VHIA' | 'Mental Health'
             includeOverAwardInHdaPercent: false, // HDA % method base: false = base only (default), true = base + over-award
-            selectedCodeId: '',
-            selectedAgreement: '',
-            higherDutiesTargetCodeId: '',
             payData: null,
             qualificationAllowances: {},
             selectedCode: '',
@@ -790,23 +776,6 @@
                 if (e.key === 'Escape') closeModal();
             });
 
-            // Agreement filter buttons
-            document.querySelectorAll('.agreement-filter-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    state.agreementFilter = btn.dataset.filter;
-                    document.querySelectorAll('.agreement-filter-btn').forEach(b => {
-                        const active = b === btn;
-                        b.setAttribute('aria-pressed', active ? 'true' : 'false');
-                        b.classList.toggle('bg-white', active);
-                        b.classList.toggle('shadow-sm', active);
-                        b.classList.toggle('text-slate-900', active);
-                        b.classList.toggle('text-slate-600', !active);
-                    });
-                    // re-run search if there's a term
-                    if (elements.codeSearch.value) handleCodeSearch({ target: elements.codeSearch }, 'primary');
-                });
-            });
-
             // HDA include-over-award toggle
             const hdaInc = document.getElementById('hda-include-over-award');
             if (hdaInc) hdaInc.addEventListener('change', e => {
@@ -889,27 +858,24 @@
                     state.payData = payData;
                     state.qualificationAllowances = payData.qualificationAllowances || {};
 
-                    // Flatten codes object into an array. Each entry retains its compound id (VHIA:RP70 etc.).
                     const processed = [];
-                    for (const [id, codeData] of Object.entries(payData.codes)) {
+                    for (const [code, codeData] of Object.entries(payData.codes)) {
                         processed.push({
-                            id: id,
-                            code: codeData.code || id.split(':').slice(1).join(':'),
-                            agreement: codeData.agreement || (id.startsWith('MH:') ? 'Mental Health' : 'VHIA'),
+                            code: codeData.code || code,
                             description: codeData.description || '',
                             level: codeData.level || '',
                             category: codeData.category || '',
                             group: codeData.group || '',
                             rateBasis: codeData.rateBasis || 'hourly',
                             hoursPerWeek: codeData.hoursPerWeek || 38,
+                            allowanceSubgroup: codeData.allowanceSubgroup || null,
+                            hasCommuted: codeData.hasCommuted || false,
                             dateRanges: codeData.dateRanges || [],
                         });
                     }
-                    state.vhiaCodes = processed; // kept name for backwards compat with downstream code
+                    state.vhiaCodes = processed;
 
-                    logDebug(`Loaded ${processed.length} codes (` +
-                        processed.filter(c => c.agreement === 'VHIA').length + ' VHIA, ' +
-                        processed.filter(c => c.agreement === 'Mental Health').length + ' Mental Health)');
+                    logDebug(`Loaded ${processed.length} codes`);
 
                     document.getElementById('loading-message').classList.add('hidden');
                     document.getElementById('calculator-content').classList.remove('hidden');
@@ -931,14 +897,11 @@
 
             if (!searchTerm) { dropdownElement.classList.add('hidden'); return; }
             const lc = searchTerm.toLowerCase();
-            const filterAgr = state.agreementFilter || 'all'; // 'all' | 'VHIA' | 'Mental Health'
-            const filteredCodes = state.vhiaCodes.filter(c => {
-                if (filterAgr !== 'all' && c.agreement !== filterAgr) return false;
-                return c.code.toLowerCase().includes(lc)
-                    || c.description.toLowerCase().includes(lc)
-                    || (c.group || '').toLowerCase().includes(lc)
-                    || c.agreement.toLowerCase().includes(lc);
-            });
+            const filteredCodes = state.vhiaCodes.filter(c =>
+                c.code.toLowerCase().includes(lc)
+                || c.description.toLowerCase().includes(lc)
+                || (c.group || '').toLowerCase().includes(lc)
+            );
             if (filteredCodes.length > 0) renderCodeDropdown(filteredCodes, dropdownElement, type);
             else dropdownElement.classList.add('hidden');
         }
@@ -949,13 +912,10 @@
             displayCodes.forEach(codeObj => {
                 const item = document.createElement('div');
                 item.className = 'dropdown-item';
-                const badge = codeObj.agreement === 'Mental Health'
-                    ? '<span class="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 mr-2 align-middle">MH</span>'
-                    : '<span class="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 mr-2 align-middle">VHIA</span>';
                 const codeSpan = `<span class="font-mono font-semibold">${codeObj.code}</span>`;
-                const desc = codeObj.description.replace(/^[^-]*-\s*/, ''); // strip "CODE - " prefix in description
-                item.innerHTML = `${badge}${codeSpan} <span class="text-slate-600 text-sm">${desc}</span>`;
-                item.addEventListener('click', () => selectCode(codeObj.id, type));
+                const desc = codeObj.description.replace(/^[^-]*-\s*/, '');
+                item.innerHTML = `${codeSpan} <span class="text-slate-600 text-sm">${desc}</span>`;
+                item.addEventListener('click', () => selectCode(codeObj.code, type));
                 dropdownElement.appendChild(item);
             });
             if (codes.length > 50) {
@@ -967,23 +927,14 @@
             dropdownElement.classList.remove('hidden');
         }
 
-        function selectCode(id, type) {
-            // id is the compound key (e.g. "VHIA:RP70" or "MH:RP70"); legacy callers may still pass a bare code.
-            // Resolve to a code object by id first, then fall back to bare-code match.
-            let codeData = state.vhiaCodes.find(c => c.id === id);
-            if (!codeData) codeData = state.vhiaCodes.find(c => c.code === id);
-            if (!codeData) {
-                logDebug('Error: code id ' + id + ' not found');
-                return;
-            }
+        function selectCode(codeArg, type) {
+            const codeData = state.vhiaCodes.find(c => c.code === codeArg);
+            if (!codeData) { logDebug('Error: code ' + codeArg + ' not found'); return; }
             const code = codeData.code;
-            const agreement = codeData.agreement;
-            const displayLabel = `${code} · ${agreement} — ${codeData.description.replace(/^[^-]*-\s*/, '')}`;
+            const displayLabel = `${code} — ${codeData.description.replace(/^[^-]*-\s*/, '')}`;
 
             if (type === 'primary') {
-                state.selectedCodeId = codeData.id;
                 state.selectedCode = code;
-                state.selectedAgreement = agreement;
                 elements.codeSearch.value = code;
                 elements.selectedCodeValue.textContent = displayLabel;
                 elements.selectedCodeDisplay.classList.remove('hidden');
@@ -1025,14 +976,13 @@
                     renderQualificationAllowances(codeData);
                 }
             } else {
-                state.higherDutiesTargetCodeId = codeData.id;
                 state.higherDutiesTargetCode = code;
                 elements.higherDutiesTargetCodeSearch.value = code;
                 elements.higherDutiesSelectedTargetCodeValue.textContent = displayLabel;
                 elements.higherDutiesSelectedTargetCodeDisplay.classList.remove('hidden');
                 elements.higherDutiesTargetCodeDropdown.classList.add('hidden');
 
-                const baseRateComponent = getBaseRateForCode(codeData.id);
+                const baseRateComponent = getBaseRateForCode(code);
                 state.higherDutiesTargetCodeBaseRate = baseRateComponent ? baseRateComponent['Hourly Amount'] : 0;
                 logDebug('Selected target ' + code + ' base=' + state.higherDutiesTargetCodeBaseRate);
             }
@@ -1043,8 +993,8 @@
             const host = document.getElementById('qualification-allowances-section');
             if (!host) return;
             host.innerHTML = '';
-            if (codeData.agreement !== 'Mental Health') { host.classList.add('hidden'); return; }
-            const sg = codeData.allowanceSubgroup || codeData._allowanceSubgroup;
+            if (!codeData.allowanceSubgroup) { host.classList.add('hidden'); return; }
+            const sg = codeData.allowanceSubgroup;
             // Find a matching qualification subgroup; the keys in qualificationAllowances may be sheet subgroups.
             const qa = state.qualificationAllowances || {};
             // Heuristic match by group prefix.
@@ -1705,13 +1655,13 @@
                                     </div>
                                     
                                     <div class="bg-violet-50 p-3 rounded-lg border border-violet-100">
-                                        <h4 class="font-medium text-slate-900 mb-1">Mental Health EBA</h4>
-                                        <p>Mental Health rates from Salary Circular 880 are converted to hourly using 38 hours/week. Casual rate is computed as base + 25% loading; verify against the EBA before relying on it. Only Laundry, Uniform, and Qualification allowances are surfaced in the calculator.</p>
+                                        <h4 class="font-medium text-slate-900 mb-1">Date Ranges</h4>
+                                        <p>Each classification can have multiple effective date ranges as EBAs roll over. The most recent range is selected by default; pick an older range to calculate against historical rates. Mental Health rates from Salary Circular 880 are converted to hourly using 38 hours/week (casual = base + 25%); verify against the underlying EBA. Only Laundry, Uniform, and Qualification allowances from the MH circular are surfaced.</p>
                                     </div>
 
                                     <div
                                         class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs text-slate-400">
-                                        <span>Data: VHIA + Mental Health EBA</span>
+                                        <span>Data: Victorian public health EBAs (incl. MH Circular 880)</span>
                                         <span id="last-updated-date">Last Updated: Loading...</span>
                                     </div>
                                 </div>
