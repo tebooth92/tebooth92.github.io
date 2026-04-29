@@ -43,7 +43,12 @@ def load_vhia_data(src_path):
     if not m: raise SystemExit('No vhia-data block found in ' + src_path)
     return json.loads(m.group(1))
 
-def parse_rate_sheet(ws, category, has_commuted=False):
+def parse_rate_sheet(ws, category, has_commuted=False, excluded=None):
+    """Parse a rate sheet. If `excluded` is a list, append entries describing any
+    paycode that appears in the sheet but cannot be rated cleanly (no numeric
+    FFPPOA values, "See Column I" placeholders, etc.). Such codes are intentionally
+    omitted from the output to keep the calculator unambiguous."""
+    if excluded is None: excluded = []
     rows = list(ws.iter_rows(values_only=True))
     headers = rows[0]
     date_cols = []
@@ -63,6 +68,17 @@ def parse_rate_sheet(ws, category, has_commuted=False):
         if not pc:
             cur_group = cls; continue
         if not re.match(r'^[A-Z]{1,3}\d', pc): continue
+        # Inspect FFPPOA cells to determine whether this row has any usable rate
+        ffppoa_values = [row[col] for col, _, _, _ in date_cols if col < len(row)]
+        numeric_count = sum(1 for v in ffppoa_values if isinstance(v, (int, float)))
+        see_col_i = any(isinstance(v, str) and 'see column' in v.lower() for v in ffppoa_values)
+        if numeric_count == 0:
+            reason = ('"See Column I" placeholder; rate equals award' if see_col_i
+                      else 'No FFPPOA rate published in this circular')
+            if 'aged care' in cls.lower():
+                reason = 'Aged Care Employees only; no rate published in this circular'
+            excluded.append({'code': pc, 'sheet': ws.title, 'group': cur_group, 'classification': cls, 'reason': reason})
+            continue
         if pc not in codes:
             codes[pc] = {'code': pc, 'agreement': 'Mental Health',
                 'description': f"{pc} - {cls}", 'category': category, 'group': cur_group,
@@ -169,9 +185,19 @@ def main():
     except ImportError: sys.exit('pip install openpyxl')
     wb = openpyxl.load_workbook(args.mh_source, data_only=True)
 
-    mh = parse_rate_sheet(wb['RPNs,PSENs, MHOs'], 'RPN/PSEN/MHO')
-    mh_com = parse_rate_sheet(wb['Wages - Commuted'], 'RPN/PSEN/MHO (Commuted)', has_commuted=True)
-    mh_ahp = parse_rate_sheet(wb['AHP, Managers, Support'], 'AHP/Managers/Support')
+    excluded = []
+    mh = parse_rate_sheet(wb['RPNs,PSENs, MHOs'], 'RPN/PSEN/MHO', excluded=excluded)
+    mh_com = parse_rate_sheet(wb['Wages - Commuted'], 'RPN/PSEN/MHO (Commuted)', has_commuted=True, excluded=excluded)
+    mh_ahp = parse_rate_sheet(wb['AHP, Managers, Support'], 'AHP/Managers/Support', excluded=excluded)
+    # De-duplicate, and drop any code that was successfully rated elsewhere
+    # (a paycode can appear in multiple rows, some unrated and some rated).
+    rated_codes = set(mh.keys()) | set(mh_com.keys()) | set(mh_ahp.keys())
+    seen = set(); excluded_unique = []
+    for e in excluded:
+        if e['code'] in rated_codes: continue
+        if e['code'] not in seen:
+            seen.add(e['code']); excluded_unique.append(e)
+    excluded = excluded_unique
     for code, data in mh_com.items():
         if code in mh:
             ex = {dr['startDate']: dr for dr in mh[code]['dateRanges']}
@@ -257,7 +283,9 @@ def main():
 
     pay_data = {
         'metadata': {
-            'version': '2.0.0',
+            'version': '2.1.0',
+            'excludedCodes': excluded,
+            'excludedCodesNote': 'Classifications that appear in the source spreadsheet but were excluded from the calculator due to ambiguity (no FFPPOA rate, "See Column I" placeholder, or Aged Care-only with no published rate). Listed here for transparency.',
             'generatedAt': date.today().isoformat(),
             'generator': 'scripts/build-pay-data.py',
             'agreements': ['Victorian public health (VHIA-negotiated)', 'Mental Health Salary Circular 880'],
@@ -280,5 +308,6 @@ def main():
     mh_only = sum(1 for k in unified if k not in vhia_raw["codes"])
     overlap = sum(1 for k in mh if k in vhia_raw["codes"])
     print(f"{args.out}: {len(unified)} codes ({len(vhia_raw['codes'])} VHIA, {mh_only} MH-only new, {overlap} merged with new MH ranges); {sz/1024:.1f} KB")
+    print(f"  excluded {len(excluded)} ambiguous MH classifications: {[e['code'] for e in excluded]}")
 
 if __name__ == '__main__': main()
