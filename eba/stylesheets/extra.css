@@ -701,3 +701,76 @@ pre.appendix-schedule code {
   color: color-mix(in srgb, var(--md-default-fg-color) 75%, transparent);
   margin: 0.4rem 0 1rem;
 }
+
+/* ============================================================
+   Compact clause nav at the TOP of each clause page
+   ============================================================ */
+.clause-nav--compact {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  margin: 0.4rem 0 1.1rem;
+  padding: 0;
+  border: none;
+}
+
+.clause-nav--compact > a,
+.clause-nav--compact > span.clause-nav-placeholder {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.clause-nav--compact .clause-nav-section,
+.clause-nav--compact .clause-nav-prev,
+.clause-nav--compact .clause-nav-next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.82em;
+  line-height: 1.2;
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 30%, transparent);
+  border-radius: 4px;
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+  background: var(--md-default-bg-color);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clause-nav--compact .clause-nav-section:hover,
+.clause-nav--compact .clause-nav-prev:hover,
+.clause-nav--compact .clause-nav-next:hover {
+  border-color: var(--md-primary-fg-color);
+  background: color-mix(in srgb, var(--md-primary-fg-color) 8%, var(--md-default-bg-color));
+  text-decoration: none;
+}
+
+.clause-nav--compact .clause-nav-section {
+  font-weight: 600;
+}
+
+.clause-nav--compact .clause-nav-dir {
+  font-size: 0.95em;
+  opacity: 0.75;
+}
+
+.clause-nav--compact .clause-nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clause-nav--compact .clause-nav-placeholder {
+  /* Reserve space so prev/section/next stay aligned even when one is absent */
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .clause-nav--compact .clause-nav-label {
+    /* Keep just the arrows on very narrow screens */
+    display: none;
+  }
+}
