@@ -774,3 +774,90 @@ pre.appendix-schedule code {
     display: none;
   }
 }
+
+/* ============================================================
+   Floating left-edge clause nav (scrolls with the page)
+   - Hidden on narrow viewports where the left rail isn't available
+   - 3 small pill buttons stacked vertically
+   ============================================================ */
+.clause-nav-floating {
+  position: fixed;
+  top: 8.5rem;           /* sits below the Material header */
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 5;
+  /* Stay out of the way on narrow screens */
+}
+
+.clause-nav-floating .cnf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 30%, transparent);
+  border-radius: 50%;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+  font-size: 0.85em;
+  line-height: 1;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: width 0.18s ease, border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.clause-nav-floating .cnf-btn .cnf-arrow {
+  font-size: 1.15em;
+  font-weight: 600;
+  opacity: 0.85;
+  flex: 0 0 auto;
+  width: 36px;
+  text-align: center;
+}
+
+.clause-nav-floating .cnf-btn .cnf-text {
+  flex: 0 1 auto;
+  padding-right: 0.55rem;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 0.18s ease, opacity 0.18s ease;
+}
+
+.clause-nav-floating .cnf-btn:hover,
+.clause-nav-floating .cnf-btn:focus {
+  width: 130px;
+  border-radius: 18px;
+  border-color: var(--md-primary-fg-color);
+  background: color-mix(in srgb, var(--md-primary-fg-color) 8%, var(--md-default-bg-color));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.clause-nav-floating .cnf-btn:hover .cnf-text,
+.clause-nav-floating .cnf-btn:focus .cnf-text {
+  max-width: 100px;
+  opacity: 1;
+}
+
+.clause-nav-floating .cnf-section .cnf-arrow {
+  font-size: 1.05em;
+}
+
+/* On narrow viewports (under ~1100px Material drops the left rail), hide the
+   floating nav so it doesn't overlap the article. The bottom-of-page nav is
+   still always available. */
+@media (max-width: 1100px) {
+  .clause-nav-floating {
+    display: none;
+  }
+}
+
+/* Hide the older compact top nav style (no longer rendered, but defensive) */
+.clause-nav--compact {
+  display: none !important;
+}
