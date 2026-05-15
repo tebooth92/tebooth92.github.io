@@ -554,7 +554,6 @@
   font-style: italic;
 }
 
-/* Nested lists - softer indent */
 .md-typeset ol.clauses ol.subclauses,
 .md-typeset ol.subclauses ol.subsubclauses {
   margin-top: 0.45rem;
@@ -633,11 +632,7 @@ pre.appendix-schedule code {
   margin: -0.4rem 0 0.75rem;
 }
 
-/* ============================================================
-   Page-specific fixes (clauses, schedules, appendices)
-   ============================================================ */
-
-/* Appendix 6 - Certificate of Service template */
+/* Certificate of Service template */
 .cos-template {
   border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 25%, transparent);
   padding: 1rem 1.25rem;
