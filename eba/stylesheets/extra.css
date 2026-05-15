@@ -990,3 +990,21 @@ pre.appendix-schedule code {
   display: table;
   overflow-x: auto;
 }
+
+/* Employer/health-service two-column reference tables */
+.md-typeset table.employer-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0 1.5rem;
+  font-size: 0.92em;
+}
+.md-typeset table.employer-table td {
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 22%, transparent);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  width: 50%;
+  line-height: 1.5;
+}
+.md-typeset table.employer-table tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 3%, var(--md-default-bg-color));
+}
