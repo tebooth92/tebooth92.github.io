@@ -940,16 +940,6 @@ pre.appendix-schedule code {
   }
 }
 
-/* Make sure the right-side Table of Contents stays sticky as the user scrolls.
-   (Material does this by default but we add explicit rules for robustness.) */
-.md-sidebar.md-sidebar--secondary,
-.md-sidebar.md-sidebar--secondary .md-sidebar__scrollwrap {
-  position: sticky;
-  top: 3rem;
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
-}
-
 /* Hide the older nav variants in case any cached client still pulls old CSS */
 .clause-nav-floating { display: none !important; }
 .clause-nav--compact { display: none !important; }
