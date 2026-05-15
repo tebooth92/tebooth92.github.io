@@ -943,3 +943,50 @@ pre.appendix-schedule code {
 /* Hide the older nav variants in case any cached client still pulls old CSS */
 .clause-nav-floating { display: none !important; }
 .clause-nav--compact { display: none !important; }
+
+/* ============================================================
+   HDA table - tighten column widths and prevent overflow
+   ============================================================ */
+.md-typeset table.hda-table {
+  table-layout: fixed;
+  width: 100%;
+  max-width: 100%;
+  font-size: 0.88em;
+}
+.md-typeset table.hda-table th,
+.md-typeset table.hda-table td {
+  padding: 0.45rem 0.55rem;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+/* Three-column layout: Profession 38%, Substantive 31%, Higher Duties 31% */
+.md-typeset table.hda-table thead th:nth-child(1),
+.md-typeset table.hda-table tbody th[scope="row"] {
+  width: 38%;
+}
+.md-typeset table.hda-table thead th:nth-child(2),
+.md-typeset table.hda-table tbody td:nth-of-type(1) {
+  width: 31%;
+}
+.md-typeset table.hda-table thead th:nth-child(3),
+.md-typeset table.hda-table tbody td:nth-of-type(2) {
+  width: 31%;
+}
+/* Profession list inside the row header - tighten and de-bold the items */
+.md-typeset table.hda-table th[scope="row"] ul {
+  font-weight: 400;
+  font-size: 0.96em;
+  padding-left: 1rem;
+  margin-top: 0.3rem;
+}
+.md-typeset table.hda-table th[scope="row"] ul li {
+  margin: 0.1rem 0;
+  line-height: 1.35;
+}
+/* Make sure the table doesn't burst out of the article column */
+.md-content__inner > .md-typeset table.hda-table,
+.md-typeset > table.hda-table {
+  display: table;
+  overflow-x: auto;
+}
