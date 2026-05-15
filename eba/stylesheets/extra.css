@@ -590,3 +590,45 @@ pre.appendix-schedule code {
 .md-typeset h3[id^="sch-"] {
   margin-top: 1.6rem;
 }
+
+/* Schedule tables (Appendix 4 schedules 1, 2, 3) */
+.md-typeset table.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0 1.5rem;
+  font-size: 0.92em;
+}
+.md-typeset table.schedule-table th,
+.md-typeset table.schedule-table td {
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 22%, transparent);
+  padding: 0.55rem 0.75rem;
+  vertical-align: top;
+  text-align: left;
+  line-height: 1.55;
+}
+.md-typeset table.schedule-table thead th {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 10%, var(--md-default-bg-color));
+  font-weight: 600;
+}
+.md-typeset table.schedule-table th[scope="row"] {
+  width: 30%;
+  background: color-mix(in srgb, var(--md-primary-fg-color) 4%, var(--md-default-bg-color));
+  font-weight: 600;
+}
+.md-typeset table.schedule-table ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.md-typeset table.schedule-table ul ul {
+  margin-top: 0.3rem;
+  padding-left: 1.25rem;
+}
+.md-typeset table.schedule-table li {
+  margin: 0.15rem 0;
+}
+
+.schedule-scope {
+  font-style: italic;
+  color: color-mix(in srgb, var(--md-default-fg-color) 75%, transparent);
+  margin: -0.4rem 0 0.75rem;
+}
