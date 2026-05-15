@@ -861,3 +861,95 @@ pre.appendix-schedule code {
 .clause-nav--compact {
   display: none !important;
 }
+
+/* ============================================================
+   Sticky top-bar clause nav (appears after scrolling past the title)
+   ============================================================ */
+.scroll-nav {
+  position: fixed;
+  top: 2.4rem;     /* sits flush under the Material site header */
+  left: 0;
+  right: 0;
+  background: var(--md-default-bg-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 18%, transparent);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 1rem;
+  z-index: 9;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100%);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.scroll-nav.scroll-nav--visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.scroll-nav .scroll-clause-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.92em;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--md-default-fg-color) 80%, transparent);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scroll-nav-buttons {
+  display: flex;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+}
+.scroll-nav .scroll-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 25%, transparent);
+  border-radius: 4px;
+  padding: 0.22rem 0.7rem;
+  font-size: 0.84em;
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+  background: var(--md-default-bg-color);
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s;
+}
+.scroll-nav .scroll-btn:hover,
+.scroll-nav .scroll-btn:focus {
+  border-color: var(--md-primary-fg-color);
+  background: color-mix(in srgb, var(--md-primary-fg-color) 8%, var(--md-default-bg-color));
+  text-decoration: none;
+}
+.scroll-nav .scroll-arrow {
+  font-size: 1em;
+  opacity: 0.7;
+}
+
+/* On narrow screens, hide the labels so the title + arrow buttons still fit */
+@media (max-width: 640px) {
+  .scroll-nav .scroll-text {
+    display: none;
+  }
+  .scroll-nav .scroll-btn {
+    padding: 0.22rem 0.55rem;
+  }
+}
+
+/* Make sure the right-side Table of Contents stays sticky as the user scrolls.
+   (Material does this by default but we add explicit rules for robustness.) */
+.md-sidebar.md-sidebar--secondary,
+.md-sidebar.md-sidebar--secondary .md-sidebar__scrollwrap {
+  position: sticky;
+  top: 3rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+/* Hide the older nav variants in case any cached client still pulls old CSS */
+.clause-nav-floating { display: none !important; }
+.clause-nav--compact { display: none !important; }
