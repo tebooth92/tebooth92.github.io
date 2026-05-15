@@ -632,3 +632,77 @@ pre.appendix-schedule code {
   color: color-mix(in srgb, var(--md-default-fg-color) 75%, transparent);
   margin: -0.4rem 0 0.75rem;
 }
+
+/* ============================================================
+   Page-specific fixes (clauses, schedules, appendices)
+   ============================================================ */
+
+/* Appendix 6 - Certificate of Service template */
+.cos-template {
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 25%, transparent);
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  margin: 0.75rem 0 1.5rem;
+  background: color-mix(in srgb, var(--md-primary-fg-color) 3%, var(--md-default-bg-color));
+}
+.cos-template p { margin: 0.5rem 0; }
+.cos-template .cos-fill { letter-spacing: 1px; color: color-mix(in srgb, var(--md-default-fg-color) 55%, transparent); }
+
+/* Classification lists (e.g. sole allowance, top of band) */
+.md-typeset ul.classification-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.4rem 0 1rem;
+  columns: 2;
+  column-gap: 1.5rem;
+}
+.md-typeset ul.classification-list > li {
+  padding: 0.25rem 0 0.25rem 0.7rem;
+  border-left: 2px solid color-mix(in srgb, var(--md-primary-fg-color) 30%, transparent);
+  margin: 0.25rem 0;
+  break-inside: avoid;
+}
+@media (max-width: 700px) {
+  .md-typeset ul.classification-list { columns: 1; }
+}
+
+/* Rate / HDA tables */
+.md-typeset table.rate-table,
+.md-typeset table.hda-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0 1.5rem;
+  font-size: 0.92em;
+}
+.md-typeset table.rate-table th,
+.md-typeset table.rate-table td,
+.md-typeset table.hda-table th,
+.md-typeset table.hda-table td {
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 22%, transparent);
+  padding: 0.5rem 0.7rem;
+  vertical-align: top;
+  text-align: left;
+  line-height: 1.5;
+}
+.md-typeset table.rate-table thead th,
+.md-typeset table.hda-table thead th {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 10%, var(--md-default-bg-color));
+  font-weight: 600;
+}
+.md-typeset table.rate-table th[scope="row"],
+.md-typeset table.hda-table th[scope="row"] {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 4%, var(--md-default-bg-color));
+  font-weight: 600;
+}
+.md-typeset table.rate-table td { font-variant-numeric: tabular-nums; }
+.md-typeset table.hda-table ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+}
+.md-typeset table.hda-table ul li { margin: 0.15rem 0; }
+.rate-footnote {
+  font-size: 0.88em;
+  font-style: italic;
+  color: color-mix(in srgb, var(--md-default-fg-color) 75%, transparent);
+  margin: 0.4rem 0 1rem;
+}
