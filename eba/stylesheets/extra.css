@@ -1008,3 +1008,267 @@ pre.appendix-schedule code {
 .md-typeset table.employer-table tr:nth-child(even) td {
   background: color-mix(in srgb, var(--md-primary-fg-color) 3%, var(--md-default-bg-color));
 }
+
+/* EBA overview "At a glance" summary table */
+.md-typeset table.eba-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 2rem;
+  font-size: 0.92rem;
+  display: table;
+}
+.md-typeset table.eba-summary-table th,
+.md-typeset table.eba-summary-table td {
+  padding: 0.55rem 0.85rem;
+  vertical-align: top;
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 18%, transparent);
+  line-height: 1.45;
+}
+.md-typeset table.eba-summary-table th[scope="row"] {
+  width: 28%;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--md-primary-fg-color) 6%, var(--md-default-bg-color));
+  color: var(--md-default-fg-color);
+  text-align: left;
+  white-space: normal;
+}
+
+/* EBA "Parts of the Agreement" table */
+.md-typeset table.eba-parts-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 2rem;
+  font-size: 0.92rem;
+  display: table;
+}
+.md-typeset table.eba-parts-table th,
+.md-typeset table.eba-parts-table td {
+  padding: 0.5rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 18%, transparent);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.md-typeset table.eba-parts-table thead th {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color));
+  font-weight: 600;
+  text-align: left;
+}
+.md-typeset table.eba-parts-table th[scope="row"] {
+  width: 14%;
+  text-align: left;
+  font-weight: 600;
+}
+.md-typeset table.eba-parts-table th[scope="row"] a {
+  color: var(--md-primary-fg-color);
+  text-decoration: none;
+}
+.md-typeset table.eba-parts-table th[scope="row"] a:hover { text-decoration: underline; }
+.md-typeset table.eba-parts-table tr:nth-child(even) td,
+.md-typeset table.eba-parts-table tr:nth-child(even) th[scope="row"] {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 3%, var(--md-default-bg-color));
+}
+
+/* Arrangement (clause 2) - full table of contents */
+.md-typeset table.arrangement-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  display: table;
+}
+.md-typeset table.arrangement-table th,
+.md-typeset table.arrangement-table td {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 18%, transparent);
+  line-height: 1.4;
+  vertical-align: top;
+}
+.md-typeset table.arrangement-table thead th {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color));
+  font-weight: 600;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.md-typeset table.arrangement-table td:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--md-primary-fg-color) 80%, var(--md-default-fg-color));
+}
+.md-typeset table.arrangement-table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+  color: var(--md-default-fg-color--light);
+}
+.md-typeset table.arrangement-table th.arrangement-part {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 18%, var(--md-default-bg-color));
+  font-weight: 700;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  text-align: left;
+  color: var(--md-default-fg-color);
+}
+.md-typeset table.arrangement-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 5%, var(--md-default-bg-color));
+}
+
+/* Index (clause 3) - alphabetical reference table */
+.md-typeset table.index-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  display: table;
+}
+.md-typeset table.index-table th,
+.md-typeset table.index-table td {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 18%, transparent);
+  line-height: 1.4;
+  vertical-align: top;
+}
+.md-typeset table.index-table thead th {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color));
+  font-weight: 600;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.md-typeset table.index-table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+  color: var(--md-default-fg-color--light);
+}
+.md-typeset table.index-table th.index-letter {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 18%, var(--md-default-bg-color));
+  font-weight: 700;
+  text-align: left;
+  padding: 0.5rem 0.85rem;
+  color: var(--md-default-fg-color);
+  font-size: 1.05rem;
+  letter-spacing: 0.05em;
+}
+.md-typeset table.index-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 5%, var(--md-default-bg-color));
+}
+
+/* Definitions list (clause 4) - <dl> with bolded term + clause number */
+.md-typeset dl.definitions-list {
+  margin: 1rem 0;
+}
+.md-typeset dl.definitions-list dt {
+  margin: 0.8rem 0 0.25rem;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  scroll-margin-top: 5rem;
+}
+.md-typeset dl.definitions-list dt strong {
+  color: var(--md-primary-fg-color);
+}
+.md-typeset dl.definitions-list dt .def-num {
+  display: inline-block;
+  min-width: 2.6rem;
+  color: var(--md-default-fg-color--light);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+.md-typeset dl.definitions-list dd {
+  margin: 0 0 0.55rem 2.6rem;
+  line-height: 1.55;
+}
+.md-typeset dl.definitions-list dd p {
+  margin: 0.4rem 0;
+}
+
+/* ============================================================================
+   Subclause layout (wrapped by hooks.py)
+   Each clause is wrapped in <section class="subclause"> containing
+   <div class="subclause-num"> and <div class="subclause-body">. The num div
+   is absolutely positioned so it sits in the left gutter while the body
+   flows normally in the content column. No clipping issues.
+   ========================================================================== */
+
+.md-typeset section.subclause {
+  position: relative;
+  margin: 1.3rem 0 0;
+}
+.md-typeset section.subclause:first-of-type { margin-top: 0.6rem; }
+
+.md-typeset section.subclause .subclause-num {
+  position: absolute;
+  left: -5rem;
+  top: 0;
+  width: 4rem;
+  padding-right: 0.5rem;
+  text-align: right;
+  font-weight: 600;
+  line-height: 1.7;
+}
+.md-typeset section.subclause .subclause-num h3 {
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--md-default-fg-color);
+  display: inline;
+}
+.md-typeset section.subclause .subclause-num h3::before { content: none; }
+/* Hide the headerlink "¶" anchor in the gutter (still keyboard-accessible) */
+.md-typeset section.subclause .subclause-num h3 .headerlink {
+  display: none;
+}
+
+.md-typeset section.subclause .subclause-body > *:first-child {
+  margin-top: 0;
+}
+
+/* Sub-points stay in the body column with progressive indent */
+.md-typeset p.subpoint-a,
+.md-typeset p.subpoint-i,
+.md-typeset p.subpoint-A {
+  margin: 0.5rem 0;
+}
+.md-typeset p.subpoint-a strong:first-child,
+.md-typeset p.subpoint-i strong:first-child,
+.md-typeset p.subpoint-A strong:first-child {
+  font-weight: 600;
+  margin-right: 0.4em;
+}
+.md-typeset p.subpoint-a { margin-left: 2rem; }
+.md-typeset p.subpoint-i { margin-left: 4rem; }
+.md-typeset p.subpoint-A { margin-left: 6rem; }
+
+@media (max-width: 60em) {
+  .md-typeset section.subclause .subclause-num {
+    position: static;
+    left: auto;
+    width: auto;
+    text-align: left;
+    padding-right: 0;
+    margin-bottom: 0.2rem;
+  }
+  .md-typeset p.subpoint-a { margin-left: 1rem; }
+  .md-typeset p.subpoint-i { margin-left: 2rem; }
+  .md-typeset p.subpoint-A { margin-left: 3rem; }
+}
+
+/* Titled clauses: number-text span in the gutter, h3 with title in body */
+.md-typeset section.subclause .subclause-num-text {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--md-default-fg-color);
+}
+.md-typeset section.subclause .subclause-body h3.subclause-title {
+  margin: 0 0 0.4rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--md-default-fg-color);
+}
+.md-typeset section.subclause .subclause-body h3.subclause-title::before { content: none; }
+
