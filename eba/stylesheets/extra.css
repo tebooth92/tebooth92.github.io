@@ -1274,7 +1274,12 @@ pre.appendix-schedule code {
 
 
 /* Hide the auto-rendered tags row above the page title.
-   The .clause-meta pill row below the H1 still shows EBA / Part / Clause #. */
-.md-typeset .md-tags {
-  display: none;
+   The .clause-meta pill row below the H1 still shows EBA / Part / Clause #.
+   MkDocs Material renders tags in a <nav class="md-tags"> that sits OUTSIDE
+   .md-typeset, so we need selectors that don't require that ancestor. */
+nav.md-tags,
+.md-tags,
+.md-content nav.md-tags,
+article.md-content__inner > nav.md-tags {
+  display: none !important;
 }
