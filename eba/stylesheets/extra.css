@@ -1283,3 +1283,27 @@ nav.md-tags,
 article.md-content__inner > nav.md-tags {
   display: none !important;
 }
+
+/* === Cross-EBA collapsible nav (Option 1) ===
+   Tabs removed from mkdocs.yml so all EBAs appear as collapsible top-level
+   items in the left sidebar. Widen the sidebar so deeper paths don't truncate. */
+@media screen and (min-width: 76.25em) {
+  .md-sidebar.md-sidebar--primary { width: 17rem; }
+  .md-main__inner { margin-left: 17rem; }
+  /* The grid template Material uses for the page body keeps content properly
+     adjacent to the wider sidebar. */
+  .md-grid { max-width: 76rem; }
+}
+
+/* Tighten nav item line-height so deep trees don't feel sprawling. */
+.md-nav__item .md-nav__link {
+  line-height: 1.4;
+  padding: 0.25rem 0;
+}
+
+/* Slightly darker / bolder EBA-level headings (first level inside the sidebar
+   nav) so they read as section roots in the collapsible tree. */
+.md-sidebar--primary .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
+  font-weight: 500;
+  color: var(--md-default-fg-color);
+}
