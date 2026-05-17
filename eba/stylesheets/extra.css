@@ -1272,3 +1272,9 @@ pre.appendix-schedule code {
 }
 .md-typeset section.subclause .subclause-body h3.subclause-title::before { content: none; }
 
+
+/* Hide the auto-rendered tags row above the page title.
+   The .clause-meta pill row below the H1 still shows EBA / Part / Clause #. */
+.md-typeset .md-tags {
+  display: none;
+}
