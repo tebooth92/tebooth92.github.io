@@ -1,0 +1,18 @@
+/* embed.css - applied when MkDocs is loaded inside the shell iframe.
+   The synchronous script in overrides/main.html adds class="embed" to
+   <html> if ?embed=1 is in the URL, so these rules apply from the
+   very first paint (no flash of the MkDocs nav). */
+
+html.embed .md-sidebar--primary {
+  display: none !important;
+}
+
+html.embed .md-main__inner {
+  margin-left: 0 !important;
+}
+
+html.embed .md-content {
+  max-width: 100% !important;
+}
+
+/* Keep the top header (search bar) visible - only hide the left nav */

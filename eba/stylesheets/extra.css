@@ -1288,16 +1288,80 @@ article.md-content__inner > nav.md-tags {
    Tabs and sections removed; tree drills down to individual clauses.
    Tree state persisted in localStorage via nav-persist.js. */
 
-/* Tighten nav item line-height so the deep tree doesn't feel sprawling. */
-.md-nav__item .md-nav__link {
-  line-height: 1.4;
-  padding: 0.25rem 0;
+/* === Sidebar styling: review.html-inspired density ===
+   Smaller font, tight rows, EBA-level headers stand out, Parts and clauses
+   indent visibly. Keeps Material's underlying nav structure - we're just
+   restyling. */
+
+/* Smaller font across sidebar nav */
+.md-sidebar--primary .md-nav__title,
+.md-sidebar--primary .md-nav__link {
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
-/* Slightly bolder EBA-level headings so they read as section roots. */
+/* Tighter row padding */
+.md-sidebar--primary .md-nav__item .md-nav__link {
+  padding: 0.25rem 0.5rem;
+}
+
+/* Top-level EBA items: subtle gray background + bold so they read as roots */
 .md-sidebar--primary .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
-  font-weight: 500;
+  background: #e9ecf0;
+  font-weight: 600;
   color: var(--md-default-fg-color);
+  padding: 0.4rem 0.6rem;
+}
+[data-md-color-scheme="slate"]
+  .md-sidebar--primary
+  .md-nav--primary
+  > .md-nav__list
+  > .md-nav__item
+  > .md-nav__link {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Part-level items: slightly muted */
+.md-sidebar--primary .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav .md-nav__item > .md-nav__link {
+  color: var(--md-default-fg-color--light);
+}
+
+/* Active page: accent the row so the user can see where they are */
+.md-sidebar--primary .md-nav__link--active {
+  background: rgba(63, 81, 181, 0.08);
+  color: var(--md-primary-fg-color);
+  font-weight: 500;
+  border-left: 2px solid var(--md-primary-fg-color);
+}
+
+/* Subtle tinted background + right-edge border so the nav feels visually
+   separated from the content column. Apply the tint to BOTH the sidebar
+   container AND its inner scrollwrap, because Material's scrollwrap has
+   its own opaque background that would otherwise mask the tint. */
+.md-sidebar--primary,
+.md-sidebar--primary .md-sidebar__scrollwrap {
+  background-color: #f4f6fa;
+}
+.md-sidebar--primary {
+  border-right: 1px solid var(--md-default-fg-color--lightest);
+}
+[data-md-color-scheme="slate"] .md-sidebar--primary,
+[data-md-color-scheme="slate"] .md-sidebar--primary .md-sidebar__scrollwrap {
+  background-color: rgba(255, 255, 255, 0.025);
+}
+
+/* Inset the sidebar's nav contents from the right edge so the scrollbar
+   doesn't overlap the expand/collapse carets. */
+.md-sidebar--primary .md-sidebar__scrollwrap {
+  padding-right: 0.75rem;
+}
+
+/* Add left padding to content so the clause-number gutter has breathing room
+   between the sidebar edge and the body text. */
+@media screen and (min-width: 76.25em) {
+  .md-main__inner > .md-content {
+    padding-left: 3rem;
+  }
 }
 
 /* Hide the right-side TOC site-wide. The left tree now goes deep enough that
