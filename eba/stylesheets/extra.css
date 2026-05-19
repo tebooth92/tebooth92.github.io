@@ -1101,6 +1101,14 @@ pre.appendix-schedule code {
   white-space: nowrap;
   color: var(--md-default-fg-color--light);
 }
+/* When the table has only 2 columns (no Page column), the Title cell becomes
+   the last-child and would otherwise inherit the right-align meant for the
+   Page column. Reset it to left-align. */
+.md-typeset table.arrangement-table td:nth-child(2):last-child {
+  text-align: left;
+  white-space: normal;
+  color: inherit;
+}
 .md-typeset table.arrangement-table th.arrangement-part {
   background: color-mix(in srgb, var(--md-primary-fg-color) 18%, var(--md-default-bg-color));
   font-weight: 700;
