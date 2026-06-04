@@ -393,6 +393,7 @@
                     <!-- Existing Over Award Section -->
                     
                     <div id="qualification-allowances-section" class="hidden pl-11"></div>
+                    <div id="experience-payments-section" class="hidden pl-11"></div>
 <div id="existing-over-award-container" class="hidden pl-11 mt-6">
                         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
                             Existing Over Award </h2>
@@ -811,7 +812,7 @@
                         renderComponents();
                         // Re-render qualification allowances against the new range
                         const codeData = state.vhiaCodes.find(c => c.code === state.selectedCode);
-                        if (codeData) renderQualificationAllowances(codeData);
+                        if (codeData) { renderQualificationAllowances(codeData); renderExperiencePayments(codeData); }
                         calculatePay();
                     }
                 });
@@ -921,6 +922,7 @@
                     }
                     state.payData = payData;
                     state.qualificationAllowances = payData.qualificationAllowances || {};
+                    state.experiencePayments = payData.experiencePayments || {};
 
                     const processed = [];
                     for (const [code, codeData] of Object.entries(payData.codes)) {
@@ -933,6 +935,7 @@
                             rateBasis: codeData.rateBasis || 'hourly',
                             hoursPerWeek: codeData.hoursPerWeek || 38,
                             allowanceSubgroup: codeData.allowanceSubgroup || null,
+                            experienceSubgroup: codeData.experienceSubgroup || null,
                             hasCommuted: codeData.hasCommuted || false,
                             dateRanges: codeData.dateRanges || [],
                         });
@@ -1053,6 +1056,7 @@
                     elements.componentsContainer.classList.remove('hidden');
                     elements.existingOverAwardContainer.classList.remove('hidden');
                     renderQualificationAllowances(codeData);
+                    renderExperiencePayments(codeData);
                 }
             } else {
                 state.higherDutiesTargetCode = code;
@@ -1133,6 +1137,60 @@
             });
         }
 
+
+        function renderExperiencePayments(codeData) {
+            const host = document.getElementById('experience-payments-section');
+            if (!host) return;
+            host.innerHTML = '';
+            const sg = codeData.experienceSubgroup;
+            const ep = state.experiencePayments || {};
+            if (!sg || !ep[sg]) { host.classList.add('hidden'); return; }
+            const data = ep[sg];
+            host.classList.remove('hidden');
+            const wrap = document.createElement('div');
+            wrap.className = 'p-4 bg-amber-50/30 border border-amber-100 rounded-xl';
+            wrap.innerHTML = `<div class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Experience Payments (${sg})</div>
+                <p class="text-xs text-slate-500 mb-3">Optional: tick the experience level that applies. Weekly amounts are converted to hourly using ${codeData.hoursPerWeek || 38} hours/week.</p>`;
+            const list = document.createElement('div');
+            list.className = 'grid grid-cols-1 md:grid-cols-2 gap-2';
+            const startDate = (state.selectedDateRange && state.selectedDateRange.startDate) || '9999-12-31';
+            data.items.forEach((item, idx) => {
+                let active = null;
+                for (const r of item.rates) {
+                    if (r.startDate <= startDate) active = r.amount; else break;
+                }
+                if (active === null && item.rates.length) active = item.rates[item.rates.length - 1].amount;
+                const hourly = active ? (active / (codeData.hoursPerWeek || 38)) : 0;
+                const id = `exp-${idx}`;
+                const row = document.createElement('label');
+                row.className = 'flex items-center justify-between gap-2 p-2 bg-white rounded border border-amber-100 cursor-pointer hover:border-amber-300';
+                const label = item.level ? `${item.level} - ${item.name}` : item.name;
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="${id}" data-amount="${hourly}" data-name="${label}" class="exp-payment-cb h-4 w-4 text-amber-600 rounded">
+                        <span class="text-sm text-slate-700">${label}</span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-mono">$${active ? active.toFixed(2) : '0.00'}/wk \u2192 $${hourly.toFixed(5)}/hr</span>`;
+                list.appendChild(row);
+            });
+            wrap.appendChild(list);
+            host.appendChild(wrap);
+            host.querySelectorAll('.exp-payment-cb').forEach(cb => {
+                cb.addEventListener('change', e => {
+                    const name = 'Experience: ' + e.target.dataset.name;
+                    const amount = parseFloat(e.target.dataset.amount) || 0;
+                    if (e.target.checked) {
+                        state.codeComponents.push({ 'VHIA Code': state.selectedCode, 'Pay Component Name': name, 'Hourly Amount': amount });
+                        state.selectedComponents.push(name);
+                    } else {
+                        state.codeComponents = state.codeComponents.filter(c => c['Pay Component Name'] !== name);
+                        state.selectedComponents = state.selectedComponents.filter(n => n !== name);
+                    }
+                    renderComponents();
+                    calculatePay();
+                });
+            });
+        }
 
         function getBaseRateForCode(idOrCode) {
             // Accept compound id ("VHIA:RP70") or bare code ("RP70") for backwards compat.
