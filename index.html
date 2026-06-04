@@ -1077,14 +1077,14 @@
             // Find a matching qualification subgroup; the keys in qualificationAllowances may be sheet subgroups.
             const qa = state.qualificationAllowances || {};
             // Heuristic match by group prefix.
-            const matchKey = Object.keys(qa).find(k => {
+            const matchKey = (qa[sg] ? sg : Object.keys(qa).find(k => {
                 const kl = k.toLowerCase();
                 const g = (codeData.group || '').toLowerCase();
                 if (g.includes('registered psychiatric') || g.includes('psychiatric enrolled') || g.includes('ruson') || g.includes('indigenous')) return kl.includes('registered psychiatric');
                 if (g.includes('mental health officer')) return kl.includes('mental health officer');
                 if (g.startsWith('ahp -') || g.includes('ahp')) return kl.includes('ahp1');
                 return false;
-            });
+            }));
             if (!matchKey) { host.classList.add('hidden'); return; }
             const data = qa[matchKey];
             host.classList.remove('hidden');
