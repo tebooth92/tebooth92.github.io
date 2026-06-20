@@ -8,68 +8,98 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         html, body { height: 100%; margin: 0; font-family: 'Inter', sans-serif; }
-        #app { display: flex; flex-direction: column; height: 100vh; }
         #tool-frame { flex: 1 1 auto; width: 100%; border: 0; }
     </style>
 </head>
-<body class="bg-slate-50">
-    <div id="app">
-        <!-- TOP NAV -->
-        <header class="flex items-center gap-6 px-6 bg-slate-900 text-white shadow-md flex-none">
-            <div class="flex items-center gap-2 py-4 pr-4 border-r border-slate-700">
-                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <span class="font-semibold tracking-tight">Payroll Tools</span>
+<body class="bg-slate-50 text-slate-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- LEFT SIDEBAR (persistent on every page) -->
+        <nav class="w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col">
+            <div class="p-6">
+                <a href="#home" class="block">
+                    <h1 class="text-xl font-bold text-white tracking-wide">Payroll<br><span class="text-indigo-400">Tools</span></h1>
+                </a>
             </div>
-            <nav id="tool-nav" class="flex items-stretch gap-1"></nav>
-        </header>
+            <div id="tool-nav" class="flex-1 px-4 space-y-1 mt-2 overflow-y-auto"></div>
+            <div class="p-4 text-xs text-slate-600 text-center">v2.0.0 | Unified</div>
+        </nav>
 
         <!-- TOOL CONTENT -->
-        <iframe id="tool-frame" title="Tool" src="about:blank"></iframe>
+        <main class="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+            <iframe id="tool-frame" title="Tool" src="about:blank"></iframe>
+        </main>
     </div>
 
     <script>
-        const TOOLS = [
-            { key: 'salary',     label: 'Salary Packaging',                file: 'salary-packaging.html' },
-            { key: 'cutoff',     label: 'Projected Deduction Reconciliation', file: 'cutoff.html' },
-            { key: 'reconciler', label: 'Payroll Variance Reconciler',     file: 'reconciler.html' },
+        const ICONS = {
+            home:     "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+            currency: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+            audit:    "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+            remit:    "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z",
+            report:   "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+            scale:    "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+        };
+        // Each route: sidebar label, icon, and the file (with embed hash) to load in the frame.
+        const ROUTES = {
+            'home':           { label:'Home',                              icon:'home',     file:'home.html' },
+            'pay-processing': { label:'Pay Processing',                    icon:'currency', file:'salary-packaging.html?embed=1#pay-processing' },
+            'audit':          { label:'Pre Payment Audit',                 icon:'audit',    file:'salary-packaging.html?embed=1#audit' },
+            'remittance':     { label:'Remittance',                        icon:'remit',    file:'salary-packaging.html?embed=1#eml-remittance' },
+            'cutoff':         { label:'Projected Deduction Reconciliation', icon:'report',  file:'cutoff.html' },
+            'reconciler':     { label:'Payroll Variance Reconciler',       icon:'scale',    file:'reconciler.html' },
+        };
+        // Sidebar layout: groups with optional headings.
+        const GROUPS = [
+            { heading:null,               keys:['home'] },
+            { heading:'Salary Packaging', keys:['pay-processing','audit','remittance'] },
+            { heading:'Other Tools',      keys:['cutoff','reconciler'] },
         ];
 
         const nav = document.getElementById('tool-nav');
         const frame = document.getElementById('tool-frame');
-        const base = 'flex items-center px-4 text-sm font-medium border-b-2 transition-colors';
-        const inactive = base + ' border-transparent text-slate-300 hover:text-white hover:bg-slate-800';
-        const active = base + ' border-indigo-400 text-white';
+        const baseCls = 'flex items-center px-4 py-3 rounded-lg transition-colors group';
+        const inactiveCls = baseCls + ' hover:bg-slate-800 hover:text-white';
+        const activeCls = baseCls + ' bg-slate-800 text-white';
+        const iconInactive = 'w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors';
+        const iconActive = 'w-5 h-5 mr-3 text-indigo-400';
 
-        TOOLS.forEach(t => {
-            const a = document.createElement('a');
-            a.href = '#' + t.key;
-            a.id = 'nav-' + t.key;
-            a.textContent = t.label;
-            a.className = inactive;
-            nav.appendChild(a);
+        function svg(icon, cls) {
+            return `<svg class="${cls}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${ICONS[icon]}"></path></svg>`;
+        }
+        // Build sidebar
+        GROUPS.forEach(g => {
+            if (g.heading) {
+                const h = document.createElement('p');
+                h.className = 'px-4 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500';
+                h.textContent = g.heading;
+                nav.appendChild(h);
+            }
+            g.keys.forEach(key => {
+                const r = ROUTES[key];
+                const a = document.createElement('a');
+                a.href = '#' + key;
+                a.id = 'nav-' + key;
+                a.className = inactiveCls;
+                a.innerHTML = svg(r.icon, iconInactive) + `<span class="font-medium">${r.label}</span>`;
+                nav.appendChild(a);
+            });
         });
 
-        function selectTool(key) {
-            const tool = TOOLS.find(t => t.key === key) || TOOLS[0];
-            TOOLS.forEach(t => {
-                document.getElementById('nav-' + t.key).className = (t.key === tool.key) ? active : inactive;
+        function selectRoute(key) {
+            if (!ROUTES[key]) key = 'home';
+            const r = ROUTES[key];
+            Object.keys(ROUTES).forEach(k => {
+                const a = document.getElementById('nav-' + k);
+                if (!a) return;
+                a.className = (k === key) ? activeCls : inactiveCls;
+                a.querySelector('svg').setAttribute('class', (k === key) ? iconActive : iconInactive);
             });
-            const target = tool.file;
-            // Only reload the frame if the tool actually changed
-            if (frame.getAttribute('data-file') !== target) {
-                frame.setAttribute('data-file', target);
-                frame.src = target;
-            }
-            document.title = tool.label + ' | Payroll Tools';
+            // Setting src that differs only by #fragment won't reload the frame (smooth view switch).
+            if (frame.src.split('/').pop() !== r.file) frame.src = r.file;
+            document.title = (key === 'home' ? 'Payroll Tools' : r.label + ' | Payroll Tools');
         }
 
-        function routeFromHash() {
-            const key = (location.hash || '#salary').slice(1);
-            selectTool(key);
-        }
-
+        function routeFromHash() { selectRoute((location.hash || '#home').slice(1)); }
         window.addEventListener('hashchange', routeFromHash);
         routeFromHash();
     </script>
