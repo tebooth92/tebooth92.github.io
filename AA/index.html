@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body { height: 100%; margin: 0; font-family: 'Inter', sans-serif; }
+        #app { display: flex; flex-direction: column; height: 100vh; }
+        #tool-frame { flex: 1 1 auto; width: 100%; border: 0; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="app">
+        <!-- TOP NAV -->
+        <header class="flex items-center gap-6 px-6 bg-slate-900 text-white shadow-md flex-none">
+            <div class="flex items-center gap-2 py-4 pr-4 border-r border-slate-700">
+                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span class="font-semibold tracking-tight">Payroll Tools</span>
+            </div>
+            <nav id="tool-nav" class="flex items-stretch gap-1"></nav>
+        </header>
+
+        <!-- TOOL CONTENT -->
+        <iframe id="tool-frame" title="Tool" src="about:blank"></iframe>
+    </div>
+
+    <script>
+        const TOOLS = [
+            { key: 'salary',     label: 'Salary Packaging',                file: 'salary-packaging.html' },
+            { key: 'cutoff',     label: 'Projected Deduction Reconciliation', file: 'cutoff.html' },
+            { key: 'reconciler', label: 'Payroll Variance Reconciler',     file: 'reconciler.html' },
+        ];
+
+        const nav = document.getElementById('tool-nav');
+        const frame = document.getElementById('tool-frame');
+        const base = 'flex items-center px-4 text-sm font-medium border-b-2 transition-colors';
+        const inactive = base + ' border-transparent text-slate-300 hover:text-white hover:bg-slate-800';
+        const active = base + ' border-indigo-400 text-white';
+
+        TOOLS.forEach(t => {
+            const a = document.createElement('a');
+            a.href = '#' + t.key;
+            a.id = 'nav-' + t.key;
+            a.textContent = t.label;
+            a.className = inactive;
+            nav.appendChild(a);
+        });
+
+        function selectTool(key) {
+            const tool = TOOLS.find(t => t.key === key) || TOOLS[0];
+            TOOLS.forEach(t => {
+                document.getElementById('nav-' + t.key).className = (t.key === tool.key) ? active : inactive;
+            });
+            const target = tool.file;
+            // Only reload the frame if the tool actually changed
+            if (frame.getAttribute('data-file') !== target) {
+                frame.setAttribute('data-file', target);
+                frame.src = target;
+            }
+            document.title = tool.label + ' | Payroll Tools';
+        }
+
+        function routeFromHash() {
+            const key = (location.hash || '#salary').slice(1);
+            selectTool(key);
+        }
+
+        window.addEventListener('hashchange', routeFromHash);
+        routeFromHash();
+    </script>
+</body>
+</html>

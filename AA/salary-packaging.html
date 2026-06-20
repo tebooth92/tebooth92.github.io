@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Packaging Processor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Modal Styles */
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+
+        body.modal-active {
+            overflow-x: hidden;
+            overflow-y: visible !important;
+        }
+
+        /* Calculator Specific Styles (Scoped) */
+        #calc-modal .side-green {
+            background-color: #e6f9e9;
+        }
+
+        #calc-modal .side-purple {
+            background-color: #f3eafa;
+            border-right: 1px solid #dcdcdc;
+        }
+
+        #calc-modal .side-green h2 {
+            color: #28a745;
+        }
+
+        #calc-modal .side-purple h2 {
+            color: #6f42c1;
+        }
+
+        #calc-modal input[type="number"]:focus {
+            outline: none;
+            border-color: #555;
+        }
+
+        #calc-modal .side-green input:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 2px #28a745;
+        }
+
+        #calc-modal .side-purple input:focus {
+            border-color: #6f42c1;
+            box-shadow: 0 0 0 2px #6f42c1;
+        }
+
+        #calc-modal .result-card {
+            border-left-width: 5px;
+        }
+
+        #calc-modal .result-card.success {
+            border-left-color: #28a745;
+        }
+
+        #calc-modal .result-card.error {
+            border-left-color: #dc3545;
+        }
+
+        #calc-modal .result-card.warning {
+            border-left-color: #ffc107;
+        }
+
+        #calc-modal .variance-positive {
+            color: #28a745;
+        }
+
+        #calc-modal .variance-negative {
+            color: #dc3545;
+        }
+
+        #calc-modal .variance-neutral {
+            color: #333;
+        }
+
+        /* Collapsible Sections */
+        .section-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header:hover {
+            background-color: #f1f5f9;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            margin-bottom: 1.5rem;
+            background-color: white;
+            /* Hidden by default state logic in JS, but we can animate height if needed. 
+               For simplicity, we'll just toggle 'hidden' class or max-height. */
+        }
+
+        .section-arrow {
+            transition: transform 0.2s;
+        }
+
+        .section-collapsed .section-arrow {
+            transform: rotate(-90deg);
+        }
+
+        .section-collapsed+.section-content {
+            display: none;
+        }
+
+        /* --- Validator Tool Styles (Namespaced) --- */
+        .audit-stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .audit-stat-card.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .audit-stat-card.error {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .audit-stat-card h3 {
+            font-size: 36px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .audit-stat-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .audit-errors-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .audit-errors-table thead {
+            background: #f8f9fa;
+        }
+
+        .audit-errors-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+        }
+
+        .audit-errors-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .audit-errors-table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .audit-error-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .audit-error-type.negative-amount {
+            background: #ffe6e6;
+            color: #c92a2a;
+        }
+
+        .audit-error-type.negative-balance {
+            background: #fff3e6;
+            color: #d9480f;
+        }
+
+        .audit-error-type.negative-cap {
+            background: #ffebe6;
+            color: #c2255c;
+        }
+
+        .audit-error-type.eml-account {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .audit-error-type.eml-bankref {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .audit-error-type.pbi-account {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .audit-error-type.austin-account {
+            background: #e0f2f1;
+            color: #00695c;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR -->
+        <nav class="w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col">
+            <div class="p-6">
+                <h1 class="text-xl font-bold text-white tracking-wide">Salary Packaging<br><span
+                        class="text-indigo-400">Processor</span></h1>
+            </div>
+
+            <div class="flex-1 px-4 space-y-2 mt-4">
+                <!-- Link: Pay Processing -->
+                <a href="#" onclick="switchView('pay-processing')" id="nav-pay-processing"
+                    class="flex items-center px-4 py-3 bg-slate-800 text-white rounded-lg transition-colors group">
+                    <svg class="w-5 h-5 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                    <span class="font-medium">Pay Processing</span>
+                </a>
+
+                <!-- Link: Pre Payment Audit -->
+                <a href="#" onclick="switchView('audit')" id="nav-audit"
+                    class="flex items-center px-4 py-3 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                    <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                        </path>
+                    </svg>
+                    <span class="font-medium">Pre Payment Audit</span>
+                </a>
+
+                <!-- NEW: EML Remittance Link -->
+                <a href="#" id="nav-eml-remittance"
+                    class="flex items-center px-4 py-3 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group"
+                    onclick="switchView('eml-remittance'); return false;">
+                    <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    <span class="font-medium">Remittance</span>
+                </a>
+            </div>
+
+            <div class="p-4 text-xs text-slate-600 text-center">
+                v1.2.0 | Layout Integration
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto bg-slate-50 relative">
+
+            <!-- VIEW 1: PAY PROCESSING (Existing Tool) -->
+            <div id="view-pay-processing" class="view-section p-8 max-w-5xl mx-auto">
+                <!-- Header -->
+                <header class="mb-10 text-center relative">
+                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">Salary Packaging Processing</h2>
+                    <p class="text-slate-500">Manage your payroll and GST reconciliation in the sections below.</p>
+                    <button onclick="openCalculator()"
+                        class="absolute top-0 right-0 mt-2 mr-2 md:mt-0 md:mr-0 inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm leading-4 font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-colors">
+                        <svg class="h-4 w-4 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 7h6m0 0v13m0-13H5m4 13h14M5 7l.01-4.99" />
+                        </svg>
+                        Variance Calc
+                    </button>
+                </header>
+
+                <!-- Global Error Box (Outside sections) -->
+                <div id="status-area" class="hidden mb-6">
+                    <div id="error-box" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700 font-medium" id="error-message">Error processing files.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 1: PAYROLL FILES -->
+                <div class="section-container">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>1. Payroll Files</span>
+                        <svg class="w-5 h-5 text-slate-400 section-arrow" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="section-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <!-- PRE TAX COLUMN -->
+                            <div class="flex flex-col gap-4">
+                                <!-- Status Card -->
+                                <div id="card-pre"
+                                    class="bg-white rounded-lg shadow border border-slate-200 p-6 opacity-60 relative overflow-hidden transition-all duration-300">
+                                    <div class="absolute top-0 right-0 p-2 opacity-10"><span
+                                            class="text-6xl font-bold text-slate-800">PRE</span></div>
+                                    <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                                        Pre-Tax</h3>
+                                    <div class="flex items-baseline">
+                                        <span class="text-2xl font-bold text-slate-900" id="val-pre">$0.00</span>
+                                        <span class="ml-2 text-sm text-slate-500" id="count-pre">0 records</span>
+                                    </div>
+                                    <div class="mt-4 flex items-center text-sm">
+                                        <span id="status-icon-pre"
+                                            class="w-2 h-2 rounded-full bg-slate-300 mr-2"></span>
+                                        <span id="status-text-pre" class="text-slate-500">Waiting for file...</span>
+                                    </div>
+                                </div>
+                                <!-- Drop Zone -->
+                                <div id="drop-zone-pre"
+                                    class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-6 text-center transition-all duration-200 ease-in-out hover:border-indigo-500 hover:bg-slate-50 cursor-pointer shadow-sm flex flex-col justify-center items-center h-full group relative">
+                                    <div class="pointer-events-none group-hover:scale-105 transition-transform">
+                                        <svg class="w-8 h-8 text-slate-400 mx-auto mb-2" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                            </path>
+                                        </svg>
+                                        <p class="text-sm text-slate-700 font-medium">Drop Pre-Tax File</p>
+                                        <p class="text-xs text-indigo-500 mt-1 font-semibold">Expecting: 'AH -
+                                            Pre-Tax.xlsx'</p>
+                                    </div>
+                                    <input type="file" id="file-input-pre" class="hidden" accept=".xlsx,.xls">
+                                    <div id="pre-success"
+                                        class="hidden absolute top-2 right-2 bg-green-500 text-white rounded-full p-1 shadow">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- POST TAX COLUMN -->
+                            <div class="flex flex-col gap-4">
+                                <!-- Status Card -->
+                                <div id="card-post"
+                                    class="bg-white rounded-lg shadow border border-slate-200 p-6 opacity-60 relative overflow-hidden transition-all duration-300">
+                                    <div class="absolute top-0 right-0 p-2 opacity-10"><span
+                                            class="text-6xl font-bold text-slate-800">POST</span></div>
+                                    <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                                        Post-Tax</h3>
+                                    <div class="flex items-baseline">
+                                        <span class="text-2xl font-bold text-slate-900" id="val-post">$0.00</span>
+                                        <span class="ml-2 text-sm text-slate-500" id="count-post">0 records</span>
+                                    </div>
+                                    <div class="mt-4 flex items-center text-sm">
+                                        <span id="status-icon-post"
+                                            class="w-2 h-2 rounded-full bg-slate-300 mr-2"></span>
+                                        <span id="status-text-post" class="text-slate-500">Waiting for file...</span>
+                                    </div>
+                                </div>
+                                <!-- Drop Zone -->
+                                <div id="drop-zone-post"
+                                    class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-6 text-center transition-all duration-200 ease-in-out hover:border-indigo-500 hover:bg-slate-50 cursor-pointer shadow-sm flex flex-col justify-center items-center h-full group relative">
+                                    <div class="pointer-events-none group-hover:scale-105 transition-transform">
+                                        <svg class="w-8 h-8 text-slate-400 mx-auto mb-2" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                            </path>
+                                        </svg>
+                                        <p class="text-sm text-slate-700 font-medium">Drop Post-Tax File</p>
+                                        <p class="text-xs text-indigo-500 mt-1 font-semibold">Expecting: 'AH -
+                                            Post-Tax.xlsx'</p>
+                                    </div>
+                                    <input type="file" id="file-input-post" class="hidden" accept=".xlsx,.xls">
+                                    <div id="post-success"
+                                        class="hidden absolute top-2 right-2 bg-green-500 text-white rounded-full p-1 shadow">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SECTION 2: SUMMARY & DOWNLOAD -->
+                <div class="section-container">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>2. Summary & Download</span>
+                        <svg class="w-5 h-5 text-slate-400 section-arrow" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="section-content">
+                        <div class="bg-indigo-900 text-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row justify-between items-center hidden"
+                            id="total-summary">
+                            <div class="mb-4 md:mb-0">
+                                <h2 class="text-lg font-medium text-indigo-100">Total Deductions</h2>
+                                <p class="text-3xl font-bold tracking-tight" id="val-total">$0.00</p>
+                            </div>
+                            <button id="download-btn"
+                                class="bg-white text-indigo-900 hover:bg-indigo-50 font-semibold py-3 px-6 rounded-lg shadow transition duration-200 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                Download Salary_Packaging_Upload.csv
+                            </button>
+                        </div>
+                        <div id="summary-placeholder" class="text-center text-slate-400 italic py-4">
+                            Upload payroll files to see summary.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: PREVIEW DATA -->
+                <div class="section-container">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>3. Preview Data</span>
+                        <svg class="w-5 h-5 text-slate-400 section-arrow" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="section-content">
+                        <div id="preview-area" class="hidden">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                                <h3 class="text-lg font-medium text-slate-900">Payroll Records</h3>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="str-search"
+                                        class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        placeholder="Search Payroll ID...">
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+                                <table class="min-w-full divide-y divide-slate-200">
+                                    <thead class="bg-slate-50">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Employee Name</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Payroll ID</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Projected Deduction</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Pre/Post Tax</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Comments</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-slate-200" id="table-body">
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-4 text-center text-sm text-slate-500">No
+                                                data
+                                                loaded.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="preview-placeholder" class="text-center text-slate-400 italic py-4">
+                            Data will appear here after upload.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: GST REPORT -->
+                <div class="section-container">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <div class="flex items-center">
+                            <span>4. GST Report</span>
+                            <a href="https://ah.eziway.net.au/ASPX/SalaryPackaging/EmployerDepositGSTInvoicesReport.aspx"
+                                target="_blank"
+                                class="ml-2 text-slate-400 hover:text-indigo-600 transition-colors z-20 group relative"
+                                title="View GST Report" onclick="event.stopPropagation()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span
+                                    class="absolute left-6 top-0 w-32 bg-slate-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                    Go to Report
+                                </span>
+                            </a>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-400 section-arrow" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="section-content">
+                        <div id="drop-zone-gst"
+                            class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-8 text-center transition-all duration-200 ease-in-out hover:border-indigo-500 hover:bg-slate-50 cursor-pointer shadow-sm flex flex-col justify-center items-center relative">
+                            <div class="pointer-events-none" id="gst-drop-content">
+                                <svg class="w-10 h-10 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                <p class="text-base text-slate-700 font-medium">Drop GST Invoice Report Here</p>
+                                <p class="text-xs text-indigo-500 mt-2 font-semibold">Expecting: 'GST Invoice
+                                    Report.xlsx'</p>
+                            </div>
+                            <div id="gst-status"
+                                class="hidden absolute inset-0 flex items-center justify-center bg-green-50 rounded-xl">
+                                <div class="text-center">
+                                    <svg class="w-10 h-10 text-green-500 mx-auto mb-2" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <p class="text-green-700 font-medium">GST Report Loaded</p>
+                                </div>
+                            </div>
+                            <input type="file" id="file-input-gst" class="hidden" accept=".xlsx,.xls">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: GST ISSUES -->
+                <div class="section-container">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>5. GST Issues Detected</span>
+                        <svg class="w-5 h-5 text-slate-400 section-arrow" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="section-content">
+                        <div id="gst-variance-area" class="hidden">
+                            <div id="gst-issues-container"
+                                class="hidden bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r shadow-sm mb-4">
+                                <h3 class="text-lg font-bold text-amber-800 mb-2">GST Issues Detected</h3>
+                                <p class="text-sm text-amber-700 mb-4">The following discrepancies were found
+                                    between
+                                    Payroll
+                                    Files and the GST Report.</p>
+                                <div class="overflow-x-auto bg-white rounded border border-amber-200">
+                                    <table class="min-w-full divide-y divide-amber-100">
+                                        <thead class="bg-amber-100">
+                                            <tr>
+                                                <th
+                                                    class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">
+                                                    Employee</th>
+                                                <th
+                                                    class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">
+                                                    Payroll ID</th>
+                                                <th
+                                                    class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">
+                                                    Payroll Received</th>
+                                                <th
+                                                    class="px-4 py-2 text-left text-xs font-bold text-green-700 uppercase bg-green-100 border-b-2 border-green-200">
+                                                    Eziway GST Target</th>
+                                                <th
+                                                    class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">
+                                                    Variance</th>
+                                                <th
+                                                    class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">
+                                                    Issue</th>
+                                                <th
+                                                    class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">
+                                                    Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="gst-variance-body" class="divide-y divide-gray-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div id="gst-all-ok"
+                                class="hidden bg-green-50 border-l-4 border-green-500 p-6 rounded-r shadow-sm mb-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-bold text-green-800">GST Reconciliation Successful
+                                        </h3>
+                                        <p class="text-sm text-green-700">All employees match the GST Report. No
+                                            variances
+                                            found.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-start">
+                                <button id="download-validation-btn"
+                                    class="bg-slate-700 hover:bg-slate-800 text-white font-medium py-2 px-4 rounded shadow transition duration-200 flex items-center text-sm">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                        </path>
+                                    </svg>
+                                    Download Validation Report
+                                </button>
+                            </div>
+                        </div>
+                        <div id="gst-placeholder" class="text-center text-slate-400 italic py-4">
+                            Import GST Report to check for issues.
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End VIEW 1 -->
+
+            <!-- VIEW 2: PRE PAYMENT AUDIT (New Tool) -->
+            <div id="view-audit" class="view-section hidden p-8 max-w-5xl mx-auto">
+                <!-- Header -->
+                <header class="mb-10 text-center relative">
+                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">Package Benefit Details Validator</h2>
+                    <p class="text-slate-500">Validate for negative amounts, EML rules, and business logic errors.
+                    </p>
+
+                    <!-- Help Tooltip -->
+                    <a href="https://ah.eziway.net.au/ASPX/Employers/SubstantiationReport.aspx" target="_blank"
+                        class="absolute top-0 right-0 p-2 text-slate-400 hover:text-indigo-600 transition-colors group"
+                        title="View Substantiation Report">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span
+                            class="absolute right-0 top-8 w-32 bg-slate-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                            Go to Report
+                        </span>
+                    </a>
+                </header>
+
+                <div class="max-w-4xl mx-auto">
+                    <!-- Upload Box -->
+                    <div id="audit-upload-box"
+                        class="bg-white border-2 border-dashed border-indigo-300 rounded-xl p-10 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm mb-6 group">
+                        <div class="text-6xl mb-4 group-hover:scale-110 transition-transform">📊</div>
+                        <h3 class="text-xl font-semibold text-slate-800 mb-2">Drag and drop your Excel file here
+                        </h3>
+                        <p class="text-slate-500 mb-4">or click to browse</p>
+                        <input type="file" id="audit-file-input" class="hidden" accept=".xlsx,.xls">
+                    </div>
+
+                    <!-- File Info -->
+                    <div id="audit-file-info"
+                        class="hidden bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-green-800">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Action Button -->
+                    <button id="audit-validate-btn" disabled
+                        class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-8">
+                        Validate File
+                    </button>
+
+                    <!-- Loading -->
+                    <div id="audit-loading" class="hidden text-center py-8">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4">
+                        </div>
+                        <p class="text-slate-600 font-medium">Processing your file...</p>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="audit-results-section" class="hidden">
+                        <!-- Stats Grid -->
+                        <div id="audit-stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <!-- Errors Container -->
+                        <div id="audit-errors-container"
+                            class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End VIEW 2 -->
+
+            <!-- VIEW: EML REMITTANCE TOOL (NEW) -->
+            <div id="view-eml-remittance" class="view-section hidden p-8 max-w-5xl mx-auto">
+                <!-- Header -->
+                <header class="mb-10 text-center relative">
+                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">Remittance Generator</h2>
+                    <p class="text-slate-600">Upload 'Payment Transaction Report' to generate remittance files.</p>
+
+                    <!-- Help Tooltip -->
+                    <a href="https://ah.eziway.net.au/ASPX/Employers/EmployerTranstionalReport.aspx" target="_blank"
+                        class="absolute top-0 right-0 p-2 text-slate-400 hover:text-indigo-600 transition-colors group"
+                        title="View Transitional Report">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span
+                            class="absolute right-0 top-8 w-32 bg-slate-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                            Go to Report
+                        </span>
+                    </a>
+                </header>
+
+                <div class="max-w-4xl mx-auto">
+                    <!-- Upload Box -->
+                    <div id="eml-upload-box"
+                        class="bg-white border-2 border-dashed border-indigo-300 rounded-xl p-10 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm mb-6 group">
+                        <div class="text-6xl mb-4 group-hover:scale-110 transition-transform">💳</div>
+                        <h3 class="text-xl font-semibold text-slate-800 mb-2">Upload Payment Transaction Report</h3>
+                        <p class="text-slate-500 mb-4">Drag and drop your Excel file here (.xlsx)</p>
+                        <input type="file" id="eml-file-input" class="hidden" accept=".xlsx,.xls">
+                    </div>
+
+                    <!-- File Info -->
+                    <div id="eml-file-info"
+                        class="hidden bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-green-800">
+                    </div>
+
+                    <!-- Loading -->
+                    <div id="eml-loading" class="hidden text-center py-8">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4">
+                        </div>
+                        <p class="text-slate-600 font-medium">Processing payments...</p>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="eml-results-section" class="hidden">
+
+                        <!-- EML Card Remittance Panel -->
+                        <div class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden mb-6">
+                            <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-2 text-lg">💳</span>
+                                    <span class="font-bold text-indigo-900">EML Card Remittance</span>
+                                </div>
+                                <button id="eml-generate-btn" disabled
+                                    class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+                                    Export EML CSV
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <div id="eml-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
+                                <!-- EML Errors -->
+                                <div id="eml-errors-container"
+                                    class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
+                                    <div class="p-3 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-sm">
+                                        <span class="mr-2">&#9888;&#65039;</span> Validation Issues
+                                    </div>
+                                    <div class="p-3 overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                                                <tr>
+                                                    <th class="py-2 px-3 text-left">Row</th>
+                                                    <th class="py-2 px-3 text-left">Employee</th>
+                                                    <th class="py-2 px-3 text-left">Item Name</th>
+                                                    <th class="py-2 px-3 text-left">Issue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="eml-errors-body" class="divide-y divide-slate-100 text-slate-700">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Novated Remittance Panel -->
+                        <div class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden mb-6">
+                            <div class="p-4 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-2 text-lg">&#128663;</span>
+                                    <span class="font-bold text-emerald-900">Novated Remittance</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button id="novated-easifleet-btn" disabled
+                                        class="bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+                                        Export Easifleet
+                                    </button>
+                                    <button id="novated-smartleasing-btn" disabled
+                                        class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+                                        Export Smartleasing
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div id="novated-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
+                                <!-- Novated Errors -->
+                                <div id="novated-errors-container"
+                                    class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
+                                    <div class="p-3 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-sm">
+                                        <span class="mr-2">&#9888;&#65039;</span> Validation Issues
+                                    </div>
+                                    <div class="p-3 overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                                                <tr>
+                                                    <th class="py-2 px-3 text-left">Row</th>
+                                                    <th class="py-2 px-3 text-left">Employee</th>
+                                                    <th class="py-2 px-3 text-left">Account</th>
+                                                    <th class="py-2 px-3 text-left">Issue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="novated-errors-body" class="divide-y divide-slate-100 text-slate-700">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div> <!-- End Main Flex Container -->
+
+    <!-- CALCULATOR MODAL -->
+    <div id="calc-modal"
+        class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-slate-900 opacity-50"></div>
+
+        <div
+            class="modal-container bg-white w-11/12 md:max-w-4xl mx-auto rounded shadow-lg z-50 overflow-y-auto max-h-[90vh]">
+
+            <div class="modal-content text-left">
+                <!-- Title -->
+                <div class="flex justify-between items-center pb-3 p-5 border-b border-slate-200">
+                    <div>
+                        <p class="text-2xl font-bold text-slate-800">Variance Calculator</p>
+                        <p class="text-sm text-slate-500" id="calc-employee-info">Manual Mode</p>
+                    </div>
+                    <div class="cursor-pointer z-50 p-2" onclick="closeCalculator()">
+                        <svg class="fill-current text-slate-500 hover:text-slate-800" xmlns="http://www.w3.org/2000/svg"
+                            width="24" height="24" viewBox="0 0 18 18">
+                            <path
+                                d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="p-0">
+                    <div class="flex flex-col md:flex-row">
+
+                        <!-- PURPLE SIDE: Received -->
+                        <div class="side-purple flex-1 p-6">
+                            <h2 class="text-xl font-semibold mb-6 pb-2 border-b border-slate-200">Payroll Received</h2>
+
+                            <div class="mb-4">
+                                <label class="block mb-2 font-semibold text-sm">Pre Tax (4202)</label>
+                                <input type="number" id="recPreTax4202"
+                                    class="w-full p-2 border border-slate-300 rounded focus:ring-1" placeholder="0.00"
+                                    step="0.01">
+                                <div class="text-xs text-slate-500 mt-1 italic">Source of Truth for Pre-Tax</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block mb-2 font-semibold text-sm">Post Tax (4024)</label>
+                                <input type="number" id="recPostTax4024"
+                                    class="w-full p-2 border border-slate-300 rounded focus:ring-1" placeholder="0.00"
+                                    step="0.01">
+                                <div class="text-xs text-slate-500 mt-1 italic">Source of Truth for Post-Tax</div>
+                            </div>
+                        </div>
+
+                        <!-- GREEN SIDE: Requests -->
+                        <div class="side-green flex-1 p-6">
+                            <h2 class="text-xl font-semibold mb-6 pb-2 border-b border-slate-200">Payroll Requests</h2>
+
+                            <div class="mb-4">
+                                <label class="block mb-2 font-semibold text-sm">Pre Tax (Non-Vehicle)</label>
+                                <input type="number" id="reqPreTaxNonVehicle"
+                                    class="w-full p-2 border border-slate-300 rounded focus:ring-1" placeholder="0.00"
+                                    step="0.01" oninput="updateProjectedTotal()">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block mb-2 font-semibold text-sm">Pre Tax (Vehicle)</label>
+                                <input type="number" id="reqPreTaxVehicle"
+                                    class="w-full p-2 border border-slate-300 rounded focus:ring-1" placeholder="0.00"
+                                    step="0.01" oninput="updateProjectedTotal()">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block mb-2 font-semibold text-sm">Post Tax</label>
+                                <input type="number" id="reqPostTax"
+                                    class="w-full p-2 border border-slate-300 rounded focus:ring-1" placeholder="0.00"
+                                    step="0.01" oninput="updateProjectedTotal()">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block mb-2 font-semibold text-sm">GST</label>
+                                <input type="number" id="reqGST"
+                                    class="w-full p-2 border border-slate-300 rounded focus:ring-1" placeholder="0.00"
+                                    step="0.01" oninput="updateProjectedTotal()">
+                                <div class="text-xs text-slate-500 mt-1 italic">For calculation totals only. Not used in
+                                    variance check.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block mb-2 font-semibold text-sm">Projected Total</label>
+                                <input type="number" id="reqProjectedTotal"
+                                    class="w-full p-2 bg-slate-100 font-bold text-slate-800 border border-slate-300 rounded pointer-events-none"
+                                    placeholder="0.00" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Area -->
+                    <div class="bg-slate-50 p-6 border-t border-slate-200 text-center">
+                        <button onclick="calculateVariance()"
+                            class="bg-slate-800 text-white font-semibold py-3 px-8 rounded shadow hover:bg-black transition-transform transform hover:-translate-y-px">Calculate
+                            Variance</button>
+
+                        <div id="results-container" class="hidden mt-6 text-left border-t border-slate-200 pt-6">
+                            <h3 class="text-lg font-bold text-slate-800 mb-4">Variance Report</h3>
+
+                            <!-- Pre Tax -->
+                            <div id="preTaxResult"
+                                class="result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4">
+                                <span class="block font-bold text-lg mb-1">Pre-Tax Comparison</span>
+                                <span id="preTaxVarianceAmount" class="text-xl font-bold mr-2">$0.00</span>
+                                <div id="preTaxAction" class="text-sm text-slate-600 mt-2"></div>
+                            </div>
+
+                            <!-- Post Tax -->
+                            <div id="postTaxResult"
+                                class="result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4">
+                                <span class="block font-bold text-lg mb-1">Post-Tax Comparison</span>
+                                <span id="postTaxVarianceAmount" class="text-xl font-bold mr-2">$0.00</span>
+                                <div id="postTaxAction" class="text-sm text-slate-600 mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State ---
+        const state = {
+            preTax: { processed: false, data: [], headers: [], total: 0 },
+            postTax: { processed: false, data: [], headers: [], total: 0 },
+            gstReport: { processed: false, data: [], map: {} },
+            combinedRecords: [],
+            validationResults: [], // Store full validation details
+            hasError: false
+        };
+
+        const CONSTANTS = {
+            PRE_TAX_HEADER: "AH - Pre-Tax",
+            POST_TAX_HEADER: "NL Post Tax",
+            GST_HEADER_ID: "Payroll ID",
+            GST_HEADER_DEPOSIT: "Deposit Amount",
+            GST_HEADER_GST: "GST",
+            PRE_TAX_CODE: "4202",
+            POST_TAX_CODE: "4024"
+        };
+
+        // UI Toggling
+        window.toggleSection = function (header) {
+            header.classList.toggle('section-collapsed');
+        };
+
+        // --- DOM Elements ---
+        const dropZonePre = document.getElementById('drop-zone-pre');
+        const fileInputPre = document.getElementById('file-input-pre');
+        const dropZonePost = document.getElementById('drop-zone-post');
+        const fileInputPost = document.getElementById('file-input-post');
+
+        const dropZoneGst = document.getElementById('drop-zone-gst');
+        const fileInputGst = document.getElementById('file-input-gst');
+        const gstStatus = document.getElementById('gst-status');
+        const gstVarianceArea = document.getElementById('gst-variance-area');
+        const gstIssuesContainer = document.getElementById('gst-issues-container');
+        const gstAllOk = document.getElementById('gst-all-ok');
+        const gstVarianceBody = document.getElementById('gst-variance-body');
+        const downloadValBtn = document.getElementById('download-validation-btn');
+
+        const statusArea = document.getElementById('status-area');
+        const errorBox = document.getElementById('error-box');
+        const errorMessage = document.getElementById('error-message');
+        const totalSummary = document.getElementById('total-summary');
+        const previewArea = document.getElementById('preview-area');
+        const searchInput = document.getElementById('str-search');
+        const downloadBtn = document.getElementById('download-btn');
+
+        // --- Event Listeners ---
+        dropZonePre.addEventListener('click', () => fileInputPre.click());
+        dropZonePost.addEventListener('click', () => fileInputPost.click());
+        dropZoneGst.addEventListener('click', () => fileInputGst.click());
+
+        // Search listener
+        searchInput.addEventListener('input', (e) => {
+            handleSearch(e.target.value);
+        });
+
+        setupDragDrop(dropZonePre, handlePreTax);
+        setupDragDrop(dropZonePost, handlePostTax);
+        setupDragDrop(dropZoneGst, handleGstFile);
+
+        fileInputPre.addEventListener('change', (e) => handlePreTax(e.target.files));
+        fileInputPost.addEventListener('change', (e) => handlePostTax(e.target.files));
+        fileInputGst.addEventListener('change', (e) => handleGstFile(e.target.files));
+
+        downloadBtn.addEventListener('click', generateCSV);
+        downloadValBtn.addEventListener('click', generateValidationReport);
+
+        function setupDragDrop(zone, handler) {
+            if (!zone) return;
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('border-indigo-500', 'bg-slate-50');
+            });
+            zone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                zone.classList.remove('border-indigo-500', 'bg-slate-50');
+            });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('border-indigo-500', 'bg-slate-50');
+                if (e.dataTransfer.files.length > 0) handler(e.dataTransfer.files);
+            });
+        }
+
+        // --- Core Logic ---
+
+        function handlePreTax(files) {
+            handleSingleFile(files, 'preTax');
+        }
+
+        function handlePostTax(files) {
+            handleSingleFile(files, 'postTax');
+        }
+
+        async function handleSingleFile(files, type) {
+            const file = files[0];
+            if (!file) return;
+
+            // Clear previous errors
+            state.hasError = false;
+            statusArea.classList.add('hidden');
+            errorBox.classList.add('hidden');
+
+            try {
+                await processFile(file, type);
+                updateUI();
+
+                // Check if ready to merge
+                if (state.preTax.processed && state.postTax.processed && !state.hasError) {
+                    mergeAndDisplay();
+                    checkGstVariance();
+                }
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        async function handleGstFile(files) {
+            const file = files[0];
+            if (!file) return;
+
+            try {
+                // readFile returns a Sheet object
+                const sheet = await readFile(file);
+
+                // 1. Convert to Array of Arrays to find header row
+                const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+                let headerRowIndex = -1;
+
+                // Scan first 20 rows for headers
+                for (let i = 0; i < Math.min(aoa.length, 20); i++) {
+                    // Safe string conversion and trimming for robust check
+                    const row = aoa[i].map(cell => String(cell).trim());
+
+                    const hasId = row.includes(CONSTANTS.GST_HEADER_ID);
+                    const hasDeposit = row.includes(CONSTANTS.GST_HEADER_DEPOSIT);
+
+                    if (hasId && hasDeposit) {
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+
+                if (headerRowIndex === -1) {
+                    console.log("Header scan failed. First 5 rows:", aoa.slice(0, 5));
+                    throw new Error(`Invalid GST Report. Could not find header row containing '${CONSTANTS.GST_HEADER_ID}' and '${CONSTANTS.GST_HEADER_DEPOSIT}' in the first 20 rows.`);
+                }
+
+                // 2. Parse using the found header index
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex, defval: "" });
+
+                state.gstReport.data = jsonData.map(r => ({
+                    payrollId: String(r[CONSTANTS.GST_HEADER_ID]).replace(/^0+/, '').replace(/\.0$/, ''),
+                    deposit: parseFloat(r[CONSTANTS.GST_HEADER_DEPOSIT]) || 0,
+                    gst: parseFloat(r[CONSTANTS.GST_HEADER_GST]) || 0,
+                    employeeName: r['Employee Name']
+                }));
+                state.gstReport.processed = true;
+
+                // Update UI
+                gstStatus.classList.remove('hidden');
+                document.getElementById('gst-drop-content').classList.add('opacity-10');
+
+                // Check variance immediately if other files ready
+                checkGstVariance();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error reading GST file: " + err.message);
+                gstStatus.classList.add('hidden');
+            }
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    resolve(sheet);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function processFile(file, expectedType) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                        if (jsonData.length === 0) throw new Error(`File ${file.name} appears empty.`);
+
+                        // Detect Type
+                        const firstRow = jsonData[0];
+                        const headers = Object.keys(firstRow);
+
+                        let detectedType = null;
+                        let amountKey = null;
+
+                        if (headers.includes(CONSTANTS.PRE_TAX_HEADER)) {
+                            detectedType = 'preTax';
+                            amountKey = CONSTANTS.PRE_TAX_HEADER;
+                        } else if (headers.includes(CONSTANTS.POST_TAX_HEADER)) {
+                            detectedType = 'postTax';
+                            amountKey = CONSTANTS.POST_TAX_HEADER;
+                        }
+
+                        if (!detectedType) {
+                            throw new Error(`File ${file.name} is invalid. Required header '${expectedType === 'preTax' ? CONSTANTS.PRE_TAX_HEADER : CONSTANTS.POST_TAX_HEADER}' not found.`);
+                        }
+
+                        if (detectedType !== expectedType) {
+                            throw new Error(`Incorrect file uploaded. Expected ${expectedType === 'preTax' ? 'Pre-Tax' : 'Post-Tax'} file.`);
+                        }
+
+                        const code = detectedType === 'preTax' ? CONSTANTS.PRE_TAX_CODE : CONSTANTS.POST_TAX_CODE;
+
+                        // Process Rows
+                        const records = jsonData.map((row, index) => {
+                            const rawAmount = row[amountKey];
+                            const floatAmount = parseFloat(rawAmount);
+
+                            if (floatAmount > 0) {
+                                throw new Error(`Blocking Error: Positive deduction amount (${floatAmount}) found for employee ${row['First Name']} ${row['Last Name']} (Row ${index + 2}) in file ${file.name}.`);
+                            }
+
+                            return {
+                                employeeName: `${row['First Name']} ${row['Last Name']}`.trim(),
+                                payrollId: String(row['Pers.No.']).replace(/^0+/, ''), // Strip leading zeros
+                                deduction: Math.abs(floatAmount || 0), // Absolute value
+                                code: code,
+                                comments: ""
+                            };
+                        });
+
+                        // Calculate total
+                        const total = records.reduce((sum, r) => sum + r.deduction, 0);
+
+                        // Update State
+                        state[expectedType] = {
+                            processed: true,
+                            data: records,
+                            headers: headers,
+                            total: total,
+                            filename: file.name
+                        };
+
+                        // UI Success for Drop Zone
+                        const typeKey = expectedType === 'preTax' ? 'pre' : 'post';
+                        const dz = document.getElementById(`drop-zone-${typeKey}`);
+                        if (dz) {
+                            dz.classList.add('border-green-500', 'bg-green-50');
+                            dz.classList.remove('border-red-500', 'bg-red-50');
+                            document.getElementById(`${typeKey}-success`).classList.remove('hidden');
+                        }
+
+                        resolve();
+
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function updateUI() {
+            ['preTax', 'postTax'].forEach(key => {
+                if (state[key].processed) {
+                    const type = key === 'preTax' ? 'pre' : 'post';
+                    document.getElementById(`card-${type}`).classList.remove('opacity-50');
+                    document.getElementById(`card-${type}`).classList.add('border-green-200', 'bg-green-50');
+
+                    document.getElementById(`val-${type}`).textContent = formatCurrency(state[key].total);
+                    document.getElementById(`count-${type}`).textContent = `${state[key].data.length} records`;
+
+                    document.getElementById(`status-icon-${type}`).className = 'w-2 h-2 rounded-full bg-green-500 mr-2';
+                    document.getElementById(`status-text-${type}`).className = 'text-green-700 font-medium';
+                    document.getElementById(`status-text-${type}`).textContent = `Loaded: ${state[key].filename}`;
+                }
+            });
+        }
+
+        function mergeAndDisplay() {
+            const combined = [...state.preTax.data, ...state.postTax.data];
+            state.combinedRecords = combined;
+
+            const grandTotal = state.preTax.total + state.postTax.total;
+
+            document.getElementById('val-total').textContent = formatCurrency(grandTotal);
+            // Toggle Section 2
+            document.getElementById('total-summary').classList.remove('hidden');
+            document.getElementById('summary-placeholder').classList.add('hidden');
+
+            // Initial Render (all data or subset)
+            renderTable(combined);
+            // Toggle Section 3
+            document.getElementById('preview-area').classList.remove('hidden');
+            document.getElementById('preview-placeholder').classList.add('hidden');
+        }
+
+        function handleSearch(term) {
+            if (!term) {
+                renderTable(state.combinedRecords);
+                return;
+            }
+
+            const lowerTerm = term.toLowerCase().trim();
+            const filtered = state.combinedRecords.filter(r =>
+                r.payrollId.toLowerCase().includes(lowerTerm)
+            );
+            renderTable(filtered, true); // true = showing search results
+        }
+
+        function renderTable(records, isSearch = false) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            // If searching, show all matches. If not, show first 10.
+            const displayRecords = isSearch ? records : records.slice(0, 10);
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-slate-500">No records found.</td></tr>`;
+                return;
+            }
+
+            displayRecords.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${row.employeeName}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${row.payrollId}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-mono">${formatCurrency(row.deduction)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${row.code}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${row.comments}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                    <button onclick="openCalculatorFor('${row.payrollId}')" class="text-indigo-600 hover:text-indigo-900 font-medium">Calc</button>
+                 </td>
+            `;
+                tbody.appendChild(tr);
+            });
+
+            if (!isSearch && state.combinedRecords.length > 10) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="6" class="px-6 py-4 text-center text-sm text-slate-400 italic">... and ${state.combinedRecords.length - 10} more records ...</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // --- GST Variance Logic ---
+        function checkGstVariance() {
+            if (!state.gstReport.processed || !state.combinedRecords.length) return;
+
+            // Re-map GST data for easy lookup
+            const gstMap = {};
+            state.gstReport.data.forEach(r => gstMap[r.payrollId] = r);
+
+            // Group Combined Records (Payroll)
+            const payrollTotals = {};
+            state.combinedRecords.forEach(r => {
+                if (!payrollTotals[r.payrollId]) {
+                    payrollTotals[r.payrollId] = { total: 0, name: r.employeeName };
+                }
+                payrollTotals[r.payrollId].total += r.deduction;
+            });
+
+            state.validationResults = [];
+            let issuesFound = false;
+            gstVarianceBody.innerHTML = '';
+
+            // 1. Iterate Payroll IDs to find Matches, Variances, and Missing in GST
+            const allPayrollIds = Object.keys(payrollTotals);
+
+            allPayrollIds.forEach(id => {
+                const payroll = payrollTotals[id];
+                const gstRow = gstMap[id];
+
+                let result = {
+                    id: id,
+                    name: payroll.name,
+                    payrollTotal: payroll.total,
+                    gstTarget: 0,
+                    variance: 0,
+                    status: 'OK'
+                };
+
+                if (!gstRow) {
+                    // MISSING from GST Report
+                    result.status = 'MISSING_IN_GST';
+                    result.variance = null; // NA
+                } else {
+                    const target = gstRow.deposit - gstRow.gst;
+
+                    // Rules for Calculation Error:
+                    // 1. Deposit is roughly 0 but GST is distinct from 0.
+                    // 2. GST > Deposit (resulting in Target < 0)
+                    if ((Math.abs(gstRow.deposit) < 0.001 && Math.abs(gstRow.gst) > 0.001) || target < -0.001) {
+                        result.status = 'CALCULATION_ERROR';
+                        result.gstTarget = target;
+                        result.variance = target - payroll.total;
+                    } else {
+                        // Regular Variance Check
+                        result.gstTarget = target;
+                        result.variance = target - payroll.total; // Target - Actual
+
+                        if (Math.abs(result.variance) > 0.01) {
+                            result.status = 'VARIANCE';
+                        }
+                    }
+                }
+
+                state.validationResults.push(result);
+            });
+
+            // Sort by status priority (Calc Error, Variance, Missing, OK) then Name
+            state.validationResults.sort((a, b) => {
+                const rank = { 'CALCULATION_ERROR': 1, 'VARIANCE': 2, 'MISSING_IN_GST': 3, 'OK': 4 };
+                if (rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status];
+                return a.name.localeCompare(b.name);
+            });
+
+            // Render Issues
+            state.validationResults.forEach(res => {
+                if (res.status === 'OK') return;
+
+                issuesFound = true;
+                const tr = document.createElement('tr');
+
+                // Helper for display
+                const isMissing = res.status === 'MISSING_IN_GST';
+                const isCalcErr = res.status === 'CALCULATION_ERROR';
+
+                let gstDisplay = isMissing ? '<span class="text-red-500 italic">Not Found</span>' : formatCurrency(res.gstTarget);
+                let varDisplay = isMissing ? '-' : `<span class="font-bold text-red-600">${res.variance > 0 ? '+' : ''}${formatCurrency(res.variance)}</span>`;
+
+                let issueDisplay = '';
+                if (isMissing) issueDisplay = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Missing in GST</span>';
+                else if (isCalcErr) issueDisplay = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-800 text-white">Calculation Error</span>';
+                else issueDisplay = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">Variance</span>';
+
+                let actionDisplay = (res.status === 'VARIANCE' || isCalcErr) ? `<button onclick="openCalculatorFor('${res.id}')" class="text-indigo-600 hover:text-indigo-900 font-medium font-bold">Res. Calc</button>` : '<span class="text-slate-400">-</span>';
+
+                tr.innerHTML = `
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">${res.name}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-slate-600">${res.id}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-slate-800 font-mono font-bold bg-purple-50 border-x border-purple-100">${formatCurrency(res.payrollTotal)}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-slate-800 font-mono font-bold bg-green-50 border-x border-green-100 min-w-[140px]">${gstDisplay}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-mono">${varDisplay}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm">${issueDisplay}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm">${actionDisplay}</td>
+                `;
+                gstVarianceBody.appendChild(tr);
+            });
+
+            // Toggle Areas inside Section 5
+            gstVarianceArea.classList.remove('hidden');
+            document.getElementById('gst-placeholder').classList.add('hidden');
+
+            if (issuesFound) {
+                gstIssuesContainer.classList.remove('hidden');
+                gstAllOk.classList.add('hidden');
+            } else {
+                gstIssuesContainer.classList.add('hidden');
+                gstAllOk.classList.remove('hidden');
+            }
+        }
+
+        function generateValidationReport() {
+            if (!state.validationResults.length) return;
+
+            // Headers: matches request. "with every row, expecting to hold a 0 value if there are no differences"
+            const headers = ["Employee Name", "Payroll ID", "Payroll Total", "GST Target (Deposit-GST)", "Variance", "Status"];
+
+            const rows = state.validationResults.map(r => {
+                let v = r.variance;
+                if (r.status === 'OK') v = 0; // Force 0 for clean display as requested
+
+                return [
+                    `"${r.name}"`,
+                    `"${r.id}"`,
+                    r.payrollTotal.toFixed(2),
+                    r.status === 'MISSING_IN_GST' ? "N/A" : r.gstTarget.toFixed(2),
+                    r.status === 'MISSING_IN_GST' ? "N/A" : v.toFixed(2),
+                    r.status
+                ].join(",");
+            });
+
+            const csvContent = [headers.join(",")].concat(rows).join("\n");
+            downloadFile(csvContent, "GST_Validation_Report.csv");
+        }
+
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- Calculator Logic ---
+
+        function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+        function setVal(id, val) {
+            const el = document.getElementById(id);
+            if (val === 0 || val === '0') el.value = '';
+            else el.value = val;
+        }
+
+        function openCalculator() {
+            document.getElementById('calc-employee-info').textContent = "Manual Mode";
+            resetCalculator();
+            toggleModal(true);
+        }
+
+        function openCalculatorFor(payrollId) {
+            resetCalculator();
+
+            // Find all records for this ID
+            const records = state.combinedRecords.filter(r => r.payrollId === payrollId);
+
+            let preTaxTotal = 0;
+            let postTaxTotal = 0;
+            let name = "Unknown";
+
+            records.forEach(r => {
+                name = r.employeeName;
+                if (r.code === CONSTANTS.PRE_TAX_CODE) preTaxTotal += r.deduction;
+                if (r.code === CONSTANTS.POST_TAX_CODE) postTaxTotal += r.deduction;
+            });
+
+            document.getElementById('calc-employee-info').textContent = `${name} (${payrollId})`;
+
+            // Autofill PURPLE SIDE (Received)
+            document.getElementById('recPreTax4202').value = preTaxTotal.toFixed(2);
+            document.getElementById('recPostTax4024').value = postTaxTotal.toFixed(2);
+
+            toggleModal(true);
+        }
+
+        function closeCalculator() {
+            toggleModal(false);
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('calc-modal');
+            if (show) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                document.body.classList.add('modal-active');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                document.body.classList.remove('modal-active');
+            }
+        }
+
+        function resetCalculator() {
+            // Clear inputs
+            ['reqPreTaxNonVehicle', 'reqPreTaxVehicle', 'reqPostTax', 'reqGST', 'reqProjectedTotal',
+                'recPreTax4202', 'recPostTax4024'].forEach(id => document.getElementById(id).value = '');
+
+            // Hide results
+            document.getElementById('results-container').classList.add('hidden');
+
+            // Reset result card/text styles
+            document.getElementById('preTaxResult').className = 'result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4';
+            document.getElementById('preTaxVarianceAmount').className = 'text-xl font-bold mr-2';
+            document.getElementById('preTaxAction').textContent = '';
+
+            document.getElementById('postTaxResult').className = 'result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4';
+            document.getElementById('postTaxVarianceAmount').className = 'text-xl font-bold mr-2';
+            document.getElementById('postTaxAction').textContent = '';
+        }
+
+        function updateProjectedTotal() {
+            const total = getVal('reqPreTaxNonVehicle') + getVal('reqPreTaxVehicle') + getVal('reqPostTax') + getVal('reqGST');
+            document.getElementById('reqProjectedTotal').value = total.toFixed(2);
+        }
+
+        function calculateVariance() {
+            // Gather
+            const reqNonVehicle = getVal('reqPreTaxNonVehicle');
+            const reqVehicle = getVal('reqPreTaxVehicle');
+            const reqPostTax = getVal('reqPostTax');
+
+            const totalReqPreTax = reqNonVehicle + reqVehicle;
+
+            // Received
+            const recPreTax = getVal('recPreTax4202');
+            const recPostTax = getVal('recPostTax4024');
+
+            // Diff
+            const preTaxDiff = recPreTax - totalReqPreTax;
+            const postTaxDiff = recPostTax - reqPostTax;
+
+            // Render Pre Tax
+            renderVarianceResult('preTax', preTaxDiff, '4202', 'Pre Tax Vehicle or Pre Tax Non-Vehicle');
+
+            // Render Post Tax
+            renderVarianceResult('postTax', postTaxDiff, '4024', 'Post Tax request');
+
+            document.getElementById('results-container').classList.remove('hidden');
+        }
+
+        function renderVarianceResult(prefix, diff, code, fieldName) {
+            const card = document.getElementById(`${prefix}Result`);
+            const amountEl = document.getElementById(`${prefix}VarianceAmount`);
+            const actionEl = document.getElementById(`${prefix}Action`);
+            const diffAbs = Math.abs(diff).toFixed(2);
+
+            // Reset
+            card.className = 'result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4';
+            amountEl.className = 'text-xl font-bold mr-2';
+            amountEl.classList.remove('variance-positive', 'variance-negative', 'variance-neutral');
+
+            if (Math.abs(diff) < 0.01) {
+                card.classList.add('success');
+                amountEl.classList.add('variance-neutral');
+                amountEl.textContent = "Match";
+                actionEl.textContent = `Request matches Received (${code}). No action needed.`;
+            } else {
+                // Variance Exists - Check direction
+                const isShortfall = diff < 0; // Received < Requested
+                const directionText = isShortfall ? "LESS" : "MORE";
+                const actionText = isShortfall ? "Decrease" : "Increase";
+
+                // Style
+                if (isShortfall) {
+                    card.classList.add('error');
+                    amountEl.classList.add('variance-negative');
+                    amountEl.textContent = `-$${diffAbs}`;
+                } else {
+                    card.classList.add('warning');
+                    amountEl.classList.add('variance-positive');
+                    amountEl.textContent = `+$${diffAbs}`;
+                }
+
+                let messageHtml = `<div class="font-semibold mb-2">ALERT: You received $${diffAbs} ${directionText} than requested.</div>`;
+
+                // For Pre-Tax, show the Detailed Resolution Table
+                if (prefix === 'preTax') {
+                    const gstInclusiveDiff = (Math.abs(diff) * 1.1).toFixed(2);
+
+                    messageHtml += `
+                        <div class="overflow-x-auto mt-3">
+                            <table class="min-w-full text-sm border border-slate-200">
+                                <thead class="bg-slate-100 text-slate-700">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">Benefit Type</th>
+                                        <th class="px-3 py-2 text-left">Required Action</th>
+                                        <th class="px-3 py-2 text-left">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="px-3 py-2 text-slate-600">GST Exclusive Item<br><span class="text-xs text-slate-400">(e.g. Standard Pre-Tax)</span></td>
+                                        <td class="px-3 py-2 text-slate-800 font-medium">${actionText} request by</td>
+                                        <td class="px-3 py-2 font-mono font-bold text-slate-700">$${diffAbs}</td>
+                                    </tr>
+                                    <tr class="bg-slate-50">
+                                        <td class="px-3 py-2 text-slate-600">GST Inclusive Item<br><span class="text-xs text-slate-400">(e.g. Vehicle, Living Exp)</span></td>
+                                        <td class="px-3 py-2 text-slate-800 font-medium">${actionText} request by</td>
+                                        <td class="px-3 py-2 font-mono font-bold text-slate-900 border-l-4 border-indigo-400 pl-2">$${gstInclusiveDiff}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="text-xs text-slate-500 mt-2 italic">* GST Inclusive adjustment includes the 10% GST component.</div>
+                        </div>
+                     `;
+                } else {
+                    // Simple message for Post-Tax
+                    messageHtml += `<div>${actionText} "${fieldName}" by <strong>$${diffAbs}</strong> to match payroll.</div>`;
+                }
+
+                actionEl.innerHTML = messageHtml;
+            }
+        }
+
+        function generateCSV() {
+            if (!state.combinedRecords.length) return;
+
+            // Headers: Employee Name, Payroll ID, Projected Deduction, Pre/Post Tax, Comments
+            const csvHeader = ["Employee Name", "Payroll ID", "Projected Deduction", "Pre/Post Tax", "Comments"];
+
+            // Convert to CSV string manually to ensure exact format
+            const rows = state.combinedRecords.map(r => {
+                // Escape quotes if needed, though names usually clean.
+                // Using simple replacements for safety.
+                const name = `"${r.employeeName.replace(/"/g, '""')}"`;
+                const id = `"${r.payrollId}"`; // Force string to keep it clean? Actually numbers are fine.
+                const ded = r.deduction.toFixed(2); // Ensure 2 decimal places
+                const code = r.code;
+                const com = `"${r.comments}"`;
+
+                return [name, id, ded, code, com].join(",");
+            });
+
+            const csvContent = [csvHeader.join(",")].concat(rows).join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Salary_Packaging_Upload.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showError(msg) {
+            state.hasError = true;
+            document.getElementById('status-area').classList.remove('hidden'); // Ensure parent is visible
+            errorBox.classList.remove('hidden');
+            errorMessage.textContent = msg;
+            totalSummary.classList.add('hidden'); // Hide download if error
+        }
+
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(num);
+        }
+
+
+        // --- View Switching Logic ---
+        function switchView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+
+            // Show selected view
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+            // Update Sidebar Active States
+            // Reset all
+            document.querySelectorAll('nav a').forEach(el => {
+                el.className = 'flex items-center px-4 py-3 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group';
+                el.querySelector('svg').className = 'w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors';
+            });
+
+            // Set active
+            const activeLink = document.getElementById(`nav-${viewId}`);
+            if (activeLink) {
+                activeLink.className = 'flex items-center px-4 py-3 bg-slate-800 text-white rounded-lg transition-colors group';
+                activeLink.querySelector('svg').className = 'w-5 h-5 mr-3 text-indigo-400';
+            }
+        }
+
+        // --- Package Benefit Validator Tool (Namespaced) ---
+        const ValidatorTool = {
+            workbook: null,
+            data: [],
+            errors: [],
+
+            elements: {
+                uploadBox: 'audit-upload-box',
+                fileInput: 'audit-file-input',
+                validateBtn: 'audit-validate-btn',
+                fileInfo: 'audit-file-info',
+                loading: 'audit-loading',
+                resultsSection: 'audit-results-section',
+                stats: 'audit-stats',
+                errorsContainer: 'audit-errors-container'
+            },
+
+            init: function () {
+                const el = (id) => document.getElementById(id);
+                const uploadBox = el(this.elements.uploadBox);
+                const fileInput = el(this.elements.fileInput);
+                const validateBtn = el(this.elements.validateBtn);
+
+                if (!uploadBox) return; // Guard if elements missing
+
+                // Event Listeners
+                uploadBox.addEventListener('click', () => fileInput.click());
+
+                uploadBox.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadBox.classList.add('border-indigo-600', 'bg-indigo-50');
+                });
+
+                uploadBox.addEventListener('dragleave', () => {
+                    uploadBox.classList.remove('border-indigo-600', 'bg-indigo-50');
+                });
+
+                uploadBox.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadBox.classList.remove('border-indigo-600', 'bg-indigo-50');
+                    if (e.dataTransfer.files.length > 0) {
+                        this.handleFile(e.dataTransfer.files[0]);
+                    }
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.handleFile(e.target.files[0]);
+                    }
+                });
+
+                validateBtn.addEventListener('click', () => this.validateData());
+            },
+
+            handleFile: function (file) {
+                const el = (id) => document.getElementById(id);
+
+                if (!file.name.match(/\.(xlsx|xls)$/)) {
+                    alert('Please upload a valid Excel file (.xlsx or .xls)');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        this.workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                        const worksheet = this.workbook.Sheets[this.workbook.SheetNames[0]];
+
+                        // Convert to JSON
+                        this.data = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+
+                        // Update UI
+                        const fileInfo = el(this.elements.fileInfo);
+                        fileInfo.innerHTML = `
+                            <p class="font-bold text-green-800">✅ File Loaded: ${file.name}</p>
+                            <p class="text-green-700 text-sm">Total Records: ${this.data.length}</p>
+                        `;
+                        fileInfo.classList.remove('hidden');
+                        el(this.elements.validateBtn).disabled = false;
+
+                        // Hide previous results
+                        el(this.elements.resultsSection).classList.add('hidden');
+
+                    } catch (error) {
+                        alert('Error reading file: ' + error.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            },
+
+            validateData: function () {
+                const el = (id) => document.getElementById(id);
+                const loading = el(this.elements.loading);
+                const resultsSection = el(this.elements.resultsSection);
+
+                loading.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                this.errors = [];
+
+                setTimeout(() => {
+                    this.runValidation();
+                    this.displayResults();
+                    loading.classList.add('hidden');
+                    resultsSection.classList.remove('hidden');
+                }, 100);
+            },
+
+            runValidation: function () {
+                const amountFields = [
+                    { field: 'Fortnightly Amount', type: 'negative-amount', category: 'Fortnightly Amount' },
+                    { field: 'Deposit Amount', type: 'negative-amount', category: 'Deposit Amount' },
+                    { field: 'Substantiation', type: 'negative-amount', category: 'Substantiation' },
+                    { field: 'Package Balance', type: 'negative-balance', category: 'Package Balance' },
+                    { field: 'Capped Amount Available', type: 'negative-cap', category: 'Capped Amount Available' },
+                    { field: 'EB Capped Amount Available', type: 'negative-cap', category: 'EB Capped Amount Available' }
+                ];
+
+                this.data.forEach((row, index) => {
+                    const rowNumber = index + 2;
+
+                    const packageItem = row['Salary Package Item'] ? String(row['Salary Package Item']).trim() : '';
+                    const bankAccountName = row['Bank Account Name'] ? String(row['Bank Account Name']).trim() : '';
+                    const bsb = row['BSB'] ? String(row['BSB']).replace(/\./g, '').padStart(6, '0') : '';
+                    const accountNumber = row['Account Number'] ? String(row['Account Number']).replace(/\./g, '').padStart(8, '0') : '';
+                    const bankRef = row['Bank Ref'] ? String(row['Bank Ref']).trim() : '';
+
+                    // VALIDATION 1: Negative amounts
+                    amountFields.forEach(({ field, type, category }) => {
+                        const value = row[field];
+                        if (value !== null && value !== undefined && value !== '') {
+                            const numValue = typeof value === 'number' ? value : parseFloat(value);
+                            if (!isNaN(numValue) && numValue < 0) {
+                                this.errors.push({
+                                    row: rowNumber,
+                                    payrollId: row['Payroll ID'],
+                                    firstName: row['First Name'],
+                                    lastName: row['Last Name'],
+                                    packageItem: packageItem,
+                                    field: field,
+                                    value: numValue,
+                                    type: type,
+                                    category: category,
+                                    errorMessage: `Negative ${category}: ${numValue.toFixed(2)}`
+                                });
+                            }
+                        }
+                    });
+
+                    // VALIDATION 2: EML Card (EMLMEC or EMLEBC)
+                    if (packageItem === 'EMLMEC' || packageItem === 'EMLEBC') {
+                        if (bankAccountName !== 'EML Card') {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'Bank Account Name',
+                                value: bankAccountName,
+                                type: 'eml-account',
+                                category: 'EML Account Error',
+                                errorMessage: `${packageItem} must have Bank Account Name "EML Card", found: "${bankAccountName}"`
+                            });
+                        }
+                        if (bsb !== '014950') {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'BSB',
+                                value: bsb,
+                                type: 'eml-account',
+                                category: 'EML BSB Error',
+                                errorMessage: `${packageItem} must have BSB "014950", found: "${bsb}"`
+                            });
+                        }
+                        if (accountNumber !== '23764409') {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'Account Number',
+                                value: accountNumber,
+                                type: 'eml-account',
+                                category: 'EML Account Error',
+                                errorMessage: `${packageItem} must have Account Number "23764409", found: "${accountNumber}"`
+                            });
+                        }
+                    }
+
+                    // VALIDATION 3: EML Bank Ref
+                    if ((packageItem === 'EMLMEC' || packageItem === 'EMLEBC') && bankRef === 'AH') {
+                        this.errors.push({
+                            row: rowNumber,
+                            payrollId: row['Payroll ID'],
+                            firstName: row['First Name'],
+                            lastName: row['Last Name'],
+                            packageItem: packageItem,
+                            field: 'Bank Ref',
+                            value: bankRef,
+                            type: 'eml-bankref',
+                            category: 'EML Bank Ref Error',
+                            errorMessage: `${packageItem} must not have Bank Ref "AH"`
+                        });
+                    }
+
+                    // VALIDATION 4: PBI Solutions
+                    const isPBIPackageItem = packageItem === 'EMLMEC Fee' || packageItem === 'EMLEBC Fee';
+                    const hasPBIAccount = bankAccountName === 'PBI Solutions' ||
+                        (bsb === '012003' && accountNumber === '835839621');
+
+                    if (hasPBIAccount && !isPBIPackageItem) {
+                        const isSpecialItem = packageItem === 'NL – Finance' || packageItem === 'NL - Finance' || packageItem === 'Post Tax Contribution';
+                        const fortnightlyAmount = row['Fortnightly Amount'];
+                        const fortnightlyValue = typeof fortnightlyAmount === 'number' ? fortnightlyAmount : parseFloat(fortnightlyAmount);
+
+                        if (!isSpecialItem || (fortnightlyValue > 0)) {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'Bank Account',
+                                value: `${bankAccountName} (${bsb}-${accountNumber})`,
+                                type: 'pbi-account',
+                                category: 'PBI Account Error',
+                                errorMessage: `Only "EMLMEC Fee/EMLEBC Fee" should have PBI Solutions account, found: "${packageItem}"`
+                            });
+                        }
+                    }
+
+                    // VALIDATION 5: Austin Account
+                    const isAustinPackageItem = ['Admin Fee', 'Entertainment Benefits Fee', 'Admin Fee – Special', 'Admin Fee - Special', 'Resend to Payroll', 'NL-Management Fee', 'NL - Management Fee', 'Portable Electronic Device Fee', 'NL - Establishment Fee'].includes(packageItem);
+                    const hasAustinAccount = bankAccountName === 'Austin Main Account' ||
+                        bankAccountName === 'Austin Operating Account' ||
+                        (bsb === '033286' && accountNumber === '00120120');
+
+                    if (hasAustinAccount && !isAustinPackageItem) {
+                        const isSpecialItem = packageItem === 'NL – Finance' || packageItem === 'NL - Finance' || packageItem === 'Post Tax Contribution';
+                        const fortnightlyAmount = row['Fortnightly Amount'];
+                        const fortnightlyValue = typeof fortnightlyAmount === 'number' ? fortnightlyAmount : parseFloat(fortnightlyAmount);
+
+                        if (!isSpecialItem || (fortnightlyValue > 0)) {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'Bank Account',
+                                value: `${bankAccountName} (${bsb}-${accountNumber})`,
+                                type: 'austin-account',
+                                category: 'Austin Account Error',
+                                errorMessage: `Invalid Austin Account usage for item: "${packageItem}"`
+                            });
+                        }
+                    }
+
+                    // VALIDATION 6: Test accounts should never appear (except NL - Finance)
+                    if (bankAccountName.toLowerCase() === 'test' && packageItem !== 'NL - Finance' && packageItem !== 'NL \u2013 Finance') {
+                        this.errors.push({
+                            row: rowNumber,
+                            payrollId: row['Payroll ID'],
+                            firstName: row['First Name'],
+                            lastName: row['Last Name'],
+                            packageItem: packageItem,
+                            field: 'Bank Account Name',
+                            value: bankAccountName,
+                            type: 'austin-account',
+                            category: 'Test Account',
+                            errorMessage: `Test account "${bankAccountName}" must not be used as a payment account`
+                        });
+                    }
+
+                    // VALIDATION 7: Austin Health EMP Benefit account should never appear
+                    if ((bsb === '033077' && accountNumber === '00243618') || bankAccountName === 'Austin Health EMP Benefit') {
+                        this.errors.push({
+                            row: rowNumber,
+                            payrollId: row['Payroll ID'],
+                            firstName: row['First Name'],
+                            lastName: row['Last Name'],
+                            packageItem: packageItem,
+                            field: 'Bank Account',
+                            value: `${bankAccountName} (${bsb}-${accountNumber})`,
+                            type: 'austin-account',
+                            category: 'Blocked Account',
+                            errorMessage: `Austin Health EMP Benefit account (033077-243618) must not be used as a payment account`
+                        });
+                    }
+                });
+            },
+
+            displayResults: function () {
+                const el = (id) => document.getElementById(id);
+                const stats = el(this.elements.stats);
+                const errorsContainer = el(this.elements.errorsContainer);
+
+                const totalRecords = this.data.length;
+                const recordsWithErrors = new Set(this.errors.map(e => e.row)).size;
+                const totalErrors = this.errors.length;
+
+                // Stats HTML
+                stats.innerHTML = `
+                    <div class="audit-stat-card">
+                        <h3>${totalRecords.toLocaleString()}</h3>
+                        <p>Total Records</p>
+                    </div>
+                    <div class="audit-stat-card ${totalErrors === 0 ? 'success' : 'error'}">
+                        <h3>${totalErrors.toLocaleString()}</h3>
+                        <p>Total Errors</p>
+                    </div>
+                    <div class="audit-stat-card ${recordsWithErrors === 0 ? 'success' : 'error'}">
+                        <h3>${recordsWithErrors.toLocaleString()}</h3>
+                        <p>Records with Errors</p>
+                    </div>
+                    <div class="audit-stat-card success">
+                        <h3>${(totalRecords - recordsWithErrors).toLocaleString()}</h3>
+                        <p>Valid Records</p>
+                    </div>
+                `;
+
+                // Errors Table
+                if (this.errors.length === 0) {
+                    errorsContainer.innerHTML = `
+                        <div class="p-10 text-center text-green-600">
+                            <h2 class="text-4xl mb-2">✓</h2>
+                            <p class="text-lg">No validation errors found!</p>
+                        </div>
+                    `;
+                } else {
+                    // Sort errors: "Capped Amount Available" and "EB Capped Amount Available" to the bottom
+                    this.errors.sort((a, b) => {
+                        const isLowPriority = (cat) =>
+                            cat === 'Capped Amount Available' || cat === 'EB Capped Amount Available';
+
+                        const aLow = isLowPriority(a.category);
+                        const bLow = isLowPriority(b.category);
+
+                        if (aLow && !bLow) return 1;
+                        if (!aLow && bLow) return -1;
+                        return a.row - b.row; // Secondary sort by row
+                    });
+
+                    let tableHTML = `
+                        <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+                            <h2 class="font-bold text-slate-700">Validation Errors (${this.errors.length})</h2>
+                            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors" onclick="ValidatorTool.exportErrors()">Export to CSV</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="audit-errors-table">
+                                <thead class="bg-white">
+                                    <tr>
+                                        <th>Row #</th>
+                                        <th>Payroll ID</th>
+                                        <th>Employee Name</th>
+                                        <th>Package Item</th>
+                                        <th>Field</th>
+                                        <th>Value</th>
+                                        <th>Error Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100">
+                    `;
+
+                    this.errors.forEach(error => {
+                        const displayValue = typeof error.value === 'number' ? error.value.toFixed(2) : error.value;
+                        tableHTML += `
+                            <tr>
+                                <td class="font-mono text-indigo-600 font-bold">${error.row}</td>
+                                <td>${error.payrollId || '-'}</td>
+                                <td>${error.firstName || ''} ${error.lastName || ''}</td>
+                                <td>${error.packageItem || '-'}</td>
+                                <td>${error.field}</td>
+                                <td class="font-bold text-red-600">${displayValue}</td>
+                                <td><span class="audit-error-type ${error.type}">${error.category}</span></td>
+                            </tr>
+                        `;
+                    });
+
+                    tableHTML += `</tbody></table></div>`;
+                    errorsContainer.innerHTML = tableHTML;
+                }
+            },
+
+            exportErrors: function () {
+                if (this.errors.length === 0) {
+                    alert('No errors to export');
+                    return;
+                }
+
+                const headers = ['Row #', 'Payroll ID', 'First Name', 'Last Name', 'Package Item', 'Field', 'Value', 'Error Message'];
+
+                const rows = this.errors.map(error => {
+                    const displayValue = typeof error.value === 'number' ? error.value.toFixed(2) : error.value;
+                    // Simple CSV escape
+                    const escape = (val) => `"${String(val || '').replace(/"/g, '""')}"`;
+
+                    return [
+                        error.row,
+                        escape(error.payrollId),
+                        escape(error.firstName),
+                        escape(error.lastName),
+                        escape(error.packageItem),
+                        escape(error.field),
+                        escape(displayValue),
+                        escape(error.errorMessage)
+                    ].join(',');
+                });
+
+                const csvContent = [headers.join(',')].concat(rows).join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `validation_errors_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // --- Remittance Tool (Namespaced) ---
+        const RemittanceTool = {
+            workbook: null,
+            data: [],
+            // EML data
+            emlValidRows: [],
+            emlErrors: [],
+            // Novated data
+            novatedEasifleetRows: [],
+            novatedSmartleasingRows: [],
+            novatedErrors: [],
+
+            elements: {
+                uploadBox: 'eml-upload-box',
+                fileInput: 'eml-file-input',
+                fileInfo: 'eml-file-info',
+                loading: 'eml-loading',
+                resultsSection: 'eml-results-section',
+                // EML
+                emlGenerateBtn: 'eml-generate-btn',
+                emlStats: 'eml-stats',
+                emlErrorsContainer: 'eml-errors-container',
+                emlErrorsBody: 'eml-errors-body',
+                // Novated
+                novatedEasifleetBtn: 'novated-easifleet-btn',
+                novatedSmartleasingBtn: 'novated-smartleasing-btn',
+                novatedStats: 'novated-stats',
+                novatedErrorsContainer: 'novated-errors-container',
+                novatedErrorsBody: 'novated-errors-body'
+            },
+
+            init: function () {
+                const el = (id) => document.getElementById(id);
+                const uploadBox = el(this.elements.uploadBox);
+                const fileInput = el(this.elements.fileInput);
+
+                if (!uploadBox) return;
+
+                uploadBox.addEventListener('click', () => fileInput.click());
+
+                uploadBox.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadBox.classList.add('border-indigo-600', 'bg-indigo-50');
+                });
+
+                uploadBox.addEventListener('dragleave', () => {
+                    uploadBox.classList.remove('border-indigo-600', 'bg-indigo-50');
+                });
+
+                uploadBox.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadBox.classList.remove('border-indigo-600', 'bg-indigo-50');
+                    if (e.dataTransfer.files.length > 0) this.handleFile(e.dataTransfer.files[0]);
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) this.handleFile(e.target.files[0]);
+                });
+
+                el(this.elements.emlGenerateBtn).addEventListener('click', () => this.generateEmlCSV());
+                el(this.elements.novatedEasifleetBtn).addEventListener('click', () => this.generateNovatedCSV('Easifleet'));
+                el(this.elements.novatedSmartleasingBtn).addEventListener('click', () => this.generateNovatedCSV('Smartleasing'));
+            },
+
+            handleFile: function (file) {
+                const el = (id) => document.getElementById(id);
+                if (!file.name.match(/\.(xlsx|xls)$/)) {
+                    alert('Please upload a valid Excel file.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        this.workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                        const worksheet = this.workbook.Sheets[this.workbook.SheetNames[0]];
+                        this.data = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                        const fileInfo = el(this.elements.fileInfo);
+                        fileInfo.innerHTML = '<p class="font-bold">File Loaded: ' + file.name + '</p><p class="text-sm">Total Rows: ' + this.data.length + '</p>';
+                        fileInfo.classList.remove('hidden');
+
+                        this.processData();
+
+                    } catch (error) {
+                        alert('Error reading file: ' + error.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            },
+
+            // Helper to get a column value by key (case-insensitive, trimmed)
+            getField: function (row, key) {
+                const foundKey = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                return foundKey ? row[foundKey] : "";
+            },
+
+            processData: function () {
+                const el = (id) => document.getElementById(id);
+                const loading = el(this.elements.loading);
+                const resultsSection = el(this.elements.resultsSection);
+
+                loading.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+
+                // Disable all buttons while processing
+                el(this.elements.emlGenerateBtn).disabled = true;
+                el(this.elements.novatedEasifleetBtn).disabled = true;
+                el(this.elements.novatedSmartleasingBtn).disabled = true;
+
+                setTimeout(() => {
+                    // Reset all
+                    this.emlValidRows = [];
+                    this.emlErrors = [];
+                    this.novatedEasifleetRows = [];
+                    this.novatedSmartleasingRows = [];
+                    this.novatedErrors = [];
+                    let emlCount = 0;
+                    let novatedCount = 0;
+
+                    this.data.forEach((row, index) => {
+                        const get = (key) => this.getField(row, key);
+                        const accountName = String(get("Account Name") || get("Bank Account Name") || "").trim();
+                        const itemName = String(get("Item Name") || get("Salary Package Item") || "").trim();
+                        const payment = parseFloat(get("Payment") || get("Amount") || 0);
+                        const bankRef = String(get("Bank Reference") || get("Bank Ref") || "").trim();
+                        const empName = String(get("Employee Name") || get("Name") || "").trim();
+                        const rowNum = index + 2;
+
+                        // --- EML Card Processing ---
+                        if (accountName === "EML Card") {
+                            emlCount++;
+                            if (itemName !== "EMLMEC" && itemName !== "EMLEBC") {
+                                this.emlErrors.push({
+                                    row: rowNum,
+                                    employee: empName,
+                                    item: itemName,
+                                    issue: 'Invalid Item Name: "' + itemName + '". Must be EMLMEC or EMLEBC.'
+                                });
+                            } else {
+                                this.emlValidRows.push({
+                                    amount: payment.toFixed(4),
+                                    destination_account_id: bankRef,
+                                    transaction_type: "2901",
+                                    destination_reference: empName + ' ' + itemName,
+                                    source_reference: "",
+                                    source_account_id: "LQVKR11N3"
+                                });
+                            }
+                        }
+
+                        // --- Novated Lease Processing (NL - Finance items only) ---
+                        if (itemName === "NL - Finance") {
+                            novatedCount++;
+                            const accountLower = accountName.toLowerCase();
+
+                            if (accountLower.indexOf("easifleet") !== -1) {
+                                this.novatedEasifleetRows.push({
+                                    employee_name: empName,
+                                    item_name: itemName,
+                                    account_name: accountName,
+                                    bank_reference: bankRef,
+                                    payment: payment
+                                });
+                            } else if (accountLower.indexOf("smartleasing") !== -1) {
+                                this.novatedSmartleasingRows.push({
+                                    employee_name: empName,
+                                    item_name: itemName,
+                                    account_name: accountName,
+                                    bank_reference: bankRef,
+                                    payment: payment
+                                });
+                            } else {
+                                this.novatedErrors.push({
+                                    row: rowNum,
+                                    employee: empName,
+                                    account: accountName,
+                                    issue: 'Unrecognised supplier account: "' + accountName + '". Expected Easifleet or Smartleasing.'
+                                });
+                            }
+                        }
+                    });
+
+                    this.displayEmlResults(emlCount);
+                    this.displayNovatedResults(novatedCount);
+
+                    loading.classList.add('hidden');
+                    resultsSection.classList.remove('hidden');
+
+                    // Enable EML button if valid
+                    if (this.emlValidRows.length > 0 && this.emlErrors.length === 0) {
+                        el(this.elements.emlGenerateBtn).disabled = false;
+                    }
+                    // Enable Novated buttons if valid
+                    if (this.novatedEasifleetRows.length > 0 && this.novatedErrors.length === 0) {
+                        el(this.elements.novatedEasifleetBtn).disabled = false;
+                    }
+                    if (this.novatedSmartleasingRows.length > 0 && this.novatedErrors.length === 0) {
+                        el(this.elements.novatedSmartleasingBtn).disabled = false;
+                    }
+                }, 100);
+            },
+
+            displayEmlResults: function (totalEml) {
+                const el = (id) => document.getElementById(id);
+                const stats = el(this.elements.emlStats);
+                const errorsContainer = el(this.elements.emlErrorsContainer);
+                const errorsBody = el(this.elements.emlErrorsBody);
+
+                stats.innerHTML =
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-slate-800">' + totalEml + '</h3>' +
+                        '<p class="text-slate-500 text-xs">EML Card Rows</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-green-600">' + this.emlValidRows.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Valid</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center ' + (this.emlErrors.length > 0 ? 'bg-red-50 border-red-200' : '') + '">' +
+                        '<h3 class="text-xl font-bold ' + (this.emlErrors.length > 0 ? 'text-red-600' : 'text-slate-400') + '">' + this.emlErrors.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Errors</p>' +
+                    '</div>';
+
+                if (this.emlErrors.length > 0) {
+                    errorsContainer.classList.remove('hidden');
+                    errorsBody.innerHTML = this.emlErrors.map(function(e) {
+                        return '<tr>' +
+                            '<td class="py-2 px-3 font-mono text-xs text-slate-500">' + e.row + '</td>' +
+                            '<td class="py-2 px-3 font-medium">' + e.employee + '</td>' +
+                            '<td class="py-2 px-3">' + e.item + '</td>' +
+                            '<td class="py-2 px-3 text-red-600 font-medium">' + e.issue + '</td>' +
+                        '</tr>';
+                    }).join('');
+                } else {
+                    errorsContainer.classList.add('hidden');
+                }
+            },
+
+            displayNovatedResults: function (totalNovated) {
+                const el = (id) => document.getElementById(id);
+                const stats = el(this.elements.novatedStats);
+                const errorsContainer = el(this.elements.novatedErrorsContainer);
+                const errorsBody = el(this.elements.novatedErrorsBody);
+
+                var easiTotal = this.novatedEasifleetRows.reduce(function(sum, r) { return sum + r.payment; }, 0);
+                var smartTotal = this.novatedSmartleasingRows.reduce(function(sum, r) { return sum + r.payment; }, 0);
+
+                stats.innerHTML =
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-slate-800">' + totalNovated + '</h3>' +
+                        '<p class="text-slate-500 text-xs">NL - Finance Rows</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-emerald-600">' + this.novatedEasifleetRows.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Easifleet ($' + easiTotal.toFixed(2) + ')</p>' +
+                    '</div>' +
+                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-xl font-bold text-teal-600">' + this.novatedSmartleasingRows.length + '</h3>' +
+                        '<p class="text-slate-500 text-xs">Smartleasing ($' + smartTotal.toFixed(2) + ')</p>' +
+                    '</div>';
+
+                if (this.novatedErrors.length > 0) {
+                    errorsContainer.classList.remove('hidden');
+                    errorsBody.innerHTML = this.novatedErrors.map(function(e) {
+                        return '<tr>' +
+                            '<td class="py-2 px-3 font-mono text-xs text-slate-500">' + e.row + '</td>' +
+                            '<td class="py-2 px-3 font-medium">' + e.employee + '</td>' +
+                            '<td class="py-2 px-3">' + e.account + '</td>' +
+                            '<td class="py-2 px-3 text-red-600 font-medium">' + e.issue + '</td>' +
+                        '</tr>';
+                    }).join('');
+                } else {
+                    errorsContainer.classList.add('hidden');
+                }
+            },
+
+            generateEmlCSV: function () {
+                if (this.emlValidRows.length === 0) return;
+
+                var headers = ["amount", "destination_account_id", "transaction_type", "destination_reference", "source_reference", "source_account_id"];
+                var rows = this.emlValidRows.map(function(r) {
+                    return [
+                        r.amount,
+                        r.destination_account_id,
+                        r.transaction_type,
+                        '"' + r.destination_reference + '"',
+                        r.source_reference,
+                        r.source_account_id
+                    ].join(',');
+                });
+
+                var csvContent = [headers.join(',')].concat(rows).join('\n');
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'AUSTIN_EMLCARD_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_1.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            },
+
+            generateNovatedCSV: function (supplier) {
+                var rows = supplier === 'Easifleet' ? this.novatedEasifleetRows : this.novatedSmartleasingRows;
+                if (rows.length === 0) return;
+
+                var headers = ["Employee Name", "Item Name", "Account Name", "Bank Reference", "Payment"];
+                var csvRows = rows.map(function(r) {
+                    return [
+                        '"' + r.employee_name + '"',
+                        '"' + r.item_name + '"',
+                        '"' + r.account_name + '"',
+                        '"' + r.bank_reference + '"',
+                        r.payment.toFixed(2)
+                    ].join(',');
+                });
+
+                var csvContent = [headers.join(',')].concat(csvRows).join('\n');
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                var supplierTag = supplier === 'Easifleet' ? 'EASIFLEET' : 'SMARTLEASING';
+                link.download = 'AUSTIN_NOVATED_' + supplierTag + '_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize Tools
+        document.addEventListener('DOMContentLoaded', () => {
+            ValidatorTool.init();
+            RemittanceTool.init();
+
+            // Default View
+            switchView('pay-processing');
+        });
+
+    </script>
+</body>
+
+</html>
