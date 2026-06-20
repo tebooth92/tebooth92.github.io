@@ -315,8 +315,8 @@
             <!-- VIEW 1: PAY PROCESSING (Existing Tool) -->
             <div id="view-pay-processing" class="view-section p-8 max-w-5xl mx-auto">
                 <!-- Header -->
-                <header class="mb-10 text-center relative">
-                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">Salary Packaging Processing</h2>
+                <header class="mb-10 relative">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-2">Salary Packaging Processing</h2>
                     <p class="text-slate-500">Manage your payroll and GST reconciliation in the sections below.</p>
                     <button onclick="openCalculator()"
                         class="absolute top-0 right-0 mt-2 mr-2 md:mt-0 md:mr-0 inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm leading-4 font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-colors">
@@ -363,7 +363,7 @@
                             <div class="flex flex-col gap-4">
                                 <!-- Status Card -->
                                 <div id="card-pre"
-                                    class="bg-white rounded-lg shadow border border-slate-200 p-6 opacity-60 relative overflow-hidden transition-all duration-300">
+                                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 opacity-60 relative overflow-hidden transition-all duration-300">
                                     <div class="absolute top-0 right-0 p-2 opacity-10"><span
                                             class="text-6xl font-bold text-slate-800">PRE</span></div>
                                     <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">
@@ -407,7 +407,7 @@
                             <div class="flex flex-col gap-4">
                                 <!-- Status Card -->
                                 <div id="card-post"
-                                    class="bg-white rounded-lg shadow border border-slate-200 p-6 opacity-60 relative overflow-hidden transition-all duration-300">
+                                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 opacity-60 relative overflow-hidden transition-all duration-300">
                                     <div class="absolute top-0 right-0 p-2 opacity-10"><span
                                             class="text-6xl font-bold text-slate-800">POST</span></div>
                                     <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">
@@ -510,7 +510,7 @@
                                         placeholder="Search Payroll ID...">
                                 </div>
                             </div>
-                            <div class="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+                            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
                                 <table class="min-w-full divide-y divide-slate-200">
                                     <thead class="bg-slate-50">
                                         <tr>
@@ -700,8 +700,8 @@
             <!-- VIEW 2: PRE PAYMENT AUDIT (New Tool) -->
             <div id="view-audit" class="view-section hidden p-8 max-w-5xl mx-auto">
                 <!-- Header -->
-                <header class="mb-10 text-center relative">
-                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">Package Benefit Details Validator</h2>
+                <header class="mb-10 relative">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-2">Package Benefit Details Validator</h2>
                     <p class="text-slate-500">Validate for negative amounts, EML rules, and business logic errors.
                     </p>
 
@@ -760,7 +760,7 @@
 
                         <!-- Errors Container -->
                         <div id="audit-errors-container"
-                            class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden">
+                            class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <!-- Populated by JS -->
                         </div>
                     </div>
@@ -770,8 +770,8 @@
             <!-- VIEW: EML REMITTANCE TOOL (NEW) -->
             <div id="view-eml-remittance" class="view-section hidden p-8 max-w-5xl mx-auto">
                 <!-- Header -->
-                <header class="mb-10 text-center relative">
-                    <h2 class="text-3xl font-semibold text-slate-900 mb-2">Remittance Generator</h2>
+                <header class="mb-10 relative">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-2">Remittance Generator</h2>
                     <p class="text-slate-600">Upload 'Payment Transaction Report' to generate remittance files.</p>
 
                     <!-- Help Tooltip -->
@@ -816,7 +816,7 @@
                     <div id="eml-results-section" class="hidden">
 
                         <!-- EML Card Remittance Panel -->
-                        <div class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
                             <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
                                 <div class="flex items-center">
                                     <span class="mr-2 text-lg">💳</span>
@@ -854,7 +854,7 @@
                         </div>
 
                         <!-- Novated Remittance Panel -->
-                        <div class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden mb-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
                             <div class="p-4 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
                                 <div class="flex items-center">
                                     <span class="mr-2 text-lg">&#128663;</span>
@@ -1008,7 +1008,7 @@
 
                             <!-- Pre Tax -->
                             <div id="preTaxResult"
-                                class="result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4">
+                                class="result-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4">
                                 <span class="block font-bold text-lg mb-1">Pre-Tax Comparison</span>
                                 <span id="preTaxVarianceAmount" class="text-xl font-bold mr-2">$0.00</span>
                                 <div id="preTaxAction" class="text-sm text-slate-600 mt-2"></div>
@@ -1016,7 +1016,7 @@
 
                             <!-- Post Tax -->
                             <div id="postTaxResult"
-                                class="result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4">
+                                class="result-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4">
                                 <span class="block font-bold text-lg mb-1">Post-Tax Comparison</span>
                                 <span id="postTaxVarianceAmount" class="text-xl font-bold mr-2">$0.00</span>
                                 <div id="postTaxAction" class="text-sm text-slate-600 mt-2"></div>
@@ -1607,11 +1607,11 @@
             document.getElementById('results-container').classList.add('hidden');
 
             // Reset result card/text styles
-            document.getElementById('preTaxResult').className = 'result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4';
+            document.getElementById('preTaxResult').className = 'result-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4';
             document.getElementById('preTaxVarianceAmount').className = 'text-xl font-bold mr-2';
             document.getElementById('preTaxAction').textContent = '';
 
-            document.getElementById('postTaxResult').className = 'result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4';
+            document.getElementById('postTaxResult').className = 'result-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4';
             document.getElementById('postTaxVarianceAmount').className = 'text-xl font-bold mr-2';
             document.getElementById('postTaxAction').textContent = '';
         }
@@ -1653,7 +1653,7 @@
             const diffAbs = Math.abs(diff).toFixed(2);
 
             // Reset
-            card.className = 'result-card bg-white p-4 rounded shadow-sm border border-slate-200 mb-4';
+            card.className = 'result-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4';
             amountEl.className = 'text-xl font-bold mr-2';
             amountEl.classList.remove('variance-positive', 'variance-negative', 'variance-neutral');
 
