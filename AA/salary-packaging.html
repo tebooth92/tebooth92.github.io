@@ -474,7 +474,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                 </svg>
-                                Download Salary_Packaging_Upload.csv
+                                Download Salary_Packaging_Upload.xlsx
                             </button>
                         </div>
                         <div id="summary-placeholder" class="text-center text-slate-400 italic py-4">
@@ -1096,7 +1096,7 @@
         fileInputPost.addEventListener('change', (e) => handlePostTax(e.target.files));
         fileInputGst.addEventListener('change', (e) => handleGstFile(e.target.files));
 
-        downloadBtn.addEventListener('click', generateCSV);
+        downloadBtn.addEventListener('click', generateExcel);
         downloadValBtn.addEventListener('click', generateValidationReport);
 
         function setupDragDrop(zone, handler) {
@@ -1720,35 +1720,37 @@
             }
         }
 
-        function generateCSV() {
+        function generateExcel() {
             if (!state.combinedRecords.length) return;
 
-            // Headers: Employee Name, Payroll ID, Projected Deduction, Pre/Post Tax, Comments
-            const csvHeader = ["Employee Name", "Payroll ID", "Projected Deduction", "Pre/Post Tax", "Comments"];
-
-            // Convert to CSV string manually to ensure exact format
-            const rows = state.combinedRecords.map(r => {
-                // Escape quotes if needed, though names usually clean.
-                // Using simple replacements for safety.
-                const name = `"${r.employeeName.replace(/"/g, '""')}"`;
-                const id = `"${r.payrollId}"`; // Force string to keep it clean? Actually numbers are fine.
-                const ded = r.deduction.toFixed(2); // Ensure 2 decimal places
-                const code = r.code;
-                const com = `"${r.comments}"`;
-
-                return [name, id, ded, code, com].join(",");
+            // Columns required by the Eziway upload
+            const header = ["Employee Name", "Payroll ID", "Projected Deduction", "Pre/Post Tax", "Comments"];
+            const aoa = [header];
+            state.combinedRecords.forEach(r => {
+                aoa.push([
+                    r.employeeName,
+                    String(r.payrollId),              // keep as text (preserve any leading zeros)
+                    Number(r.deduction.toFixed(2)),   // real number, 2 decimals
+                    r.code,
+                    r.comments
+                ]);
             });
 
-            const csvContent = [csvHeader.join(",")].concat(rows).join("\n");
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "Salary_Packaging_Upload.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Force Payroll ID to text and 2-decimal format on Projected Deduction
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let row = 1; row <= range.e.r; row++) {
+                const idCell = ws[XLSX.utils.encode_cell({ r: row, c: 1 })];
+                if (idCell) idCell.t = 's';
+                const dedCell = ws[XLSX.utils.encode_cell({ r: row, c: 2 })];
+                if (dedCell && dedCell.t === 'n') dedCell.z = '0.00';
+            }
+            ws['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 18 }, { wch: 12 }, { wch: 30 }];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Upload");
+            XLSX.writeFile(wb, "Salary_Packaging_Upload.xlsx");
         }
 
         function showError(msg) {
