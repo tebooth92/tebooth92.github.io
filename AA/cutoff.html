@@ -656,12 +656,20 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     var blob = new Blob([wbout], { type: 'application/octet-stream' });
 
-    var ts = new Date();
     var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
-    var stamp = ts.getFullYear() + pad(ts.getMonth() + 1) + pad(ts.getDate()) + '_' + pad(ts.getHours()) + pad(ts.getMinutes());
+    // Period-Ending (P.E) date: fortnightly Sundays anchored on 21.06.2026 (a Sunday).
+    // Use the most recent anchor-aligned Sunday on or before today, so running on the P.E
+    // Sunday or the days after (Mon/Tue/Wed ...) up to the next P.E Sunday keeps the same date.
+    var DAY = 86400000;
+    var anchorUTC = Date.UTC(2026, 5, 21);
+    var now = new Date();
+    var todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    var k = Math.floor((todayUTC - anchorUTC) / DAY / 14);
+    var pe = new Date(anchorUTC + k * 14 * DAY);
+    var peStr = pad(pe.getUTCDate()) + '.' + pad(pe.getUTCMonth() + 1) + '.' + pad(pe.getUTCFullYear() % 100);
     lastResult = {
       blob: blob,
-      filename: 'Combined Projected Deduction Report ' + stamp + '.xlsx'
+      filename: 'AA_Cutoff_H_M_P.E_' + peStr + '.xlsx'
     };
 
     document.getElementById('stat-total').textContent = outputRows.length;
