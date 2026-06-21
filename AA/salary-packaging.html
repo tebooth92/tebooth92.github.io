@@ -2084,6 +2084,61 @@
                             errorMessage: `Austin Health EMP Benefit account (033077-243618) must not be used as a payment account`
                         });
                     }
+
+                    // VALIDATION 8: NL - Finance line with a payment (col H > 0) must have a Bank Ref (col N)
+                    if (packageItem === 'NL - Finance' || packageItem === 'NL – Finance') {
+                        const fnAmt = row['Fortnightly Amount'];
+                        const fnVal = typeof fnAmt === 'number' ? fnAmt : parseFloat(fnAmt);
+                        if (!isNaN(fnVal) && fnVal > 0 && bankRef === '') {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'Bank Ref',
+                                value: bankRef,
+                                type: 'nlf-bankref',
+                                category: 'Missing Bank Ref',
+                                errorMessage: `NL - Finance line with payment ${fnVal.toFixed(2)} must have a Bank Ref (column N), but it is empty`
+                            });
+                        }
+                    }
+                });
+
+                // VALIDATION 9: Per employee, Deposits (col I) must equal Payments (col H)
+                // summed across all "NL - Finance" and "Post Tax Contribution" lines.
+                const reconMap = {};
+                this.data.forEach((row, index) => {
+                    const item = row['Salary Package Item'] ? String(row['Salary Package Item']).trim() : '';
+                    const isNLF = (item === 'NL - Finance' || item === 'NL – Finance');
+                    const isPTC = (item === 'Post Tax Contribution');
+                    if (!isNLF && !isPTC) return;
+                    const id = String(row['Payroll ID']);
+                    if (!reconMap[id]) {
+                        reconMap[id] = { sumH: 0, sumI: 0, row: index + 2, payrollId: row['Payroll ID'], firstName: row['First Name'], lastName: row['Last Name'] };
+                    }
+                    const h = parseFloat(row['Fortnightly Amount']);
+                    const i = parseFloat(row['Deposit Amount']);
+                    reconMap[id].sumH += isNaN(h) ? 0 : h;
+                    reconMap[id].sumI += isNaN(i) ? 0 : i;
+                });
+                Object.keys(reconMap).forEach(id => {
+                    const e = reconMap[id];
+                    if (Math.round(e.sumH * 100) !== Math.round(e.sumI * 100)) {
+                        this.errors.push({
+                            row: e.row,
+                            payrollId: e.payrollId,
+                            firstName: e.firstName,
+                            lastName: e.lastName,
+                            packageItem: 'NL - Finance / Post Tax Contribution',
+                            field: 'Deposit Amount vs Fortnightly Amount',
+                            value: `Deposits ${e.sumI.toFixed(2)} / Payments ${e.sumH.toFixed(2)}`,
+                            type: 'deposit-payment-mismatch',
+                            category: 'Deposit/Payment Mismatch',
+                            errorMessage: `Deposits (${e.sumI.toFixed(2)}) do not equal Payments (${e.sumH.toFixed(2)}) across NL - Finance / Post Tax Contribution lines (difference ${(e.sumI - e.sumH).toFixed(2)})`
+                        });
+                    }
                 });
             },
 
