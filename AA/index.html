@@ -8,7 +8,52 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         html, body { height: 100%; margin: 0; font-family: 'Inter', sans-serif; }
-        #tool-frame { flex: 1 1 auto; width: 100%; border: 0; }
+        #tool-frame { flex: 1 1 auto; width: 100%; border: 0; min-height: 0; }
+
+        /* ===== Pay Run Tracker ===== */
+        #pt-toggle .pt-switch{margin-left:auto;width:36px;height:21px;border-radius:999px;background:#475569;position:relative;transition:.2s;flex:none}
+        #pt-toggle .pt-switch::after{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.2s}
+        #pt-toggle.on .pt-switch{background:#10b981}
+        #pt-toggle.on .pt-switch::after{transform:translateX(15px)}
+
+        #pt{flex:none;background:#fff;border-top:1px solid #e2e8f0;box-shadow:0 -3px 12px rgba(16,24,40,.06)}
+        #pt.pt-hidden{display:none}
+        .pt-head{display:flex;align-items:center;gap:14px;padding:8px 18px;border-bottom:1px solid #f1f5f9}
+        .pt-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;flex:none}
+        .pt-now{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px;color:#64748b}
+        .pt-now b{color:#0f172a;font-weight:600}
+        .pt-ctrls{display:flex;align-items:center;gap:6px;flex:none}
+        .pt-ctrls button{border:1px solid #e2e8f0;background:#fff;border-radius:8px;padding:5px 11px;font:inherit;font-size:13px;font-weight:500;color:#0f172a;cursor:pointer;transition:.15s;line-height:1}
+        .pt-ctrls button:hover{background:#eef2ff;border-color:#c7d2fe}
+        .pt-ctrls .pt-x{padding:5px 9px;color:#64748b}
+
+        .pt-body{display:flex;gap:18px;padding:16px 18px 18px;align-items:stretch}
+        @media(max-width:900px){.pt-body{flex-direction:column;gap:12px}.pt-panel{width:auto!important}}
+        .pt-mapwrap{flex:1 1 auto;min-width:0}
+        .pt-labels{position:relative;height:14px;margin-bottom:2px}
+        .pt-labels .lab{position:absolute;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;transform:translateX(-50%)}
+        .pt-line{display:flex;align-items:flex-start;justify-content:space-between;position:relative;padding:6px 4px 0}
+        .pt-seg{position:absolute;height:4px;border-radius:2px;top:14px}
+        .pt-st{position:relative;display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;cursor:pointer;z-index:2}
+        .pt-dot{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #cbd5e1;display:flex;align-items:center;justify-content:center;transition:.15s}
+        .pt-dot svg{width:9px;height:9px;color:#fff;opacity:0;transition:.15s}
+        .pt-st.done .pt-dot{background:var(--phc);border-color:var(--phc)}
+        .pt-st.done .pt-dot svg{opacity:1}
+        .pt-st.active .pt-dot{width:20px;height:20px;border-width:4px;border-color:var(--phc);box-shadow:0 0 0 4px color-mix(in srgb,var(--phc) 24%,transparent)}
+        .pt-st.preview .pt-dot{box-shadow:0 0 0 3px color-mix(in srgb,var(--phc) 22%,transparent)}
+        .pt-st .pt-num{margin-top:5px;font-size:9.5px;font-weight:600;color:#94a3b8}
+        .pt-st.done .pt-num,.pt-st.active .pt-num{color:#0f172a}
+        .pt-int .pt-dot{width:18px;height:18px}
+        .pt-panel{flex:none;width:310px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:13px 15px;overflow:auto;max-height:150px}
+        .pt-panel .pnum{font-size:10px;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.05em}
+        .pt-panel h4{margin:3px 0 6px;font-size:14.5px;font-weight:600;line-height:1.25;color:#0f172a}
+        .pt-panel p{margin:0 0 10px;font-size:12.5px;color:#64748b;line-height:1.45}
+        .pt-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .pt-badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px}
+        .pt-badge.aa{background:#4f46e5;color:#fff}
+        .pt-badge.sys{background:#334155;color:#fff}
+        .pt-go{display:inline-flex;align-items:center;gap:5px;background:#4f46e5;color:#fff;border:none;text-decoration:none;font:inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer}
+        .pt-go:hover{background:#4338ca}
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -21,16 +66,44 @@
                 </a>
             </div>
             <div id="tool-nav" class="flex-1 px-4 space-y-1 mt-2 overflow-y-auto"></div>
-            <div class="p-4 text-xs text-slate-600 text-center">v2.0.0 | Unified</div>
+            <div class="px-4 pb-2 flex-none">
+                <button id="pt-toggle" class="flex items-center w-full px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
+                    <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                    <span class="font-medium">Pay Run Tracker</span>
+                    <span class="pt-switch"></span>
+                </button>
+            </div>
+            <div class="p-4 text-xs text-slate-600 text-center">v2.1.0 | Unified</div>
         </nav>
 
-        <!-- TOOL CONTENT -->
+        <!-- TOOL CONTENT + tracker drawer -->
         <main class="flex-1 flex flex-col bg-slate-50 overflow-hidden">
             <iframe id="tool-frame" title="Tool" src="about:blank"></iframe>
+
+            <div id="pt" class="pt-hidden">
+                <div class="pt-head">
+                    <span class="pt-title">Pay run</span>
+                    <span class="pt-now" id="pt-now"></span>
+                    <div class="pt-ctrls">
+                        <button id="pt-prev" title="Previous step">‹ Prev</button>
+                        <button id="pt-next" title="Next step">Next ›</button>
+                        <button id="pt-reset" title="Back to step 1">Reset</button>
+                        <button id="pt-hide" class="pt-x" title="Hide tracker">✕</button>
+                    </div>
+                </div>
+                <div class="pt-body">
+                    <div class="pt-mapwrap">
+                        <div class="pt-labels" id="pt-labels"></div>
+                        <div class="pt-line" id="pt-line"></div>
+                    </div>
+                    <div class="pt-panel" id="pt-panel"></div>
+                </div>
+            </div>
         </main>
     </div>
 
     <script>
+        /* ---------- shell routing ---------- */
         const ICONS = {
             home:     "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
             currency: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
@@ -39,7 +112,6 @@
             report:   "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
             scale:    "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
         };
-        // Each route: sidebar label, icon, and the file (with embed hash) to load in the frame.
         const ROUTES = {
             'home':           { label:'Home',                              icon:'home',     file:'home.html' },
             'pay-processing': { label:'Pay Processing',                    icon:'currency', file:'salary-packaging.html?embed=1#pay-processing' },
@@ -48,7 +120,6 @@
             'cutoff':         { label:'Projected Deduction Reconciliation', icon:'report',  file:'cutoff.html' },
             'reconciler':     { label:'Payroll Variance Reconciler',       icon:'scale',    file:'reconciler.html' },
         };
-        // Sidebar layout: groups with optional headings.
         const GROUPS = [
             { heading:null,               keys:['home'] },
             { heading:'Salary Packaging', keys:['pay-processing','audit','remittance'] },
@@ -62,46 +133,153 @@
         const activeCls = baseCls + ' bg-slate-800 text-white';
         const iconInactive = 'w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors';
         const iconActive = 'w-5 h-5 mr-3 text-indigo-400';
+        function svg(icon, cls){ return '<svg class="'+cls+'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="'+ICONS[icon]+'"></path></svg>'; }
 
-        function svg(icon, cls) {
-            return `<svg class="${cls}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${ICONS[icon]}"></path></svg>`;
-        }
-        // Build sidebar
         GROUPS.forEach(g => {
             if (g.heading) {
                 const h = document.createElement('p');
                 h.className = 'px-4 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500';
-                h.textContent = g.heading;
-                nav.appendChild(h);
+                h.textContent = g.heading; nav.appendChild(h);
             }
             g.keys.forEach(key => {
                 const r = ROUTES[key];
                 const a = document.createElement('a');
-                a.href = '#' + key;
-                a.id = 'nav-' + key;
-                a.className = inactiveCls;
-                a.innerHTML = svg(r.icon, iconInactive) + `<span class="font-medium">${r.label}</span>`;
+                a.href = '#' + key; a.id = 'nav-' + key; a.className = inactiveCls;
+                a.innerHTML = svg(r.icon, iconInactive) + '<span class="font-medium">'+r.label+'</span>';
                 nav.appendChild(a);
             });
         });
 
-        function selectRoute(key) {
+        function selectRoute(key){
             if (!ROUTES[key]) key = 'home';
             const r = ROUTES[key];
             Object.keys(ROUTES).forEach(k => {
-                const a = document.getElementById('nav-' + k);
-                if (!a) return;
+                const a = document.getElementById('nav-' + k); if (!a) return;
                 a.className = (k === key) ? activeCls : inactiveCls;
                 a.querySelector('svg').setAttribute('class', (k === key) ? iconActive : iconInactive);
             });
-            // Setting src that differs only by #fragment won't reload the frame (smooth view switch).
             if (frame.src.split('/').pop() !== r.file) frame.src = r.file;
             document.title = (key === 'home' ? 'Payroll Tools' : r.label + ' | Payroll Tools');
         }
-
-        function routeFromHash() { selectRoute((location.hash || '#home').slice(1)); }
+        function routeFromHash(){ selectRoute((location.hash || '#home').slice(1)); }
         window.addEventListener('hashchange', routeFromHash);
         routeFromHash();
+
+        /* ---------- Pay Run Tracker ---------- */
+        const PT_PHASES = [
+            {name:'Setup',          color:'#6366f1'},
+            {name:'Load & Process', color:'#0ea5e9'},
+            {name:'GST',            color:'#f59e0b'},
+            {name:'Bank',           color:'#f97316'},
+            {name:'Audit',          color:'#8b5cf6'},
+            {name:'Commit & Remit', color:'#ec4899'},
+        ];
+        const PT_STEPS = [
+            {n:1,  ph:0, tool:'sys', t:'Export opening balance',            d:'On the Home page, under Package Summary, click Active Employees, then Export, then xlsx. Saves the day’s opening-balance file.'},
+            {n:2,  ph:0, tool:'aa',  link:'pay-processing', go:'Pay Processing', t:'Build the pay-run upload file', d:'In Pay Processing, upload the pre-tax and post-tax files from payroll, then click Export to create the pay-run upload file.'},
+            {n:3,  ph:1, tool:'sys', t:'Open Projected Deduction (PrePost)', d:'Navigate to Reports > Deposit > Projected Deduction PrePost.'},
+            {n:4,  ph:1, tool:'sys', t:'Upload & save deductions',           d:'Click Choose File, select the file you created, click Upload, then Save Changes.'},
+            {n:5,  ph:1, tool:'sys', t:'Open Projected Deduction (PROCESS)', d:'Navigate to Reports > Deposit > Projected Deduction – PROCESS.'},
+            {n:6,  ph:1, tool:'sys', t:'Process packages with changes',      d:'Click “PROCESS Packages with Changes”.'},
+            {n:7,  ph:1, tool:'sys', t:'Resolve change records',             d:'Work through each record that requires changes.'},
+            {n:8,  ph:1, tool:'sys', t:'Finalise actual deductions',         d:'When no changes remain, click “Finalise Actual Deductions”.'},
+            {n:9,  ph:2, tool:'sys', t:'Export the GST report',              d:'Navigate to Reports > Deposit > Employer GST Invoice – GST Method. Click Search, then export the GST report.'},
+            {n:10, ph:2, tool:'aa',  link:'pay-processing', go:'Pay Processing', t:'Upload the GST report', d:'In Pay Processing, load the GST report into the GST Report uploader.'},
+            {n:11, ph:2, tool:'aa',  link:'pay-processing', go:'Pay Processing', t:'Resolve GST issues', d:'Work through the GST issues flagged on the page.'},
+            {n:12, ph:2, tool:'sys', t:'Re-finalise until clean',            d:'Repeat from step 8 until no GST errors remain.'},
+            {n:13, ph:3, tool:'sys', t:'Open Bank Payments Process Log',     d:'Navigate to Quit Manager > Packages > Bank Payments Process Log.'},
+            {n:14, ph:3, tool:'sys', t:'Enter GST-inclusive bank value',     d:'Click View on the pay date, then Edit in the Action column. Enter the GST-inclusive value in the “Bank” column.'},
+            {n:15, ph:4, tool:'sys', t:'Export Active Benefits report',      d:'Navigate to Reports > Employee > Active Benefits. Click Search and export the report.'},
+            {n:16, ph:4, tool:'aa',  link:'audit', go:'Pre Payment Audit', t:'Run the pre-payment audit', d:'In Pre Payment Audit, upload the report and fix any audit issues.'},
+            {n:17, ph:5, tool:'sys', t:'Commit the payment',                 d:'Navigate to Quit Manage > Packages > Commit Payment.'},
+            {n:18, ph:5, tool:'sys', t:'Open Payment Transaction',           d:'Navigate to Reports > Payment > Payment Transaction.'},
+            {n:19, ph:5, tool:'sys', t:'Open the payment batch',             d:'Scroll to the bottom and click the batch number above “Total Payment” (labelled WPB00022XXXXXXXX).'},
+            {n:20, ph:5, tool:'sys', t:'Export the batch report',            d:'Once the page loads, click Export Report.'},
+            {n:21, ph:5, tool:'aa',  link:'remittance', go:'Remittance', t:'Generate remittances', d:'In Remittance, upload the batch file. Download each remittance, send novated remittances to the providers, and save the EML remittance — load it only once funds land in the EML account (that evening / next morning).'},
+        ];
+        const PT_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+        const ptEl = document.getElementById('pt');
+        const ptToggle = document.getElementById('pt-toggle');
+        const ptLine = document.getElementById('pt-line');
+        const ptLabels = document.getElementById('pt-labels');
+        const ptPanel = document.getElementById('pt-panel');
+        const ptNow = document.getElementById('pt-now');
+
+        let ptOpen = localStorage.getItem('aa_tracker_open') === '1';
+        let ptStep = parseInt(localStorage.getItem('aa_tracker_step') || '1', 10);
+        if (isNaN(ptStep) || ptStep < 1 || ptStep > PT_STEPS.length) ptStep = 1;
+        let ptPreview = null;
+
+        function ptSave(){ localStorage.setItem('aa_tracker_open', ptOpen ? '1':'0'); localStorage.setItem('aa_tracker_step', String(ptStep)); }
+
+        function ptLinkBtn(s){ return s.link ? '<a class="pt-go" href="#'+s.link+'">Open '+s.go+' ↗</a>' : ''; }
+
+        function ptRenderNow(){ ptNow.innerHTML = 'Step <b>'+ptStep+' of '+PT_STEPS.length+'</b> — '+PT_STEPS[ptStep-1].t; }
+
+        function ptRenderPanel(){
+            const s = PT_STEPS[(ptPreview||ptStep)-1], ph = PT_PHASES[s.ph];
+            ptPanel.innerHTML =
+                '<div class="pnum">Step '+s.n+' of '+PT_STEPS.length+' · '+ph.name+(ptPreview&&ptPreview!==ptStep?' · preview':'')+'</div>'+
+                '<h4>'+s.t+'</h4><p>'+s.d+'</p>'+
+                '<div class="pt-foot"><span class="pt-badge '+(s.tool==='aa'?'aa':'sys')+'">'+(s.tool==='aa'?'AA tool':'Payroll system')+'</span>'+ptLinkBtn(s)+'</div>';
+        }
+        function ptMarkPreview(){
+            ptLine.querySelectorAll('.pt-st').forEach((st,i)=> st.classList.toggle('preview', PT_STEPS[i].n===ptPreview && PT_STEPS[i].n!==ptStep));
+        }
+        function ptRenderMap(){
+            ptLine.innerHTML=''; ptLabels.innerHTML='';
+            PT_STEPS.forEach((s,i)=>{
+                const st=document.createElement('div');
+                st.className='pt-st'+(s.n<ptStep?' done':'')+(s.n===ptStep?' active':'');
+                if(i===0 || PT_STEPS[i-1].ph!==s.ph) st.classList.add('pt-int');
+                st.style.setProperty('--phc', PT_PHASES[s.ph].color);
+                st.innerHTML='<div class="pt-dot">'+PT_CHECK+'</div><div class="pt-num">'+s.n+'</div>';
+                st.addEventListener('mouseenter',()=>{ ptPreview=s.n; ptRenderPanel(); ptMarkPreview(); });
+                st.addEventListener('click',()=>{ ptStep=s.n; ptPreview=null; ptSave(); ptRender(); });
+                ptLine.appendChild(st);
+            });
+            requestAnimationFrame(()=>{
+                const sts=[...ptLine.querySelectorAll('.pt-st')]; const lr=ptLine.getBoundingClientRect();
+                if(!lr.width) return;
+                sts.forEach((st,i)=>{
+                    if(i===sts.length-1) return;
+                    const a=st.querySelector('.pt-dot').getBoundingClientRect();
+                    const b=sts[i+1].querySelector('.pt-dot').getBoundingClientRect();
+                    const seg=document.createElement('div'); seg.className='pt-seg';
+                    const x1=a.left+a.width/2-lr.left, x2=b.left+b.width/2-lr.left;
+                    seg.style.left=x1+'px'; seg.style.width=(x2-x1)+'px';
+                    seg.style.background = PT_STEPS[i].n<ptStep ? PT_PHASES[PT_STEPS[i].ph].color : '#cbd5e1';
+                    ptLine.insertBefore(seg, ptLine.firstChild);
+                });
+                PT_PHASES.forEach((p,pi)=>{
+                    const first=PT_STEPS.findIndex(s=>s.ph===pi); if(first<0) return;
+                    const dot=sts[first].querySelector('.pt-dot').getBoundingClientRect();
+                    const lab=document.createElement('div'); lab.className='lab';
+                    lab.textContent=p.name; lab.style.color=p.color;
+                    lab.style.left=(dot.left+dot.width/2-lr.left)+'px';
+                    ptLabels.appendChild(lab);
+                });
+            });
+        }
+        function ptRender(){
+            ptToggle.classList.toggle('on', ptOpen);
+            ptEl.classList.toggle('pt-hidden', !ptOpen);
+            if(!ptOpen) return;
+            ptRenderNow(); ptRenderPanel(); ptRenderMap();
+        }
+        function ptSetOpen(v){ ptOpen=v; ptPreview=null; ptSave(); ptRender(); }
+        function ptSetStep(n){ ptStep=Math.max(1,Math.min(PT_STEPS.length,n)); ptPreview=null; ptSave(); ptRender(); }
+
+        ptToggle.addEventListener('click', ()=> ptSetOpen(!ptOpen));
+        document.getElementById('pt-hide').addEventListener('click', ()=> ptSetOpen(false));
+        document.getElementById('pt-prev').addEventListener('click', ()=> ptSetStep(ptStep-1));
+        document.getElementById('pt-next').addEventListener('click', ()=> ptSetStep(ptStep+1));
+        document.getElementById('pt-reset').addEventListener('click', ()=> ptSetStep(1));
+        ptPanel.addEventListener('mouseleave', ()=>{ ptPreview=null; ptRenderPanel(); ptMarkPreview(); });
+        ptLine.addEventListener('mouseleave', ()=>{ ptPreview=null; ptRenderPanel(); ptMarkPreview(); });
+        window.addEventListener('resize', ()=>{ if(ptOpen) ptRenderMap(); });
+        ptRender();
     </script>
 </body>
 </html>
