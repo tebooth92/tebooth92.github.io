@@ -1907,6 +1907,30 @@
                     { field: 'EB Capped Amount Available', type: 'negative-cap', category: 'EB Capped Amount Available' }
                 ];
 
+                // Start Date (col P) helper: lines that commence in the future are excluded from
+                // the current pay run's checks (e.g. NL deductions dated for a future year).
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const parseStartDate = (v) => {
+                    if (v instanceof Date) return isNaN(v) ? null : v;
+                    if (v === null || v === undefined) return null;
+                    const sv = String(v).trim();
+                    if (!sv) return null;
+                    const m = sv.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/); // d/m/yyyy (AU)
+                    if (m) {
+                        let y = parseInt(m[3], 10); if (y < 100) y += 2000;
+                        return new Date(y, parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+                    }
+                    const d = new Date(sv);
+                    return isNaN(d) ? null : d;
+                };
+                const isFutureDated = (row) => {
+                    const d = parseStartDate(row['Start Date']);
+                    if (!d) return false;            // unknown/unparseable -> include in checks
+                    d.setHours(0, 0, 0, 0);
+                    return d > today;
+                };
+
                 this.data.forEach((row, index) => {
                     const rowNumber = index + 2;
 
@@ -2114,6 +2138,7 @@
                     const isNLF = (item === 'NL - Finance' || item === 'NL – Finance');
                     const isPTC = (item === 'Post Tax Contribution');
                     if (!isNLF && !isPTC) return;
+                    if (isFutureDated(row)) return; // exclude future-dated deduction lines
                     const id = String(row['Payroll ID']);
                     if (!reconMap[id]) {
                         reconMap[id] = { sumH: 0, sumI: 0, row: index + 2, payrollId: row['Payroll ID'], firstName: row['First Name'], lastName: row['Last Name'] };
