@@ -318,14 +318,24 @@
                 <header class="mb-10 relative">
                     <h2 class="text-3xl font-bold text-slate-900 mb-2">Salary Packaging Processing</h2>
                     <p class="text-slate-500">Manage your payroll and GST reconciliation in the sections below.</p>
-                    <button onclick="openCalculator()"
-                        class="absolute top-0 right-0 mt-2 mr-2 md:mt-0 md:mr-0 inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm leading-4 font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-colors">
-                        <svg class="h-4 w-4 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 7h6m0 0v13m0-13H5m4 13h14M5 7l.01-4.99" />
-                        </svg>
-                        Variance Calc
-                    </button>
+                    <div class="absolute top-0 right-0 mt-2 mr-2 md:mt-0 md:mr-0 flex items-center gap-2">
+                        <button onclick="resetPayRun()"
+                            class="inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm leading-4 font-medium rounded-md text-slate-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 focus:outline-none transition-colors">
+                            <svg class="h-4 w-4 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Reset Pay Run
+                        </button>
+                        <button onclick="openCalculator()"
+                            class="inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm leading-4 font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-colors">
+                            <svg class="h-4 w-4 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 7h6m0 0v13m0-13H5m4 13h14M5 7l.01-4.99" />
+                            </svg>
+                            Variance Calc
+                        </button>
+                    </div>
                 </header>
 
                 <!-- Global Error Box (Outside sections) -->
@@ -674,6 +684,7 @@
                                         <p class="text-sm text-green-700">All employees match the GST Report. No
                                             variances
                                             found.</p>
+                                        <p id="gst-total-enter" class="hidden mt-3 text-base font-bold text-green-900">Bank Payment Process Log Total to Enter: <span id="gst-total-value"></span></p>
                                     </div>
                                 </div>
                             </div>
@@ -1149,6 +1160,53 @@
             }
         }
 
+        function resetPayRun() {
+            if (!confirm('Start a new pay run? This clears the Pre-Tax and Post-Tax files, the preview, and the GST report/results on this tab.')) return;
+
+            state.preTax = { processed: false, data: [], headers: [], total: 0 };
+            state.postTax = { processed: false, data: [], headers: [], total: 0 };
+            state.gstReport = { processed: false, data: [], map: {}, total: null };
+            state.combinedRecords = [];
+            state.validationResults = [];
+            state.hasError = false;
+
+            [fileInputPre, fileInputPost, fileInputGst].forEach(inp => { if (inp) inp.value = ''; });
+
+            ['pre', 'post'].forEach(type => {
+                document.getElementById('card-' + type).classList.remove('border-green-200', 'bg-green-50');
+                document.getElementById('val-' + type).textContent = '$0.00';
+                document.getElementById('count-' + type).textContent = '0 records';
+                document.getElementById('status-icon-' + type).className = 'w-2 h-2 rounded-full bg-slate-300 mr-2';
+                const stx = document.getElementById('status-text-' + type);
+                stx.className = 'text-slate-500';
+                stx.textContent = 'Waiting for file...';
+                const succ = document.getElementById(type + '-success');
+                if (succ) succ.classList.add('hidden');
+            });
+
+            document.getElementById('total-summary').classList.add('hidden');
+            document.getElementById('summary-placeholder').classList.remove('hidden');
+            document.getElementById('val-total').textContent = '$0.00';
+            document.getElementById('preview-area').classList.add('hidden');
+            document.getElementById('preview-placeholder').classList.remove('hidden');
+            document.getElementById('table-body').innerHTML = '';
+            if (searchInput) searchInput.value = '';
+
+            gstStatus.classList.add('hidden');
+            const gstDrop = document.getElementById('gst-drop-content');
+            if (gstDrop) gstDrop.classList.remove('opacity-10');
+            gstVarianceArea.classList.add('hidden');
+            document.getElementById('gst-placeholder').classList.remove('hidden');
+            gstIssuesContainer.classList.add('hidden');
+            gstAllOk.classList.add('hidden');
+            gstVarianceBody.innerHTML = '';
+            const totalEnter = document.getElementById('gst-total-enter');
+            if (totalEnter) totalEnter.classList.add('hidden');
+
+            statusArea.classList.add('hidden');
+            errorBox.classList.add('hidden');
+        }
+
         async function handleGstFile(files) {
             const file = files[0];
             if (!file) return;
@@ -1184,7 +1242,14 @@
                 // 2. Parse using the found header index
                 const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex, defval: "" });
 
-                state.gstReport.data = jsonData.map(r => ({
+                // Capture the report's grand total (the final "Total : " row), stripping $ and commas
+                const isTotalRow = (r) => String(r['Employee Name'] || '').trim().toLowerCase().startsWith('total');
+                const totalRow = jsonData.find(isTotalRow);
+                state.gstReport.total = totalRow
+                    ? (parseFloat(String(totalRow[CONSTANTS.GST_HEADER_DEPOSIT]).replace(/[^0-9.\-]/g, '')) || null)
+                    : null;
+
+                state.gstReport.data = jsonData.filter(r => !isTotalRow(r)).map(r => ({
                     payrollId: String(r[CONSTANTS.GST_HEADER_ID]).replace(/^0+/, '').replace(/\.0$/, ''),
                     deposit: parseFloat(r[CONSTANTS.GST_HEADER_DEPOSIT]) || 0,
                     gst: parseFloat(r[CONSTANTS.GST_HEADER_GST]) || 0,
@@ -1504,6 +1569,14 @@
             } else {
                 gstIssuesContainer.classList.add('hidden');
                 gstAllOk.classList.remove('hidden');
+                const totalEl = document.getElementById('gst-total-enter');
+                const valEl = document.getElementById('gst-total-value');
+                if (state.gstReport.total != null && !isNaN(state.gstReport.total)) {
+                    valEl.textContent = state.gstReport.total.toFixed(2);
+                    totalEl.classList.remove('hidden');
+                } else {
+                    totalEl.classList.add('hidden');
+                }
             }
         }
 
