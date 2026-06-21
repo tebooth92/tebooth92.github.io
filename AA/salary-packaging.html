@@ -1907,10 +1907,7 @@
                     { field: 'EB Capped Amount Available', type: 'negative-cap', category: 'EB Capped Amount Available' }
                 ];
 
-                // Start Date (col P) helper: lines that commence in the future are excluded from
-                // the current pay run's checks (e.g. NL deductions dated for a future year).
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                // Parser for Start Date / Next Payment Date (AU d/m/yyyy text, or real date cells).
                 const parseStartDate = (v) => {
                     if (v instanceof Date) return isNaN(v) ? null : v;
                     if (v === null || v === undefined) return null;
@@ -1923,12 +1920,6 @@
                     }
                     const d = new Date(sv);
                     return isNaN(d) ? null : d;
-                };
-                const isFutureDated = (row) => {
-                    const d = parseStartDate(row['Start Date']);
-                    if (!d) return false;            // unknown/unparseable -> include in checks
-                    d.setHours(0, 0, 0, 0);
-                    return d > today;
                 };
 
                 this.data.forEach((row, index) => {
@@ -2130,27 +2121,43 @@
                     }
                 });
 
-                // VALIDATION 9: Per employee, Deposits (col I) must equal Payments (col H)
-                // summed across all "NL - Finance" and "Post Tax Contribution" lines.
-                const reconMap = {};
+                // VALIDATION 9: Per employee, Deposits (col I) must equal Payments (col H) across
+                // "NL - Finance" and "Post Tax Contribution" lines for the CURRENT pay run only.
+                // The current run's date = the Next Payment Date (col R) on the active payment line
+                // (Fortnightly Amount > 0). Lines that START AFTER that date belong to a future pay
+                // run and are excluded. A run-wide fallback date covers anyone with no payment line.
+                const reconLines = {};
+                let globalRun = null;
                 this.data.forEach((row, index) => {
                     const item = row['Salary Package Item'] ? String(row['Salary Package Item']).trim() : '';
                     const isNLF = (item === 'NL - Finance' || item === 'NL – Finance');
                     const isPTC = (item === 'Post Tax Contribution');
                     if (!isNLF && !isPTC) return;
-                    if (isFutureDated(row)) return; // exclude future-dated deduction lines
                     const id = String(row['Payroll ID']);
-                    if (!reconMap[id]) {
-                        reconMap[id] = { sumH: 0, sumI: 0, row: index + 2, payrollId: row['Payroll ID'], firstName: row['First Name'], lastName: row['Last Name'] };
+                    if (!reconLines[id]) {
+                        reconLines[id] = { lines: [], runDate: null, row: index + 2, payrollId: row['Payroll ID'], firstName: row['First Name'], lastName: row['Last Name'] };
                     }
                     const h = parseFloat(row['Fortnightly Amount']);
                     const i = parseFloat(row['Deposit Amount']);
-                    reconMap[id].sumH += isNaN(h) ? 0 : h;
-                    reconMap[id].sumI += isNaN(i) ? 0 : i;
+                    reconLines[id].lines.push({ h: isNaN(h) ? 0 : h, i: isNaN(i) ? 0 : i, start: parseStartDate(row['Start Date']) });
+                    // The active payment line (H > 0) carries this pay run's payment date.
+                    if (!isNaN(h) && h > 0) {
+                        const nextPay = parseStartDate(row['Next Payment Date']);
+                        if (nextPay) {
+                            if (!reconLines[id].runDate || nextPay > reconLines[id].runDate) reconLines[id].runDate = nextPay;
+                            if (!globalRun || nextPay > globalRun) globalRun = nextPay;
+                        }
+                    }
                 });
-                Object.keys(reconMap).forEach(id => {
-                    const e = reconMap[id];
-                    if (Math.round(e.sumH * 100) !== Math.round(e.sumI * 100)) {
+                Object.keys(reconLines).forEach(id => {
+                    const e = reconLines[id];
+                    const cutoff = e.runDate || globalRun; // fall back to the run-wide pay date
+                    let sumH = 0, sumI = 0;
+                    e.lines.forEach(ln => {
+                        if (cutoff && ln.start && ln.start > cutoff) return; // future pay run -> exclude
+                        sumH += ln.h; sumI += ln.i;
+                    });
+                    if (Math.round(sumH * 100) !== Math.round(sumI * 100)) {
                         this.errors.push({
                             row: e.row,
                             payrollId: e.payrollId,
@@ -2158,10 +2165,10 @@
                             lastName: e.lastName,
                             packageItem: 'NL - Finance / Post Tax Contribution',
                             field: 'Deposit Amount vs Fortnightly Amount',
-                            value: `Deposits ${e.sumI.toFixed(2)} / Payments ${e.sumH.toFixed(2)}`,
+                            value: `Deposits ${sumI.toFixed(2)} / Payments ${sumH.toFixed(2)}`,
                             type: 'deposit-payment-mismatch',
                             category: 'Deposit/Payment Mismatch',
-                            errorMessage: `Deposits (${e.sumI.toFixed(2)}) do not equal Payments (${e.sumH.toFixed(2)}) across NL - Finance / Post Tax Contribution lines (difference ${(e.sumI - e.sumH).toFixed(2)})`
+                            errorMessage: `Deposits (${sumI.toFixed(2)}) do not equal Payments (${sumH.toFixed(2)}) across NL - Finance / Post Tax Contribution lines for the current pay run (difference ${(sumI - sumH).toFixed(2)})`
                         });
                     }
                 });
