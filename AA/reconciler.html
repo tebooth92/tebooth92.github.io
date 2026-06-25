@@ -72,6 +72,7 @@
   .badge.future-avail { background: #efeafa; color: var(--cat-nl); }
   .badge.added { background: #f7eaf1; color: var(--cat-ped); }
   .badge.terminating { background: var(--neg-weak); color: var(--neg); }
+  .badge.nopost { background: var(--neg-weak); color: var(--neg); }
 
   .detail-panel { flex: 1; overflow-y: auto; padding: 24px; }
   .empty-state { text-align: center; color: var(--text-faint); margin-top: 80px; font-size: 14px; }
@@ -599,6 +600,27 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
     }
   }
 
+  // Ensure a post-tax side exists wherever post-tax is expected, so post-tax lines never
+  // silently unbalance the worksheet. The main loop above only records a side when the
+  // post-tax variance clears tolerance, so an employee can have package post-tax items
+  // with no side (exact match, or missing entirely from the post-tax file).
+  //  - If already on the list (e.g. a pre-tax variance), attach their actual post-tax
+  //    received (0 if absent) so their worksheet balances.
+  //  - If post-tax was expected but nothing was received, surface them and flag it,
+  //    even when nothing else is wrong.
+  for (const pid in pkg) {
+    if (employees[pid] && employees[pid].postTax) continue;   // already has a post-tax side
+    let postExpected = 0;
+    for (const it of pkg[pid].items) { if (!it.isFuture && it.isPostTax) postExpected += it.deposit; }
+    if (postExpected <= 0.005) continue;                      // not expecting post-tax
+    const postReceived = ahPost[pid] ? ahPost[pid].received : 0;
+    const alreadyListed = !!employees[pid];
+    const nothingReceived = postReceived <= 0.005;
+    if (alreadyListed || nothingReceived) {
+      addSide(pid, 'postTax', postExpected, postReceived, pkg[pid].first, pkg[pid].last, true);
+    }
+  }
+
   const empList = Object.values(employees).sort((a,b) => {
     const va = Math.max(Math.abs((a.preTax?.variance)||0), Math.abs((a.postTax?.variance)||0));
     const vb = Math.max(Math.abs((b.preTax?.variance)||0), Math.abs((b.postTax?.variance)||0));
@@ -1068,7 +1090,8 @@ function renderList() {
     const futureBadge = emp.hasFuture ? '<span class="badge future-avail">FUTURE</span>' : '';
     const addedBadge = (s.addedItems || []).length ? '<span class="badge added">+'+s.addedItems.length+'</span>' : '';
     const termBadge = s.terminating ? '<span class="badge terminating">TERM</span>' : '';
-    div.innerHTML = `<div class="pid">${emp.payrollId}${reviewedBadge}${termBadge}${excessBadge}${futureBadge}${addedBadge}</div>
+    const noPostBadge = (emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005) ? '<span class="badge nopost">NO POST-TAX</span>' : '';
+    div.innerHTML = `<div class="pid">${emp.payrollId}${reviewedBadge}${termBadge}${noPostBadge}${excessBadge}${futureBadge}${addedBadge}</div>
       <div class="name">${emp.first || ''} ${emp.last || ''}</div>
       <div class="var ${varClass}">Variance: ${fmt(v)}</div>`;
     panel.appendChild(div);
@@ -1091,6 +1114,7 @@ function renderDetail() {
   if (!emp) return;
   const s = getEmpState(emp.payrollId);
   const terminating = s.terminating;
+  const postTaxMissing = !!(emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005);
   let html = `<div class="emp-header">
       <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span> ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
       <div style="margin-top: 8px;">${emp.inPackage ? '<span class="chip-ok">In Package Benefit Details</span>' : '<span class="chip-neg">NOT IN PACKAGE - funds received but no record</span>'}</div>
@@ -1110,6 +1134,9 @@ function renderDetail() {
       <div class="cap-item"><span class="label">Living Expenses cap:</span> <span class="value">${fmt(emp.leCap)}</span></div>
       <div class="cap-item"><span class="label">Meal Entertainment cap:</span> <span class="value">${fmt(emp.meCap)}</span></div>
     </div>`;
+  if (postTaxMissing) {
+    html += `<div class="excess-warning error"><strong>Post-tax not received.</strong> ${fmt(emp.postTax.expected)} of post-tax was expected but the post-tax file shows $0 for this employee. Post-tax lines are excluded from the balance below; confirm the deduction was missed.</div>`;
+  }
   if (terminating) {
     html += `<div class="terminating-banner"><strong>TERMINATING employee</strong> - EMLMEC and EMLEBC benefits will not be paid (fees still apply). Admin Fee receives 5% of received. Remainder distributes to LE / Entertainment Benefits (75/25) up to caps; leftover lands in Excess.</div>`;
   }
@@ -1163,29 +1190,31 @@ function renderDetail() {
       const isPED = PED.includes(it.item);
       const isTermBlocked = terminating && TERM_EXCLUDED.includes(it.item);
       const key = itemKey(it);
+      const itemPostMissing = postTaxMissing && it.isPostTax;
       const baseline = (it.isFuture || it.isAdded) ? 0 : it.expected;
-      const current = allocs[key] !== undefined ? allocs[key] : baseline;
-      allocSum += current; expSum += baseline;
+      const current = itemPostMissing ? 0 : (allocs[key] !== undefined ? allocs[key] : baseline);
+      if (!itemPostMissing) { allocSum += current; expSum += baseline; }
       if (!it.isPostTax) { if (cat === 'nl') vehAlloc += current; else nonVehAlloc += current; }
-      const diff = current - baseline;
-      const diffStr = (Math.abs(diff) < 0.005 ? '-' : fmt(diff));
+      const diff = itemPostMissing ? 0 : (current - baseline);
+      const diffStr = itemPostMissing ? '-' : (Math.abs(diff) < 0.005 ? '-' : fmt(diff));
       const diffColor = diff > 0 ? 'color:#047857;' : (diff < 0 ? 'color:#b91c1c;' : '');
       const pedNote = isPED ? '<div style="font-size:10px;color:#9d174d;">(cannot increase)</div>' : '';
       const futureTag = it.isFuture ? '<span class="future-tag">FUTURE</span>' : '';
       const addedTag = it.isAdded ? '<span class="added-tag">ADDED</span>' : '';
       const termTag = isTermBlocked ? '<span class="term-tag">NOT PAYABLE</span>' : '';
+      const noPostTag = itemPostMissing ? '<span class="term-tag">NOT RECEIVED</span>' : '';
       const futureDetail = it.isFuture ? `<div class="future-detail">Scheduled: ${fmt(it.scheduledExpected)} (NPD ${it.futureDates.join(', ')})</div>` : '';
       const addedDetail = it.isAdded ? `<div class="future-detail" style="color:#9d174d;">Added manually for allocation</div>` : '';
       const isLocked = (s.lockedItems || {})[key];
       const rowClass = cat + (it.isFuture ? ' future-row' : (it.isAdded ? ' added-row' : '')) + (isTermBlocked ? ' term-locked' : '') + (isLocked ? ' locked-row' : '');
       const lockBtn = `<button class="lock-btn ${isLocked ? 'locked' : ''}" onclick="toggleLock('${emp.payrollId}', '${key.replace(/'/g, "\\'")}')" title="${isLocked ? 'Locked. Click to unlock. This row stays put through Auto-Allocate and Reset.' : 'Click to lock this row. Locked rows are preserved by Auto-Allocate and Reset.'}">${isLocked ? '🔒' : '🔓'}</button>`;
       const removeBtn = it.isAdded ? `<button class="remove-btn" onclick="removeAdded('${emp.payrollId}', ${it.addedIdx})">Remove</button>` : '';
-      const expectedDisplay = (it.isFuture || it.isAdded) ? `<span style="color:#9ca3af;">${fmt(0)}</span> <span class="future-detail" style="display:inline;">(${it.isFuture ? 'future' : 'added'})</span>` : fmt(baseline);
+      const expectedDisplay = itemPostMissing ? `<span style="color:#9ca3af;">${fmt(it.expected)}</span> <span class="future-detail" style="display:inline;color:var(--neg);">(not received)</span>` : ((it.isFuture || it.isAdded) ? `<span style="color:#9ca3af;">${fmt(0)}</span> <span class="future-detail" style="display:inline;">(${it.isFuture ? 'future' : 'added'})</span>` : fmt(baseline));
       html += `<tr class="${rowClass}"><td>${lockBtn}<strong>${it.item}</strong>
           <span class="cat-tag cat-${cat}">${cat.toUpperCase()}</span>
-          ${it.isGst ? '<span class="gst-tag">GST</span>' : ''}${futureTag}${addedTag}${termTag}${removeBtn}${pedNote}${futureDetail}${addedDetail}</td>
+          ${it.isGst ? '<span class="gst-tag">GST</span>' : ''}${futureTag}${addedTag}${termTag}${noPostTag}${removeBtn}${pedNote}${futureDetail}${addedDetail}</td>
         <td class="num">${expectedDisplay}</td>
-        <td class="num"><input type="number" step="0.01" value="${(it.isGst ? Math.round(current*1.10*100)/100 : current).toFixed(2)}" data-key="${key}"${it.isGst ? ' data-gst="1"' : ''} oninput="updateAlloc('${emp.payrollId}', this)" ${isTermBlocked ? 'style="background:#fee2e2;"' : ''}><button class="copy-btn" onclick="copyAlloc(this, '${key.replace(/'/g, "\'")}')" title="${it.isGst ? 'Copies the GST-inclusive amount ready to paste into eziway' : 'Copy this allocated amount to clipboard'}">Copy</button>${it.isGst ? '<div class="gst-note" data-exgst-key="' + key + '">ex-GST: ' + fmt(current) + '</div>' : ''}</td>
+        <td class="num">${itemPostMissing ? `<input type="number" value="0.00" disabled title="No post-tax received, nothing to allocate" style="background:#f1f5f9;color:#9ca3af;width:108px;">` : `<input type="number" step="0.01" value="${(it.isGst ? Math.round(current*1.10*100)/100 : current).toFixed(2)}" data-key="${key}"${it.isGst ? ' data-gst="1"' : ''} oninput="updateAlloc('${emp.payrollId}', this)" ${isTermBlocked ? 'style="background:#fee2e2;"' : ''}><button class="copy-btn" onclick="copyAlloc(this, '${key.replace(/'/g, "\'")}')" title="${it.isGst ? 'Copies the GST-inclusive amount ready to paste into eziway' : 'Copy this allocated amount to clipboard'}">Copy</button>${it.isGst ? '<div class="gst-note" data-exgst-key="' + key + '">ex-GST: ' + fmt(current) + '</div>' : ''}`}</td>
         <td class="num" data-diff-key="${key}" style="${diffColor}">${diffStr}</td></tr>`;
     });
     const received = (emp.preTax?.received || 0) + (emp.postTax?.received || 0);
@@ -1322,11 +1351,13 @@ function refreshTotals(pid, changedKey) {
     }
   }
   // Recompute totals
+  const postTaxMissing = !!(emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005);
   let allocSum = 0, expSum = 0, vehAlloc = 0, nonVehAlloc = 0;
   items.forEach(it => {
+    const itemPostMissing = postTaxMissing && it.isPostTax;
     const baseline = (it.isFuture || it.isAdded) ? 0 : it.expected;
-    const current = allocs[itemKey(it)] !== undefined ? allocs[itemKey(it)] : baseline;
-    allocSum += current; expSum += baseline;
+    const current = itemPostMissing ? 0 : (allocs[itemKey(it)] !== undefined ? allocs[itemKey(it)] : baseline);
+    if (!itemPostMissing) { allocSum += current; expSum += baseline; }
     if (!it.isPostTax) { if (categoryOf(it.item) === 'nl') vehAlloc += current; else nonVehAlloc += current; }
   });
   const received = (emp.preTax?.received || 0) + (emp.postTax?.received || 0);
