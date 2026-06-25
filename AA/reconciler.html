@@ -141,6 +141,8 @@
   .added-tag { display: inline-block; padding: 1px 6px; border-radius: var(--r-sm); font-size: 10px; background: #f7eaf1; color: var(--cat-ped); margin-left: 4px; font-weight: 600; }
   .term-tag { display: inline-block; padding: 1px 6px; border-radius: var(--r-sm); font-size: 10px; background: var(--neg-weak); color: var(--neg); margin-left: 4px; font-weight: 600; }
   .future-detail { font-size: 10px; color: var(--cat-nl); margin-top: 2px; font-style: italic; }
+  .benefit-eaid { display:inline-flex; align-items:center; gap:6px; margin-top:4px; font-size:10px; color:var(--text-muted); font-family:var(--font-num); text-transform:uppercase; letter-spacing:0.04em; }
+  .benefit-eaid .be-val { font-weight:700; color:var(--text); font-size:11px; letter-spacing:0.03em; }
 
   .excess-warning { background: var(--warn-weak); border-left: 3px solid var(--warn-border); padding: 12px 16px; border-radius: var(--r-md); margin: var(--s-4) 0; font-size: 13px; color: var(--text); }
   .excess-warning.error { background: var(--neg-weak); border-left-color: var(--neg); }
@@ -1272,6 +1274,10 @@ function renderDetail() {
       const addedTag = it.isAdded ? '<span class="added-tag">ADDED</span>' : '';
       const termTag = isTermBlocked ? '<span class="term-tag">NOT PAYABLE</span>' : '';
       const noPostTag = itemPostMissing ? '<span class="term-tag">NOT RECEIVED</span>' : '';
+      const _eaidCard = it.item === 'EMLMEC' ? CARDS.emlmec[emp.payrollId] : (it.item === 'EMLEBC' ? CARDS.emlebc[emp.payrollId] : null);
+      const eaidLine = (_eaidCard && _eaidCard.eaid)
+        ? `<div class="benefit-eaid">EAID <span class="be-val">${_eaidCard.eaid}</span><button class="copy-btn" data-eaid="${_eaidCard.eaid}" onclick="copyEaid(this)" title="Copy EAID reference">Copy</button></div>`
+        : '';
       const futureDetail = it.isFuture ? `<div class="future-detail">Scheduled: ${fmt(it.scheduledExpected)} (NPD ${it.futureDates.join(', ')})</div>` : '';
       const addedDetail = it.isAdded ? `<div class="future-detail" style="color:#9d174d;">Added manually for allocation</div>` : '';
       const isLocked = (s.lockedItems || {})[key];
@@ -1281,7 +1287,7 @@ function renderDetail() {
       const expectedDisplay = itemPostMissing ? `<span style="color:#9ca3af;">${fmt(it.expected)}</span> <span class="future-detail" style="display:inline;color:var(--neg);">(not received)</span>` : ((it.isFuture || it.isAdded) ? `<span style="color:#9ca3af;">${fmt(0)}</span> <span class="future-detail" style="display:inline;">(${it.isFuture ? 'future' : 'added'})</span>` : fmt(baseline));
       html += `<tr class="${rowClass}"><td>${lockBtn}<strong>${it.item}</strong>
           <span class="cat-tag cat-${cat}">${cat.toUpperCase()}</span>
-          ${it.isGst ? '<span class="gst-tag">GST</span>' : ''}${futureTag}${addedTag}${termTag}${noPostTag}${removeBtn}${pedNote}${futureDetail}${addedDetail}</td>
+          ${it.isGst ? '<span class="gst-tag">GST</span>' : ''}${futureTag}${addedTag}${termTag}${noPostTag}${removeBtn}${pedNote}${futureDetail}${addedDetail}${eaidLine}</td>
         <td class="num">${expectedDisplay}</td>
         <td class="num">${itemPostMissing ? `<input type="number" value="0.00" disabled title="No post-tax received, nothing to allocate" style="background:#f1f5f9;color:#9ca3af;width:108px;">` : `<input type="number" step="0.01" value="${(it.isGst ? Math.round(current*1.10*100)/100 : current).toFixed(2)}" data-key="${key}"${it.isGst ? ' data-gst="1"' : ''} oninput="updateAlloc('${emp.payrollId}', this)" ${isTermBlocked ? 'style="background:#fee2e2;"' : ''}><button class="copy-btn" onclick="copyAlloc(this, '${key.replace(/'/g, "\'")}')" title="${it.isGst ? 'Copies the GST-inclusive amount ready to paste into eziway' : 'Copy this allocated amount to clipboard'}">Copy</button>${it.isGst ? '<div class="gst-note" data-exgst-key="' + key + '">ex-GST: ' + fmt(current) + '</div>' : ''}`}</td>
         <td class="num" data-diff-key="${key}" style="${diffColor}">${diffStr}</td></tr>`;
