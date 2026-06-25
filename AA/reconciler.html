@@ -50,7 +50,7 @@
   .paytype-filter button { padding: 6px 12px; border: 1px solid var(--border-strong); background: var(--surface); border-radius: var(--r-md); cursor: pointer; font-size: 12px; color: var(--text-muted); font-family: var(--font-ui); min-width: 36px; font-weight: 600; transition: background .12s, color .12s; }
   .paytype-filter button:hover { background: var(--surface-2); }
   .paytype-filter button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .incgst-note { font-size: 10px; color: var(--text-muted); margin-top: 3px; font-family: var(--font-num); white-space: nowrap; }
+  .gst-note { font-size: 10px; color: var(--text-muted); margin-top: 3px; font-family: var(--font-num); white-space: nowrap; }
   .export-btn { padding: 7px 16px; background: var(--accent); color: white; border: none; border-radius: var(--r-md); cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font-ui); }
   .export-btn:hover { background: var(--accent-hover); }
   .export-btn.ghost { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border-strong); font-weight: 500; margin-left: 4px; }
@@ -1185,7 +1185,7 @@ function renderDetail() {
           <span class="cat-tag cat-${cat}">${cat.toUpperCase()}</span>
           ${it.isGst ? '<span class="gst-tag">GST</span>' : ''}${futureTag}${addedTag}${termTag}${removeBtn}${pedNote}${futureDetail}${addedDetail}</td>
         <td class="num">${expectedDisplay}</td>
-        <td class="num"><input type="number" step="0.01" value="${current.toFixed(2)}" data-key="${key}"${it.isGst ? ' data-gst="1"' : ''} oninput="updateAlloc('${emp.payrollId}', this)" ${isTermBlocked ? 'style="background:#fee2e2;"' : ''}><button class="copy-btn" onclick="copyAlloc(this, '${key.replace(/'/g, "\'")}')" title="${it.isGst ? 'Copies the GST-inclusive amount (x1.10) ready to paste into eziway' : 'Copy this allocated amount to clipboard'}">Copy</button>${it.isGst ? '<div class="incgst-note" data-incgst-key="' + key + '">eziway inc-GST: ' + fmt(Math.round(current*1.10*100)/100) + '</div>' : ''}</td>
+        <td class="num"><input type="number" step="0.01" value="${(it.isGst ? Math.round(current*1.10*100)/100 : current).toFixed(2)}" data-key="${key}"${it.isGst ? ' data-gst="1"' : ''} oninput="updateAlloc('${emp.payrollId}', this)" ${isTermBlocked ? 'style="background:#fee2e2;"' : ''}><button class="copy-btn" onclick="copyAlloc(this, '${key.replace(/'/g, "\'")}')" title="${it.isGst ? 'Copies the GST-inclusive amount ready to paste into eziway' : 'Copy this allocated amount to clipboard'}">Copy</button>${it.isGst ? '<div class="gst-note" data-exgst-key="' + key + '">ex-GST: ' + fmt(current) + '</div>' : ''}</td>
         <td class="num" data-diff-key="${key}" style="${diffColor}">${diffStr}</td></tr>`;
     });
     const received = (emp.preTax?.received || 0) + (emp.postTax?.received || 0);
@@ -1289,7 +1289,7 @@ window.resetAlloc = function(pid) {
 window.toggleReviewed = function(pid) { const s = getEmpState(pid); setEmpState(pid, { reviewed: !s.reviewed }); renderDetail(); renderList(); };
 window.updateAlloc = function(pid, input) {
   const key = input.dataset.key; const val = parseFloat(input.value);
-  const s = getEmpState(pid); s.allocations = s.allocations || {}; s.allocations[key] = isNaN(val) ? 0 : val;
+  const s = getEmpState(pid); s.allocations = s.allocations || {}; s.allocations[key] = isNaN(val) ? 0 : (input.dataset.gst === '1' ? Math.round(val/1.10*100)/100 : val);
   setEmpState(pid, s);
   // Surgical update: refresh totals + diff for this row only (no full re-render so input keeps focus)
   refreshTotals(pid, key);
@@ -1317,8 +1317,8 @@ function refreshTotals(pid, changedKey) {
         diffCell.textContent = (Math.abs(diff) < 0.005 ? '-' : fmt(diff));
         diffCell.style.color = diff > 0 ? '#047857' : (diff < 0 ? '#b91c1c' : '');
       }
-      const incCell = document.querySelector(`[data-incgst-key="${CSS.escape(changedKey)}"]`);
-      if (incCell) incCell.textContent = 'eziway inc-GST: ' + fmt(Math.round(current * 1.10 * 100) / 100);
+      const exCell = document.querySelector(`[data-exgst-key="${CSS.escape(changedKey)}"]`);
+      if (exCell) exCell.textContent = 'ex-GST: ' + fmt(current);
     }
   }
   // Recompute totals
@@ -1410,10 +1410,6 @@ window.copyAlloc = function(btn, keyStr) {
   const input = td.querySelector('input[type="number"]');
   if (!input) return;
   let value = input.value;
-  if (input.dataset.gst === '1') {
-    const _n = parseFloat(value);
-    if (!isNaN(_n)) value = (Math.round(_n * 1.10 * 100) / 100).toFixed(2);
-  }
   // Use clipboard API with execCommand fallback
   const copyText = () => navigator.clipboard ? navigator.clipboard.writeText(value)
     : new Promise((resolve, reject) => {
