@@ -204,6 +204,17 @@
   .copy-btn { background: var(--accent-weak); border: 1px solid var(--accent-ring); color: var(--accent); cursor: pointer; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: var(--r-sm); margin-left: 6px; vertical-align: middle; letter-spacing: 0.2px; }
   .copy-btn:hover { background: #e2e8fb; }
   .copy-btn.copied { background: var(--pos-weak); border-color: var(--pos); color: var(--pos); }
+  .card-panels { display:flex; gap:var(--s-3); flex-wrap:wrap; margin-bottom:var(--s-4); }
+  .emlcard { flex:1 1 240px; min-width:240px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-sm); padding:14px 16px; border-top:3px solid var(--border); }
+  .emlcard-me { border-top-color:var(--cat-me); }
+  .emlcard-le { border-top-color:var(--cat-le); }
+  .emlcard-head { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:10px; }
+  .emlcard-code { color:var(--text); }
+  .emlcard-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .emlcard-lbl { font-size:11px; color:var(--text-muted); width:58px; flex:none; text-transform:uppercase; letter-spacing:0.04em; }
+  .emlcard-eaid { font-family:var(--font-num); font-weight:700; font-size:15px; color:var(--text); letter-spacing:0.04em; }
+  .emlcard-bal { font-family:var(--font-num); font-weight:700; font-size:15px; color:var(--text); }
+  .emlcard-meta { font-size:11px; color:var(--text-faint); margin-top:4px; font-family:var(--font-num); }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style id="brand-consistency">
@@ -252,6 +263,18 @@
       <label>3. AH Post-Tax (xlsx)</label>
       <div class="hint">Post-tax deductions per Payroll ID (NL Post Tax). Same negative-amount convention.</div>
       <input type="file" id="post-file" accept=".xlsx,.xls" />
+    </div>
+
+    <div class="upload-row">
+      <label>4. EMLEBC card balances (csv) <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+      <div class="hint">Living Expenses (EMLEBC) card export. Matched to employees by EmployeeNumber (column F); pulls through the EAID (column G) and Balance.</div>
+      <input type="file" id="emlebc-file" accept=".csv,.xlsx,.xls" />
+    </div>
+
+    <div class="upload-row">
+      <label>5. EMLMEC card balances (csv) <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+      <div class="hint">Meal Entertainment (EMLMEC) card export. Matched to employees by EmployeeNumber (column F); pulls through the EAID (column G) and Balance.</div>
+      <input type="file" id="emlmec-file" accept=".csv,.xlsx,.xls" />
     </div>
 
     <div class="config-row">
@@ -338,6 +361,7 @@ const GST_ITEMS = new Set(['EMLMEC Fee', 'EMLEBC Fee', 'NL - Finance', 'Living E
 const POST_TAX_ITEMS_SET = new Set(['Post Tax Contribution']);
 
 let DATA = null;
+let CARDS = { emlmec: {}, emlebc: {} };  // EmployeeNumber -> { eaid, balance, ... }
 let STORAGE_KEY = null;
 let state = {};
 let activePid = null;
@@ -629,10 +653,38 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
   return { employees: empList, skippedFuture, cycle, asOfDate, hmDetected };
 }
 
+// Parse an EML card export (EMLMEC / EMLEBC). Keyed by normalised EmployeeNumber (col F).
+function parseCardFile(rows) {
+  const out = {};
+  if (!rows || !rows.length) return out;
+  const hdr = (rows[0] || []).map(h => String(h == null ? '' : h).trim().toLowerCase());
+  const col = (name, fallback) => { const i = hdr.indexOf(name.toLowerCase()); return i >= 0 ? i : fallback; };
+  const cEmp = col('employeenumber', 5), cEaid = col('eaid', 6), cBsb = col('bsb', 7),
+        cAcc = col('account', 8), cStat = col('status', 9), cBal = col('balance', 11),
+        cFn = col('firstname', 1), cLn = col('lastname', 2);
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]; if (!row || row.length === 0) continue;
+    const empNum = row[cEmp];
+    if (empNum === null || empNum === undefined || String(empNum).trim() === '') continue;
+    const pid = normalizeKey(empNum);
+    const eaid = (row[cEaid] === null || row[cEaid] === undefined) ? '' : String(row[cEaid]).trim();
+    const balRaw = row[cBal];
+    const balance = (balRaw === null || balRaw === undefined || balRaw === '') ? null : Number(balRaw);
+    let bsb = (row[cBsb] === null || row[cBsb] === undefined) ? '' : String(row[cBsb]).trim();
+    if (bsb && /^\d+$/.test(bsb) && bsb.length < 6) bsb = bsb.padStart(6, '0');
+    const account = (row[cAcc] === null || row[cAcc] === undefined) ? '' : String(row[cAcc]).trim();
+    const statusV = (row[cStat] === null || row[cStat] === undefined) ? '' : String(row[cStat]).trim();
+    out[pid] = { eaid, balance, bsb, account, status: statusV, first: row[cFn] || '', last: row[cLn] || '' };
+  }
+  return out;
+}
+
 async function processFiles() {
   const pkgFile = document.getElementById('pkg-file').files[0];
   const preFile = document.getElementById('pre-file').files[0];
   const postFile = document.getElementById('post-file').files[0];
+  const emlebcFile = document.getElementById('emlebc-file').files[0];
+  const emlmecFile = document.getElementById('emlmec-file').files[0];
   const cycle = window.__detectedCycle || 'ALL';
   const asOfStr = document.getElementById('as-of-date').value;
   const _tolRaw = parseFloat(document.getElementById('tolerance').value); const tolerance = isNaN(_tolRaw) ? 0.01 : _tolRaw;
@@ -654,6 +706,9 @@ async function processFiles() {
     const preRows = await parseXlsx(preFile);
     status.textContent = 'Reading AH Post-Tax...';
     const postRows = await parseXlsx(postFile);
+    CARDS = { emlmec: {}, emlebc: {} };
+    if (emlebcFile) { status.textContent = 'Reading EMLEBC card balances...'; CARDS.emlebc = parseCardFile(await parseXlsx(emlebcFile)); }
+    if (emlmecFile) { status.textContent = 'Reading EMLMEC card balances...'; CARDS.emlmec = parseCardFile(await parseXlsx(emlmecFile)); }
     status.textContent = 'Calculating variances...';
     const asOfDate = new Date(asOfStr + 'T00:00:00');
     const result = buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolerance);
@@ -1143,6 +1198,11 @@ function renderDetail() {
       <div class="cap-item"><span class="label">Living Expenses cap:</span> <span class="value">${fmt(emp.leCap)}</span></div>
       <div class="cap-item"><span class="label">Meal Entertainment cap:</span> <span class="value">${fmt(emp.meCap)}</span></div>
     </div>`;
+  const meCard = CARDS.emlmec[emp.payrollId];
+  const leCard = CARDS.emlebc[emp.payrollId];
+  if (meCard || leCard) {
+    html += '<div class="card-panels">' + (leCard ? cardPanelHtml('EMLEBC', 'Living Expenses card', leCard) : '') + (meCard ? cardPanelHtml('EMLMEC', 'Meal Entertainment card', meCard) : '') + '</div>';
+  }
   if (postTaxMissing) {
     html += `<div class="excess-warning error"><strong>Post-tax not received.</strong> ${fmt(emp.postTax.expected)} of post-tax was expected but the post-tax file shows $0 for this employee. Post-tax lines are excluded from the balance below; confirm the deduction was missed.</div>`;
   }
@@ -1464,6 +1524,26 @@ window.copyAlloc = function(btn, keyStr) {
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 900);
   }).catch(() => { btn.textContent = 'Fail'; setTimeout(() => { btn.textContent = 'Copy'; }, 900); });
+};
+
+function cardPanelHtml(code, label, c) {
+  const eaid = c.eaid || '';
+  const cls = code === 'EMLMEC' ? 'me' : 'le';
+  const copyBtn = eaid ? `<button class="copy-btn" data-eaid="${eaid}" onclick="copyEaid(this)" title="Copy EAID reference">Copy</button>` : '';
+  const acct = [c.bsb, c.account].filter(Boolean).join(' ');
+  const metaBits = [acct ? ('Acct ' + acct) : '', c.status || ''].filter(Boolean).join(' \u00b7 ');
+  return `<div class="emlcard emlcard-${cls}">
+      <div class="emlcard-head"><span class="emlcard-code">${code}</span> ${label}</div>
+      <div class="emlcard-row"><span class="emlcard-lbl">EAID</span><span class="emlcard-eaid">${eaid || '-'}</span>${copyBtn}</div>
+      <div class="emlcard-row"><span class="emlcard-lbl">Balance</span><span class="emlcard-bal">${c.balance != null ? fmt(c.balance) : '-'}</span></div>
+      ${metaBits ? `<div class="emlcard-meta">${metaBits}</div>` : ''}
+    </div>`;
+}
+window.copyEaid = function(btn) {
+  const text = btn.dataset.eaid || '';
+  const copyText = () => navigator.clipboard ? navigator.clipboard.writeText(text)
+    : new Promise((resolve, reject) => { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); } finally { document.body.removeChild(t); } });
+  copyText().then(() => { const o = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = o; btn.classList.remove('copied'); }, 900); }).catch(() => { btn.textContent = 'Fail'; setTimeout(() => { btn.textContent = 'Copy'; }, 900); });
 };
 
 document.getElementById('search').addEventListener('input', e => { searchQuery = e.target.value; renderList(); });
