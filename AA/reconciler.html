@@ -191,6 +191,9 @@
 
   table.alloc tr.excess-highlight td { background: var(--warn-weak) !important; color: var(--text) !important; font-weight: 600 !important; font-size: 13px !important; }
   table.alloc tr.excess-highlight td input { background: #fff !important; border: 1.5px solid var(--warn-border) !important; color: var(--warn) !important; font-weight: 700 !important; font-size: 13px !important; width: 108px !important; }
+  table.alloc tr.return-highlight td { background: var(--neg-weak) !important; color: var(--text) !important; font-weight: 600 !important; font-size: 13px !important; }
+  table.alloc tr.return-highlight td input { background: #fff !important; border: 1.5px solid var(--neg) !important; color: var(--neg) !important; font-weight: 700 !important; font-size: 13px !important; width: 108px !important; }
+  table.alloc tr.return-highlight td:first-child::before { content: "\26A0  "; color: var(--neg); }
   table.alloc tr.excess-highlight td:first-child::before { content: "\26A0  "; color: var(--warn); }
   table.alloc tr.locked-row td { background: var(--warn-weak) !important; }
   table.alloc tr.locked-row td input { background: #fff !important; border-color: var(--warn-border) !important; }
@@ -1151,7 +1154,8 @@ function renderDetail() {
     const received = (emp.preTax?.received || 0) + (emp.postTax?.received || 0);
     html += `<div class="excess-warning error"><strong>No package benefits found.</strong> Total received: ${fmt(received)}. Allocate manually below or use "+ Add Benefit".</div>`;
   } else {
-    html += `<table class="alloc"><thead><tr><th>Benefit</th><th class="num">Expected (ex-GST adj)</th><th class="num">Allocated</th><th class="num">Diff</th></tr></thead><tbody>`;
+    const excessTop = s.excess || 0;
+    html += `<table class="alloc"><thead><tr><th>Benefit</th><th class="num">Expected (ex-GST adj)</th><th class="num">Allocated</th><th class="num">Diff</th></tr></thead><tbody><tr id="excess-row" class="${Math.abs(excessTop) > 0.005 ? 'return-highlight' : ''}"><td><strong>Return to Payroll</strong><div class="future-detail" style="color:var(--neg);font-style:normal;">Held excess to be returned to payroll</div></td><td class="num">-</td><td class="num"><input type="number" step="0.01" value="${excessTop.toFixed(2)}" oninput="updateExcess('${emp.payrollId}', this.value)" style="width:108px;"></td><td class="num">-</td></tr>`;
     let allocSum = 0, expSum = 0, vehAlloc = 0, nonVehAlloc = 0;
     const allocs = s.allocations || {};
     items.forEach(it => {
@@ -1191,7 +1195,6 @@ function renderDetail() {
     const balanceClass = Math.abs(remaining) < 0.01 ? 'ok' : 'bad';
     html += `</tbody><tfoot>
         <tr><td>Allocated to benefits</td><td class="num">${fmt(expSum)}</td><td class="num">${fmt(allocSum)}</td><td class="num">${fmt(allocSum - expSum)}</td></tr>
-        <tr id="excess-row" class="${Math.abs(excess) > 0.005 ? 'excess-highlight' : ''}"><td>Excess (manual)</td><td class="num">-</td><td class="num"><input type="number" step="0.01" value="${excess.toFixed(2)}" oninput="updateExcess('${emp.payrollId}', this.value)" style="width:100px;"></td><td class="num">-</td></tr>
         <tr><td>Total / Received</td><td class="num">-</td><td class="num">${fmt(grandAlloc)} / ${fmt(received)}</td><td class="num" style="color:${balanceClass==='ok'?'#047857':'#b91c1c'};">${fmt(remaining)}</td></tr>
       </tfoot></table>
       <div class="status-line"><div class="bb-breakdown"><span class="bb-seg"><span class="bb-seg-label">Pre-Tax Vehicle (NL)</span><span id="veh-alloc" class="bb-seg-val">${fmt(vehAlloc)}</span></span><span class="bb-seg"><span class="bb-seg-label">Pre-Tax Non-Vehicle</span><span id="nonveh-alloc" class="bb-seg-val">${fmt(nonVehAlloc)}</span></span></div><span class="balance ${balanceClass}">${balanceClass==='ok' ? 'Balanced ✓' : 'Off by ' + fmt(remaining)}</span></div>`;
@@ -1340,16 +1343,16 @@ function refreshTotals(pid, changedKey) {
     fts[3].textContent = fmt(allocSum - expSum);
   }
   // Row 3 (Total / Received): [label, '-', total/received, remaining]
-  if (fts.length >= 12) {
-    fts[10].textContent = fmt(grandAlloc) + ' / ' + fmt(received);
-    fts[11].textContent = fmt(remaining);
-    fts[11].style.color = balanceClass === 'ok' ? '#047857' : '#b91c1c';
+  if (fts.length >= 8) {
+    fts[6].textContent = fmt(grandAlloc) + ' / ' + fmt(received);
+    fts[7].textContent = fmt(remaining);
+    fts[7].style.color = balanceClass === 'ok' ? '#047857' : '#b91c1c';
   }
   // Update balance line
   const exRow = document.getElementById('excess-row');
   if (exRow) {
-    if (Math.abs(excess) > 0.005) exRow.classList.add('excess-highlight');
-    else exRow.classList.remove('excess-highlight');
+    if (Math.abs(excess) > 0.005) exRow.classList.add('return-highlight');
+    else exRow.classList.remove('return-highlight');
   }
   const bal = document.querySelector('.status-line .balance');
   if (bal) {
