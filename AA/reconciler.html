@@ -697,7 +697,7 @@ function itemKey(it) {
 function effectiveItems(emp) {
   const s = getEmpState(emp.payrollId);
   const added = (s.addedItems || []).map((a, idx) => ({
-    item: a.item, isGst: false, isPostTax: false,
+    item: a.item, isGst: GST_ITEMS.has(a.item), isPostTax: false,
     expected: 0, deposit: 0, fortnightly: 0,
     isFuture: false, scheduledExpected: 0, futureDates: [],
     isAdded: true, addedIdx: idx
