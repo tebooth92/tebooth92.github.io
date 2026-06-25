@@ -806,10 +806,19 @@ function autoAllocate(emp, side) {
       return toUse;
     };
     let remaining = gap;
-    // Phase 1: 75/25 split
+    // Phase 1: drive the FINAL LE/ME totals toward 75/25 (not just the new variance).
+    // Meal Entertainment is only topped up while it sits below 25% of the combined
+    // LE+ME pool; an already-large meals line is held and the funds flow to LE. This
+    // keeps the 75/25 split honoured even when an LE line (e.g. Mortgage) is added later.
     if (hasLE && hasME) {
-      const leUsed = allocateToCategory(remaining * 0.75, true);
-      const meUsed = allocateToCategory(remaining * 0.25, false);
+      const leBase = sumCappedCat(LE_CAP_ITEMS);
+      const meBase = sumCappedCat(ME_CAP_ITEMS);
+      const poolTotal = leBase + meBase + remaining;
+      const meTarget = 0.25 * poolTotal;
+      const meAdd = Math.max(0, Math.min(meTarget - meBase, remaining));
+      const leAdd = remaining - meAdd;
+      const leUsed = allocateToCategory(leAdd, true);
+      const meUsed = allocateToCategory(meAdd, false);
       remaining = remaining - leUsed - meUsed;
     } else if (hasLE) {
       remaining -= allocateToCategory(remaining, true);
