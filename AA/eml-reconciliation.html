@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EML Card Reconciliation Tool</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#f1f5f9; --card:#ffffff; --card2:#f8fafc; --line:#e2e8f0;
+    --text:#0f172a; --muted:#64748b; --accent:#0284c7;
+    --ok:#16a34a; --warn:#d97706; --err:#dc2626; --err2:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:24px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 28px;font-size:14px}
+  .uploads{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+  @media(max-width:720px){.uploads{grid-template-columns:1fr}}
+  .drop{background:var(--card);border:1.5px dashed var(--line);border-radius:12px;padding:18px;text-align:center;transition:.15s;cursor:pointer}
+  .drop:hover{border-color:var(--accent);background:var(--card2)}
+  .drop.loaded{border-style:solid;border-color:var(--ok)}
+  .drop h3{margin:0 0 6px;font-size:14px}
+  .drop p{margin:0;font-size:12px;color:var(--muted);word-break:break-word}
+  .drop .tag{display:inline-block;font-size:11px;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:20px;margin-top:8px}
+  .drop input{display:none}
+  .badge{font-size:11px;color:var(--muted);display:block;margin-bottom:6px;letter-spacing:.04em}
+  button.run{background:var(--accent);color:#ffffff;border:0;font-weight:700;font-size:15px;padding:12px 28px;border-radius:10px;cursor:pointer}
+  button.run:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px}
+  .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .err-msg{color:var(--err2);font-size:13px;margin-top:10px}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:24px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .stat .n{font-size:26px;font-weight:700}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .stat.err .n{color:var(--err2)} .stat.ok .n{color:var(--ok)} .stat.warn .n{color:var(--warn)}
+  h2.section{font-size:16px;margin:30px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--accent);display:inline-block}
+  h2.section .sectsub{font-weight:400;color:var(--muted);font-size:13px}
+  .results{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:8px}
+  .results .head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  .results h2{font-size:16px;margin:0}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+  th{background:var(--card2);color:var(--muted);font-weight:600;position:sticky;top:0}
+  tr:last-child td{border-bottom:0}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  .pill.miss{background:#fee2e2;color:#b91c1c}
+  .pill.wrong{background:#fef3c7;color:#b45309}
+  .pill.blank{background:#dbeafe;color:#1d4ed8}
+  .tablewrap{max-height:460px;overflow:auto}
+  .clean{padding:40px;text-align:center;color:var(--ok)}
+  .clean .big{font-size:40px}
+  mono{font-family:'Consolas',monospace}
+  code{font-family:'Consolas',monospace;background:#eef2ff;padding:1px 6px;border-radius:5px;color:#0369a1}
+  .note{font-size:12px;color:var(--muted);margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>EML Card Reconciliation Tool</h1>
+  <p class="sub">Cross-checks EMLMEC / EMLEBC bank references on the Package Benefit Details against the active EML card reports. Everything runs locally in your browser; no data leaves your machine.</p>
+
+  <div class="uploads">
+    <label class="drop" id="drop-pkg">
+      <span class="badge">FILE 1</span>
+      <h3>Package Benefit Details</h3>
+      <p>Salary packaging extract (.xlsx / .csv)</p>
+      <input type="file" id="file-pkg" accept=".xlsx,.xls,.csv">
+    </label>
+    <label class="drop" id="drop-me">
+      <span class="badge">FILE 2</span>
+      <h3>Active ME Report</h3>
+      <p>EML payments — meal entertainment (.csv / .xlsx)</p>
+      <input type="file" id="file-me" accept=".xlsx,.xls,.csv">
+    </label>
+    <label class="drop" id="drop-le">
+      <span class="badge">FILE 3</span>
+      <h3>Active LE Report</h3>
+      <p>EML payments — living expenses (.csv / .xlsx)</p>
+      <input type="file" id="file-le" accept=".xlsx,.xls,.csv">
+    </label>
+  </div>
+
+  <div class="controls">
+    <button class="run" id="runBtn" disabled>Run reconciliation</button>
+    <button class="ghost" id="resetBtn">Reset</button>
+    <span id="rule" style="font-size:12px;color:var(--muted)">Rule: EMLMEC ref must exist in ME report &nbsp;•&nbsp; EMLEBC ref must exist in LE report</span>
+  </div>
+  <div class="err-msg" id="errMsg"></div>
+
+  <div id="output" class="hidden">
+    <div class="summary" id="summary"></div>
+
+    <h2 class="section">1 &nbsp;Bank reference reconciliation</h2>
+    <div class="results">
+      <div class="head">
+        <h2 id="resTitle">Flagged records</h2>
+        <button class="ghost" id="dlBtn">Download flagged records (CSV)</button>
+      </div>
+      <div id="resBody"></div>
+    </div>
+    <div class="note" id="matchNote"></div>
+
+    <h2 class="section">2 &nbsp;Employee ID validation <span class="sectsub">— Payroll ID vs the card's EmployeeNumber</span></h2>
+    <div class="results">
+      <div class="head">
+        <h2 id="empTitle">Flagged records</h2>
+        <button class="ghost" id="dlEmpBtn">Download flagged records (CSV)</button>
+      </div>
+      <div id="empBody"></div>
+    </div>
+    <div class="note" id="empNote"></div>
+  </div>
+</div>
+
+<script>
+const files = {pkg:null, me:null, le:null};
+const COL = { // normalized header -> logical field for package file
+  salarypackageitem:'item', bankref:'ref', firstname:'first', lastname:'last',
+  payrollid:'payroll', pid:'pid', status:'status', bsb:'bsb', accountnumber:'account', title:'title'
+};
+const norm = s => String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,'');
+const clean = s => String(s==null?'':s).trim();
+
+function wireDrop(inputId, dropId, key){
+  const inp=document.getElementById(inputId), drop=document.getElementById(dropId);
+  inp.addEventListener('change',e=>{
+    const f=e.target.files[0]; if(!f)return;
+    files[key]=f;
+    drop.classList.add('loaded');
+    drop.querySelector('p').innerHTML = '<span class="tag">✓ '+f.name+'</span>';
+    refreshRun();
+  });
+  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.borderColor='var(--accent)';}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.borderColor='';}));
+  drop.addEventListener('drop',e=>{
+    e.preventDefault();
+    if(e.dataTransfer.files[0]){inp.files=e.dataTransfer.files;inp.dispatchEvent(new Event('change'));}
+  });
+}
+wireDrop('file-pkg','drop-pkg','pkg');
+wireDrop('file-me','drop-me','me');
+wireDrop('file-le','drop-le','le');
+
+function refreshRun(){ document.getElementById('runBtn').disabled = !(files.pkg&&files.me&&files.le); }
+
+function readSheet(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      try{
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        res(XLSX.utils.sheet_to_json(ws,{defval:null,raw:true}));
+      }catch(err){rej(err);}
+    };
+    r.onerror=rej;
+    r.readAsArrayBuffer(file);
+  });
+}
+
+// Index a report by EAID, capturing EmployeeNumber and cardholder name
+function reportIndex(rows){
+  if(!rows.length) return {set:new Set(), map:new Map(), col:null, empCol:null};
+  const keys=Object.keys(rows[0]);
+  let eaidKey=keys.find(k=>norm(k)==='eaid') || keys.find(k=>norm(k).includes('eaid'));
+  let empKey=keys.find(k=>norm(k)==='employeenumber')
+          || keys.find(k=>norm(k).includes('employeenumber'))
+          || keys.find(k=>norm(k)==='employeeid');
+  const firstKey=keys.find(k=>norm(k)==='firstname');
+  const lastKey=keys.find(k=>norm(k)==='lastname');
+  const set=new Set(), map=new Map();
+  if(eaidKey) rows.forEach(r=>{
+    const v=clean(r[eaidKey]); if(!v) return;
+    set.add(v);
+    map.set(v, {
+      emp: empKey? clean(r[empKey]) : '',
+      name: [firstKey?clean(r[firstKey]):'', lastKey?clean(r[lastKey]):''].filter(Boolean).join(' ')
+    });
+  });
+  return {set, map, col:eaidKey, empCol:empKey};
+}
+
+// Map package row using detected columns
+function mapPkg(rows){
+  if(!rows.length) return {map:[], cols:{}};
+  const keys=Object.keys(rows[0]);
+  const cols={};
+  keys.forEach(k=>{const f=COL[norm(k)]; if(f && !cols[f]) cols[f]=k;});
+  return {keys, cols};
+}
+
+document.getElementById('runBtn').addEventListener('click', run);
+document.getElementById('resetBtn').addEventListener('click', ()=>location.reload());
+
+let lastFlagged=[], lastEmpFlags=[];
+
+async function run(){
+  const err=document.getElementById('errMsg'); err.textContent='';
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('runBtn').textContent='Running…';
+  try{
+    const [pkgRows, meRows, leRows] = await Promise.all([
+      readSheet(files.pkg), readSheet(files.me), readSheet(files.le)
+    ]);
+    const me=reportIndex(meRows), le=reportIndex(leRows);
+    const {cols}=mapPkg(pkgRows);
+
+    const missingCols=['item','ref'].filter(f=>!cols[f]);
+    if(missingCols.length){
+      throw new Error('Could not find required column(s) in the Package file: '+
+        (missingCols.includes('item')?'"Salary Package Item" ':'')+
+        (missingCols.includes('ref')?'"Bank Ref"':'')+
+        '. Check the headers.');
+    }
+    if(!me.col) throw new Error('Could not find an "EAID" column in the Active ME report.');
+    if(!le.col) throw new Error('Could not find an "EAID" column in the Active LE report.');
+
+    const get=(r,f)=> cols[f]? r[cols[f]] : null;
+    let nMec=0, nEbc=0, nEmpChecked=0;
+    const flagged=[], empFlags=[];
+
+    pkgRows.forEach(r=>{
+      const item=clean(get(r,'item'));
+      if(item!=='EMLMEC' && item!=='EMLEBC') return; // benefit lines only (excludes "Fee" lines)
+      const ref=clean(get(r,'ref'));
+      const name=[clean(get(r,'first')),clean(get(r,'last'))].filter(Boolean).join(' ');
+      const payroll=clean(get(r,'payroll'));
+      const base={item, ref, name, payroll,
+        pid:clean(get(r,'pid')), status:clean(get(r,'status'))};
+
+      if(item==='EMLMEC') nMec++; else nEbc++;
+
+      const inME=ref && me.set.has(ref);
+      const inLE=ref && le.set.has(ref);
+
+      // ---- Check A: bank-ref reconciliation ----
+      if(!ref){
+        flagged.push({...base, type:'No bank ref', cls:'blank', found:'—'});
+      } else {
+        const targetOK = item==='EMLMEC' ? inME : inLE;
+        if(!targetOK){
+          let found = inME ? 'Found in ME report' : inLE ? 'Found in LE report' : 'Not in either report';
+          if(item==='EMLMEC' && inLE)      flagged.push({...base, type:'Wrong report (in LE, expected ME)', cls:'wrong', found});
+          else if(item==='EMLEBC' && inME) flagged.push({...base, type:'Wrong report (in ME, expected LE)', cls:'wrong', found});
+          else                             flagged.push({...base, type:'Ref not found in any report', cls:'miss', found});
+        }
+      }
+
+      // ---- Check B: Payroll ID vs card EmployeeNumber (wrong-person guard) ----
+      // Use the card the ref actually points to (expected report first, then the other).
+      if(ref){
+        const card = (item==='EMLMEC' ? (me.map.get(ref)||le.map.get(ref))
+                                      : (le.map.get(ref)||me.map.get(ref)));
+        if(card){
+          nEmpChecked++;
+          const cardEmp=card.emp;
+          if(!cardEmp){
+            empFlags.push({...base, type:'Card has no Employee ID', cls:'blank',
+              cardEmp:'(blank)', cardName:card.name||'—'});
+          } else if(cardEmp!==payroll){
+            empFlags.push({...base, type:'Employee ID mismatch', cls:'miss',
+              cardEmp, cardName:card.name||'—'});
+          }
+        }
+      }
+    });
+
+    lastFlagged=flagged;
+    lastEmpFlags=empFlags;
+    render(flagged, empFlags, nMec, nEbc, nEmpChecked, me, le);
+  }catch(ex){
+    err.textContent='Error: '+ex.message;
+  }finally{
+    document.getElementById('runBtn').disabled=false;
+    document.getElementById('runBtn').textContent='Run reconciliation';
+  }
+}
+
+function render(flagged, empFlags, nMec, nEbc, nEmpChecked, me, le){
+  document.getElementById('output').classList.remove('hidden');
+  const notFound=flagged.filter(f=>f.cls==='miss').length;
+  const wrong=flagged.filter(f=>f.cls==='wrong').length;
+  const blank=flagged.filter(f=>f.cls==='blank').length;
+  const total=nMec+nEbc;
+  const okCount=total-flagged.length;
+  const empMismatch=empFlags.filter(f=>f.cls==='miss').length;
+  const empNoId=empFlags.filter(f=>f.cls==='blank').length;
+
+  document.getElementById('summary').innerHTML=`
+    <div class="stat"><div class="n">${total.toLocaleString()}</div><div class="l">Referenced lines checked</div></div>
+    <div class="stat ok"><div class="n">${okCount.toLocaleString()}</div><div class="l">Refs correctly attributed</div></div>
+    <div class="stat err"><div class="n">${notFound}</div><div class="l">Ref not in any report</div></div>
+    <div class="stat warn"><div class="n">${wrong}</div><div class="l">Wrong report</div></div>
+    <div class="stat warn"><div class="n">${blank}</div><div class="l">Missing bank ref</div></div>
+    <div class="stat err"><div class="n">${empMismatch}</div><div class="l">Employee ID mismatch</div></div>
+    <div class="stat warn"><div class="n">${empNoId}</div><div class="l">Card has no Employee ID</div></div>`;
+
+  // ---- Section 1: bank-ref reconciliation ----
+  document.getElementById('matchNote').innerHTML=
+    `Matched on <code>Bank Ref</code> = <code>EAID</code>. `+
+    `ME report: ${me.set.size.toLocaleString()} refs &nbsp;•&nbsp; LE report: ${le.set.size.toLocaleString()} refs. `+
+    `Checked ${nMec.toLocaleString()} EMLMEC and ${nEbc.toLocaleString()} EMLEBC benefit lines (the "Fee" lines are excluded as they carry no bank ref).`;
+
+  const body=document.getElementById('resBody');
+  document.getElementById('resTitle').textContent=`Flagged records (${flagged.length})`;
+  if(!flagged.length){
+    body.innerHTML=`<div class="clean"><div class="big">✓</div><div>All referenced lines reconcile correctly. No issues found.</div></div>`;
+  } else {
+    const rows=flagged.map(f=>`<tr>
+        <td><span class="pill ${f.cls}">${esc(f.type)}</span></td>
+        <td>${f.item}</td>
+        <td>${esc(f.name)||'—'}</td>
+        <td>${esc(f.payroll)||'—'}</td>
+        <td>${esc(f.pid)||'—'}</td>
+        <td><code>${esc(f.ref)||'(blank)'}</code></td>
+        <td>${esc(f.found)}</td>
+      </tr>`).join('');
+    body.innerHTML=`<div class="tablewrap"><table>
+      <thead><tr><th>Issue</th><th>Item</th><th>Name</th><th>Payroll ID</th><th>PID</th><th>Bank Ref</th><th>Where found</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  }
+
+  // ---- Section 2: employee ID validation ----
+  document.getElementById('empNote').innerHTML=
+    `For each line whose bank ref was found, the benefit <code>Payroll ID</code> is compared with the <code>EmployeeNumber</code> on that card. `+
+    `A mismatch can mean payment is routed to the wrong person's card. `+
+    `${nEmpChecked.toLocaleString()} of ${total.toLocaleString()} lines had a matching card to verify against`+
+    `${(me.empCol&&le.empCol)?'':' <strong>(note: an EmployeeNumber column was missing in one report)</strong>'}.`;
+
+  const eb=document.getElementById('empBody');
+  document.getElementById('empTitle').textContent=`Flagged records (${empFlags.length})`;
+  if(!empFlags.length){
+    eb.innerHTML=`<div class="clean"><div class="big">✓</div><div>Every verifiable card's EmployeeNumber matches the benefit Payroll ID. No issues found.</div></div>`;
+  } else {
+    const rows=empFlags.map(f=>`<tr>
+        <td><span class="pill ${f.cls}">${esc(f.type)}</span></td>
+        <td>${f.item}</td>
+        <td>${esc(f.name)||'—'}</td>
+        <td><strong>${esc(f.payroll)||'—'}</strong></td>
+        <td><strong>${esc(f.cardEmp)}</strong></td>
+        <td>${esc(f.cardName)}</td>
+        <td><code>${esc(f.ref)}</code></td>
+        <td>${esc(f.pid)||'—'}</td>
+      </tr>`).join('');
+    eb.innerHTML=`<div class="tablewrap"><table>
+      <thead><tr><th>Issue</th><th>Item</th><th>Benefit name</th><th>Payroll ID</th><th>Card EmployeeNumber</th><th>Card name</th><th>Bank Ref</th><th>PID</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  }
+}
+
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+function downloadCsv(head, rows, fname){
+  const csv=[head.join(',')].concat(rows.map(r=>
+    r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(','))).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=fname+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+document.getElementById('dlBtn').addEventListener('click', ()=>{
+  if(!lastFlagged.length){alert('No flagged records to export.');return;}
+  downloadCsv(['Issue','Item','Name','Payroll ID','PID','Bank Ref','Where found'],
+    lastFlagged.map(f=>[f.type,f.item,f.name,f.payroll,f.pid,f.ref,f.found]),
+    'EML_bankref_flagged');
+});
+
+document.getElementById('dlEmpBtn').addEventListener('click', ()=>{
+  if(!lastEmpFlags.length){alert('No flagged records to export.');return;}
+  downloadCsv(['Issue','Item','Benefit name','Payroll ID','Card EmployeeNumber','Card name','Bank Ref','PID'],
+    lastEmpFlags.map(f=>[f.type,f.item,f.name,f.payroll,f.cardEmp,f.cardName,f.ref,f.pid]),
+    'EML_employeeid_flagged');
+});
+</script>
+</body>
+</html>
