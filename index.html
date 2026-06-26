@@ -766,7 +766,16 @@
             ;
 
         const SUPER_RATE = 0.12;
-        const ANNUAL_SUPER_CAP = 29932.20;
+        // Maximum annual Super Guarantee payable = Maximum Contribution Base x SG rate.
+        //   FY 2025-26: $250,000 x 12% = $30,000.00
+        //   FY 2026-27 (from 1 July 2026): $270,830 x 12% = $32,500.00
+        // The cap is selected based on the current financial year. From 1 July 2026
+        // the calculator automatically uses the 2026-27 figure.
+        function getAnnualSuperCap(date = new Date()) {
+            const fy2627Start = new Date(2026, 6, 1); // 1 July 2026 (month is 0-indexed)
+            return date >= fy2627Start ? 32500.00 : 30000.00;
+        }
+        const ANNUAL_SUPER_CAP = getAnnualSuperCap();
         const BASE_PAY_RATE_COMPONENT_NAME = "Base Pay Rate";
 
         document.addEventListener('DOMContentLoaded', initializeApp);

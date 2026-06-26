@@ -23,7 +23,13 @@
 <script type="module">
 // === Pure calculation helpers (mirrored from index.html) ===
 const SUPER_RATE = 0.12;
-const ANNUAL_SUPER_CAP = 29932.20;
+// Mirrors index.html: cap = Maximum Contribution Base x SG rate.
+//   FY 2025-26: $30,000.00 | FY 2026-27 (from 1 July 2026): $32,500.00
+function getAnnualSuperCap(date = new Date()) {
+  const fy2627Start = new Date(2026, 6, 1); // 1 July 2026
+  return date >= fy2627Start ? 32500.00 : 30000.00;
+}
+const ANNUAL_SUPER_CAP = getAnnualSuperCap();
 const HRS_WK = 38;
 
 function calcExistingOverAwardHourly(state) {
@@ -155,10 +161,12 @@ test('HDA TotalRem: $100k including super (under cap) -> targetBeforeSuper = $10
   return `$${annual.toFixed(2)} salary before super`;
 });
 test('HDA TotalRem: super-inclusive package above cap subtracts ANNUAL_SUPER_CAP', () => {
-  // Target $400k, est=400k/1.12=357142, super=357142*0.12=42857 > cap. So target = 400000 - 29932.20 = 370067.80
+  // Target $400k, est=400k/1.12=357142, super=357142*0.12=42857 > cap.
+  // So target = 400000 - cap. Cap is FY-dependent (30000 in 2025-26, 32500 from 1 Jul 2026).
+  const cap = getAnnualSuperCap();
   const hourly = calcHDATotalRemuneration(0, 400000, 'including', 38);
   const annual = hourly * 38 * 52;
-  assert(approx(annual, 400000 - 29932.20, 1), `got ${annual}, expected ${400000 - 29932.20}`);
+  assert(approx(annual, 400000 - cap, 1), `got ${annual}, expected ${400000 - cap}`);
   return `$${annual.toFixed(2)} salary before super`;
 });
 
@@ -168,9 +176,9 @@ test('Super: $100k annual @12% = $12,000 (under cap)', () => {
   assert(approx(s, 12000, 0.01), `got ${s}`);
   return formatCurrency(s);
 });
-test('Super: $300k annual @12% = $36,000 capped to $29,932.20', () => {
+test('Super: $300k annual @12% = $36,000 capped to ANNUAL_SUPER_CAP', () => {
   const s = applySuperCap(300000);
-  assert(approx(s, 29932.20, 0.01), `got ${s}`);
+  assert(approx(s, getAnnualSuperCap(), 0.01), `got ${s}`);
   return formatCurrency(s);
 });
 
