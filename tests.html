@@ -24,10 +24,10 @@
 // === Pure calculation helpers (mirrored from index.html) ===
 const SUPER_RATE = 0.12;
 // Mirrors index.html: cap = Maximum Contribution Base x SG rate.
-//   FY 2025-26: $30,000.00 | FY 2026-27 (from 1 July 2026): $32,500.00
+//   FY 2025-26: $30,000.00 | FY 2026-27 (from 1 July 2026): $32,499.60
 function getAnnualSuperCap(date = new Date()) {
   const fy2627Start = new Date(2026, 6, 1); // 1 July 2026
-  return date >= fy2627Start ? 32500.00 : 30000.00;
+  return date >= fy2627Start ? 32499.60 : 30000.00;
 }
 const ANNUAL_SUPER_CAP = getAnnualSuperCap();
 const HRS_WK = 38;
