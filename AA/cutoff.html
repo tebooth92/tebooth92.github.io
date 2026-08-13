@@ -199,6 +199,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <div class="rules">
     <p><strong>Projected reports</strong> are detected by columns: <code>[OPERATOR]</code>, <code>userSysId</code>, <code>recurringItems.amount</code>, <code>Employment Status</code>. Multiple files allowed and will be combined.</p>
     <p><strong>EC extract</strong> is detected by columns: <code>User ID</code>, <code>Pay Component ID</code>, <code>Amount / Percentage / Number of units</code>. Exactly one allowed.</p>
+    <p><strong>Terminated employees:</strong> if the EC extract includes <code>Status</code> and <code>Termination Date</code>, employees terminated on or before the current P.E. are ceased (DELIMIT) from the Sunday of their penultimate pay period. The pay cycle is anchored on the Eziway file’s effective start date.</p>
   </div>
 
   <div id="dropzone">
@@ -225,16 +226,16 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="stat"><div class="label">NEW</div><div class="value" id="stat-new">0</div></div>
     <div class="stat"><div class="label">DELIMIT</div><div class="value" id="stat-delimit">0</div></div>
   </div>
-  <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 12px;">
+  <div class="summary-grid" style="margin-top: 12px;">
     <div class="stat"><div class="label">Casuals excluded</div><div class="value" id="stat-casuals">0</div></div>
     <div class="stat"><div class="label">EC rows considered</div><div class="value" id="stat-ec">0</div></div>
     <div class="stat"><div class="label">Exceptions (conflicting EC)</div><div class="value" id="stat-exceptions">0</div></div>
+    <div class="stat"><div class="label">Termination ceases</div><div class="value" id="stat-termcease">0</div></div>
   </div>
   <div class="log" id="log"></div>
 </div>
 
-</div>
-<script>
+</div><script>
 (function () {
   'use strict';
 
@@ -242,6 +243,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   var PROJECTED_REQUIRED = ['[OPERATOR]', 'userSysId', 'recurringItems.amount', 'recurringItems.payComponentType.externalCode', 'Employment Status'];
   var EC_REQUIRED = ['User ID', 'Pay Component ID', 'Amount / Percentage / Number of units'];
   var TOL = 0.005;
+  var DAY = 86400000;
+  var FORTNIGHT = 14 * DAY;
   var DEFAULT_DATE_FALLBACK = '';     // used only if no projected effectiveStartDate available
   var SUB_HEADER = {
     '[OPERATOR]': 'Supported operators: Delimit Clear and Delete',
@@ -465,6 +468,24 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     return n === null ? null : Math.round(n);
   }
 
+  // -------- Date helpers --------
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function fmtDMY(utc) {
+    var d = new Date(utc);
+    return pad2(d.getUTCDate()) + '/' + pad2(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear();
+  }
+  // Parse a date cell (d/m/yyyy text or Excel serial number) -> UTC ms, or null
+  function parseDateCell(v) {
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') return Math.round((v - 25569) * 86400) * 1000;
+    var t = String(v).trim();
+    var m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) return Date.UTC(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+    m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return Date.UTC(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+    return null;
+  }
+
   function reconcile() {
     logEl.textContent = '';
     var ecEntry = fileEntries.find(function (e) { return e.type === 'ec'; });
@@ -500,8 +521,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     });
     log('Non-casual projected rows: ' + projNonCasual.length);
 
-    // Determine the effective start date to use for EC-only DELIMIT rows: take the
-    // most common effectiveStartDate from the projected rows (works with text dates).
+    // The Eziway file is the pay-cycle anchor: take the most common effectiveStartDate
+    // from the projected rows — that is the commencement Monday of the next pay cycle.
     var dateCounts = {};
     projNonCasual.forEach(function (r) {
       var d = r['effectiveStartDate'];
@@ -515,7 +536,69 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     Object.keys(dateCounts).forEach(function (k) {
       if (dateCounts[k] > bestCount) { defaultDate = k; bestCount = dateCounts[k]; }
     });
-    log('Default effective start date: ' + (defaultDate || '(none found)'));
+    log('Eziway anchor date (modal effective start): ' + (defaultDate || '(none found)'));
+
+    // Cycle-commencement Monday = the Eziway anchor date; P.E. Sunday = the day before it.
+    var mondayUTC = parseDateCell(defaultDate);
+    if (mondayUTC === null) {
+      // Fallback: derive from today (fortnightly P.E. Sundays anchored 21.06.2026),
+      // with 2 days of tolerance for runs on the Mon/Tue after a P.E. Sunday.
+      var anchorUTC = Date.UTC(2026, 5, 21);
+      var now = new Date();
+      var todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+      var lastPe = anchorUTC + Math.floor((todayUTC - anchorUTC) / FORTNIGHT) * FORTNIGHT;
+      var peGuess = (todayUTC - lastPe) <= 2 * DAY ? lastPe : lastPe + FORTNIGHT;
+      mondayUTC = peGuess + DAY;
+      log('WARNING: no usable Eziway effective start date found; derived the pay cycle from today instead.');
+    }
+    if (new Date(mondayUTC).getUTCDay() !== 1) {
+      log('WARNING: Eziway anchor date ' + fmtDMY(mondayUTC) + ' is not a Monday — check the Eziway file.');
+    }
+    var peUTC = mondayUTC - DAY;
+    var mondayStr = fmtDMY(mondayUTC);
+    var peStr = fmtDMY(peUTC);
+    log('Pay cycle: commencing Monday ' + mondayStr + ' | current P.E. Sunday ' + peStr);
+
+    function alignedSundayOnOrBefore(utc) {
+      return peUTC + Math.floor((utc - peUTC) / FORTNIGHT) * FORTNIGHT;
+    }
+    // Cease date: the P.E. Sunday of the employee's penultimate pay period — i.e. the
+    // Sunday before commencement of the pay cycle containing the termination date.
+    function ceaseSundayFor(termUTC) {
+      var s = alignedSundayOnOrBefore(termUTC);
+      return s === termUTC ? s - FORTNIGHT : s;
+    }
+
+    // Terminated employees from the EC extract (optional Status / Termination Date columns)
+    var termByUser = new Map();      // userId -> termination date (UTC ms)
+    var inactiveNoTerm = new Set();
+    ecEntry.rows.forEach(function (r) {
+      var u = intOrNull(r['User ID']);
+      if (u === null) return;
+      var t = parseDateCell(r['Termination Date']);
+      if (t !== null) {
+        var prev = termByUser.get(u);
+        if (prev === undefined || t > prev) termByUser.set(u, t);
+      } else if (String(r['Status'] || '').toUpperCase().indexOf('INACTIVE') !== -1) {
+        inactiveNoTerm.add(u);
+      }
+    });
+    var ceaseDateByUser = new Map(); // userId -> cease P.E. Sunday (UTC ms)
+    var deferredFuture = 0;
+    termByUser.forEach(function (t, u) {
+      if (t <= peUTC) {
+        ceaseDateByUser.set(u, ceaseSundayFor(t));
+      } else {
+        deferredFuture++;            // terminates in a later pay cycle — cease on a future run
+      }
+    });
+    inactiveNoTerm.forEach(function (u) {
+      if (!termByUser.has(u)) {
+        ceaseDateByUser.set(u, peUTC - FORTNIGHT);
+        log('NOTE: user ' + u + ' is Inactive with no termination date; ceasing from ' + fmtDMY(peUTC - FORTNIGHT));
+      }
+    });
+    log('Terminated in payroll — ceasing this run: ' + ceaseDateByUser.size + ' user(s); deferred (terminates in a future cycle): ' + deferredFuture);
 
     // Build EC lookup with dedupe + exception logic
     var ecRowsAll = ecEntry.rows;
@@ -559,6 +642,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
     var processedKeys = new Set();
     var outputRows = [];
+    var ceaseEmitted = new Set();
+    var termCeaseCount = 0;
+    var suppressedTermRows = 0;
+    var forcedMonday = 0;
 
     // Pass 1: walk every non-casual projected row
     projNonCasual.forEach(function (r) {
@@ -570,6 +657,26 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       var key = user + '|' + pc;
       processedKeys.add(key);
       var ecAmt = ecLookup.has(key) ? ecLookup.get(key) : null;
+
+      // Terminated in payroll but still active in Eziway: never request a deduction —
+      // cease the existing EC deduction instead (even if the amounts still match).
+      if (ceaseDateByUser.has(user)) {
+        if (ecAmt !== null && ecAmt > TOL && !ceaseEmitted.has(key)) {
+          ceaseEmitted.add(key);
+          termCeaseCount++;
+          var ceaseRow = {};
+          Object.keys(SUB_HEADER).forEach(function (k) {
+            ceaseRow[k] = (k in r) ? passThrough(r[k]) : null;
+          });
+          ceaseRow['[OPERATOR]'] = 'DELIMIT';
+          ceaseRow['recurringItems.amount'] = null;   // blank for SuccessFactors
+          ceaseRow['effectiveStartDate'] = fmtDMY(ceaseDateByUser.get(user));
+          outputRows.push(ceaseRow);
+        } else {
+          suppressedTermRows++;   // nothing active in EC to cease — drop the Eziway request
+        }
+        return;
+      }
 
       var op = null, outAmt = null;
       if (Math.abs(projAmt) < TOL) {
@@ -591,6 +698,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       });
       outRow['[OPERATOR]'] = op;
       outRow['recurringItems.amount'] = outAmt;
+      if (op === 'DELIMIT') {
+        // Ceases always fall on the Sunday before the next pay cycle commences
+        outRow['effectiveStartDate'] = peStr;
+      } else {
+        // NEW / CHANGE entries always take effect on the cycle-commencement Monday
+        if (formatDateCell(r['effectiveStartDate']) !== mondayStr) forcedMonday++;
+        outRow['effectiveStartDate'] = mondayStr;
+      }
       outputRows.push(outRow);
     });
 
@@ -599,10 +714,16 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       if (processedKeys.has(key)) return;
       if (ecAmt <= TOL) return;
       var parts = key.split('|');
+      var u = parseInt(parts[0], 10);
+      var ceaseDate = peStr;
+      if (ceaseDateByUser.has(u)) {
+        ceaseDate = fmtDMY(ceaseDateByUser.get(u));
+        termCeaseCount++;
+      }
       outputRows.push({
         '[OPERATOR]': 'DELIMIT',
-        'userSysId': parseInt(parts[0], 10),
-        'effectiveStartDate': defaultDate,
+        'userSysId': u,
+        'effectiveStartDate': ceaseDate,
         'recurringItems.payComponentType.externalCode': parseInt(parts[1], 10),
         'recurringItems.amount': null,
         'recurringItems.unitOfMeasure.code': null,
@@ -627,6 +748,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     outputRows.forEach(function (r) { counts[r['[OPERATOR]']]++; });
 
     log('Output: CHANGE=' + counts.CHANGE + ', NEW=' + counts.NEW + ', DELIMIT=' + counts.DELIMIT + ', total=' + outputRows.length);
+    log('Termination ceases included in DELIMIT: ' + termCeaseCount);
+    log('Eziway rows for terminated employees with nothing to cease in EC (dropped): ' + suppressedTermRows);
+    log('NEW/CHANGE dates normalised to ' + mondayStr + ': ' + forcedMonday + ' row(s) corrected');
 
     // Build the workbook
     var outputColumns = Object.keys(SUB_HEADER);
@@ -656,20 +780,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     var blob = new Blob([wbout], { type: 'application/octet-stream' });
 
-    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
-    // Period-Ending (P.E) date: fortnightly Sundays anchored on 21.06.2026 (a Sunday).
-    // Use the most recent anchor-aligned Sunday on or before today, so running on the P.E
-    // Sunday or the days after (Mon/Tue/Wed ...) up to the next P.E Sunday keeps the same date.
-    var DAY = 86400000;
-    var anchorUTC = Date.UTC(2026, 5, 21);
-    var now = new Date();
-    var todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-    var k = Math.floor((todayUTC - anchorUTC) / DAY / 14);
-    var pe = new Date(anchorUTC + k * 14 * DAY);
-    var peStr = pad(pe.getUTCDate()) + '.' + pad(pe.getUTCMonth() + 1) + '.' + pad(pe.getUTCFullYear() % 100);
+    // Filename P.E. label comes from the Eziway-anchored current P.E. Sunday.
+    var peD = new Date(peUTC);
+    var peName = pad2(peD.getUTCDate()) + '.' + pad2(peD.getUTCMonth() + 1) + '.' + pad2(peD.getUTCFullYear() % 100);
     lastResult = {
       blob: blob,
-      filename: 'AA_Cutoff_H_M_P.E_' + peStr + '.xlsx'
+      filename: 'AA_Cutoff_H_M_P.E_' + peName + '.xlsx'
     };
 
     document.getElementById('stat-total').textContent = outputRows.length;
@@ -679,6 +795,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     document.getElementById('stat-casuals').textContent = casualUsers.size;
     document.getElementById('stat-ec').textContent = ecConsidered;
     document.getElementById('stat-exceptions').textContent = exceptions.length;
+    document.getElementById('stat-termcease').textContent = termCeaseCount;
     summaryCard.classList.remove('hidden');
     downloadBtn.disabled = false;
   }
