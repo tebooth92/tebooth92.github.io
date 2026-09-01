@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit | Payroll Tools</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc; --panel: #ffffff; --ink: #0f172a; --muted: #64748b;
+    --line: #e2e8f0; --accent: #4f46e5; --accent-hover: #4338ca; --accent-ink: #ffffff;
+    --ok: #10b981; --warn: #f59e0b; --bad: #dc2626; --chip: #f1f5f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 18px 32px; display: flex; align-items: baseline; gap: 14px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--ink); }
+  header .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 32px 60px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .panel h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: 12px; }
+  .muted { color: var(--muted); }
+  /* file ingestion */
+  #dropzone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 26px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s; }
+  #dropzone.drag { border-color: var(--accent); background: #eef2ff; }
+  #filegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin-top: 14px; }
+  .fcard { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; }
+  .fcard .fname { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .fcard .fmeta { color: var(--muted); font-size: 12px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: var(--muted); white-space: nowrap; }
+  .chip.ok { background: #d1fae5; color: #047857; }
+  .chip.missing { background: #fee2e2; color: #b91c1c; }
+  /* nav */
+  #modnav { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+  #modnav button { border: 1px solid var(--line); background: var(--panel); padding: 8px 16px; border-radius: 10px; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink); transition: .15s; }
+  #modnav button:hover:not(:disabled):not(.active) { background: #eef2ff; border-color: #c7d2fe; }
+  #modnav button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #modnav button:disabled { opacity: .45; cursor: not-allowed; }
+  /* params */
+  .params { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+  .params label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .params input { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 110px; font: inherit; font-size: 13px; }
+  .params input:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .btn { background: var(--accent); color: var(--accent-ink); border: none; border-radius: 10px; padding: 9px 20px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .btn:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel); color: var(--accent); border: 1px solid #c7d2fe; padding: 6px 14px; font-size: 13px; }
+  .btn.ghost:hover:not(:disabled) { background: #eef2ff; }
+  /* summary cards */
+  #cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--panel); box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .card .big { font-size: 26px; font-weight: 700; color: var(--ink); }
+  .card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .card.under .big { color: var(--bad); }
+  .card.over .big { color: #d97706; }
+  .card.okc .big { color: #059669; }
+  /* tables */
+  .tabbar { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .tabbar button.tab { border: 1px solid var(--line); background: var(--panel); padding: 6px 14px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 500; color: var(--ink); transition: .15s; }
+  .tabbar button.tab:hover:not(.active) { background: #eef2ff; border-color: #c7d2fe; }
+  .tabbar button.tab.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tabbar input[type=search] { border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; width: 250px; margin-left: auto; font: inherit; font-size: 13px; }
+  .tabbar input[type=search]:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .twrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 7px 11px; border-bottom: 1px solid #f1f5f9; text-align: left; white-space: nowrap; }
+  th { background: #f8fafc; position: sticky; top: 0; cursor: default; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; border-bottom: 1px solid var(--line); }
+  td.num, th.num { text-align: right; }
+  tr:hover td { background: #f8fafc; }
+  .status-under { color: var(--bad); font-weight: 600; }
+  .status-over { color: #d97706; font-weight: 600; }
+  .status-check { color: var(--accent); font-weight: 600; }
+  #rowsnote { font-size: 12px; color: var(--muted); margin: 8px 2px; }
+  #log { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; margin-top: 8px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Audit</h1>
+  <span class="sub">Salary packaging audit management &amp; QA</span>
+  <span class="sub" id="datestamp" style="margin-left:auto"></span>
+</header>
+<main>
+
+  <!-- ============ FILE INGESTION ============ -->
+  <div class="panel">
+    <h2>1. Load data files</h2>
+    <div id="dropzone">Drag the 9 export files here, or click to browse.<br>
+      <span style="font-size:12px">Files are detected automatically by their contents. Nothing leaves this computer.</span>
+      <input type="file" id="fileinput" multiple accept=".xlsx,.csv" style="display:none">
+    </div>
+    <div id="filegrid"></div>
+    <div id="log"></div>
+  </div>
+
+  <!-- ============ MODULE NAV ============ -->
+  <div id="modnav">
+    <button class="active" data-mod="feeaudit">Fee Audit</button>
+    <button data-mod="cardaudit">Card Audit</button>
+    <button data-mod="heldbal">Held Balance</button>
+    <button data-mod="posttax">Novated Post-Tax</button>
+    <button data-mod="leasevar">Lease Variance</button>
+    <button data-mod="opportunity">Opportunity</button>
+    <button disabled title="Coming soon">More functions to come</button>
+  </div>
+
+  <!-- ============ FEE AUDIT MODULE ============ -->
+  <div class="panel" id="mod-feeaudit">
+    <h2>Fee Audit</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Checks every employee with Living Expenses or Meal Entertainment benefits collects the full FBT-year fee.
+      Employees absent from the User Management Employee List are treated as terminated and excluded.
+    </p>
+    <p class="muted" style="margin-bottom:10px">
+      Remaining pay cycles are derived per line from its Next Payment Date - fortnights counted from the next
+      payment through 31 March. This self-corrects around pay runs and handles the H/M calendar offset.
+    </p>
+    <div class="params">
+      <div><label>LE full-year fee $</label><input id="p_letarget" type="number" value="451"></div>
+      <div><label>ME full-year fee $</label><input id="p_metarget" type="number" value="133"></div>
+      <div><label>LE cap $</label><input id="p_lecap" type="number" value="9010"></div>
+      <div><label>ME cap $</label><input id="p_mecap" type="number" value="2650"></div>
+      <div><label>Tolerance $</label><input id="p_tol" type="number" value="1" step="0.5"></div>
+      <div><label>Discontinued &le; % of cap</label><input id="p_tenpct" type="number" value="10"></div>
+      <div><label>Maximised &ge; % of cap</label><input id="p_maxpct" type="number" value="90"></div>
+      <button class="btn" id="runfee" disabled>Run Fee Audit</button>
+    </div>
+
+    <div id="feeresults" class="hidden">
+      <div id="cards"></div>
+      <div class="tabbar">
+        <button class="tab active" data-tab="under">Collect More</button>
+        <button class="tab" data-tab="over">Over Collection</button>
+        <input type="search" id="tblsearch" placeholder="Search ID, name, status...">
+        <button class="btn ghost" id="exportcsv">Export tab to CSV</button>
+        <button class="btn ghost" id="showall">Show all rows</button>
+      </div>
+      <div class="twrap" style="max-height:600px; overflow-y:auto">
+        <table id="feetable"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="rowsnote"></div>
+    </div>
+  </div>
+
+  <!-- ============ CARD AUDIT MODULE ============ -->
+  <div class="panel hidden" id="mod-cardaudit">
+    <h2>Benefits Card Audit</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Reconciles the EML card program: EMLMEC lines against the Active ME report, EMLEBC lines against the
+      Active LE report (EAID + employee ID must both match), proxy card integrity, card usage, and card fee lines.
+    </p>
+    <button class="btn" id="runcard" disabled>Run Card Audit</button>
+    <div id="cardresults" class="hidden">
+      <div id="cardcards"></div>
+      <div class="tabbar">
+        <input type="search" id="cardsearch" placeholder="Search ID, name, EAID, check...">
+        <button class="btn ghost" id="cardexport">Export to CSV</button>
+        <button class="btn ghost" id="cardshowall">Show all rows</button>
+      </div>
+      <div class="twrap" style="max-height:600px; overflow-y:auto">
+        <table id="cardtable"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="cardrowsnote"></div>
+    </div>
+  </div>
+
+  <!-- ============ HELD BALANCE MODULE ============ -->
+  <div class="panel hidden" id="mod-heldbal">
+    <h2>Held Balance Report</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Employees with a held balance (Employer Package List, column G), banded into three tiers, plus a
+      Return to Payroll tab: employees whose held balance exceeds their remaining cap entitlement
+      (Capped Amount Available + EB Capped Amount Available; blank = full entitlement of $9,009.96 / $2,649.98),
+      meaning they have been over-deducted. Export produces one workbook with all four tabs.
+    </p>
+    <button class="btn" id="runheld" disabled>Run Held Balance</button>
+    <div id="heldresults" class="hidden">
+      <div id="heldcards"></div>
+      <div class="tabbar">
+        <button class="tab active" data-band="0">$500 or less</button>
+        <button class="tab" data-band="1">$501 to $1,000</button>
+        <button class="tab" data-band="2">Above $1,000</button>
+        <button class="tab" data-band="3">Return to Payroll</button>
+        <button class="tab" data-band="4">Terminated with Balance</button>
+        <input type="search" id="heldsearch" placeholder="Search ID or email...">
+        <button class="btn ghost" id="heldexport">Export XLSX (3 tabs)</button>
+      </div>
+      <div class="twrap" style="max-height:600px; overflow-y:auto">
+        <table id="heldtable"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="heldrowsnote"></div>
+    </div>
+  </div>
+
+  <!-- ============ NOVATED POST-TAX MODULE ============ -->
+  <div class="panel hidden" id="mod-posttax">
+    <h2>Novated Post-Tax Split</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Reads the Calculated Shortfall from the post-tax audit report (negative = under-collected) and proposes the
+      revised post-tax / pre-tax split over the remaining pay cycles. The post-tax increase is always rounded UP
+      to the next cent so collection never falls short, and the pre-tax line is decreased by the same amount so
+      the two deposits still sum to the NL Finance payment.
+    </p>
+    <button class="btn" id="runposttax" disabled>Run Post-Tax Audit</button>
+    <div id="ptresults" class="hidden">
+      <div id="ptcards"></div>
+      <div class="tabbar">
+        <button class="btn ghost" id="ptexport">Export XLSX</button>
+      </div>
+      <div class="twrap" style="max-height:600px; overflow-y:auto">
+        <table id="pttable"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="ptrowsnote"></div>
+    </div>
+  </div>
+
+  <!-- ============ LEASE VARIANCE MODULE ============ -->
+  <div class="panel hidden" id="mod-leasevar">
+    <h2>Novated Lease Variance</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Vehicle Next Deposit less Lease Rental Payment should always equal $4.89 (the fortnightly NL admin fee).
+      Flags any other variance, leases past their end date still on file ("Cease Novated Lease"), and clears
+      intentional once-off catch-ups (a deposit+payment NL Finance line in benefit details).
+    </p>
+    <button class="btn" id="runlease" disabled>Run Lease Variance</button>
+    <div id="lvresults" class="hidden">
+      <div id="lvcards"></div>
+      <div class="tabbar">
+        <input type="search" id="lvsearch" placeholder="Search ID, name, rego, note...">
+        <button class="btn ghost" id="lvexport">Export XLSX</button>
+      </div>
+      <div class="twrap" style="max-height:600px; overflow-y:auto">
+        <table id="lvtable"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="lvrowsnote"></div>
+    </div>
+  </div>
+
+  <!-- ============ OPPORTUNITY MODULE ============ -->
+  <div class="panel hidden" id="mod-opportunity">
+    <h2>Opportunity</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Active employees (Employee Central) on Fortnightly General or Fortnightly Medical who are not salary
+      packaging: no payment ever in the finance batch and nothing set up in benefit details. Also flags employees
+      registered in the salary packaging system with no deductions set up and no LE/ME payments.
+    </p>
+    <button class="btn" id="runopp" disabled>Run Opportunity</button>
+    <div id="oppresults" class="hidden">
+      <div id="oppcards"></div>
+      <div class="tabbar">
+        <input type="search" id="oppsearch" placeholder="Search ID, email, pay group, flag...">
+        <button class="btn ghost" id="oppexport">Export XLSX</button>
+        <button class="btn ghost" id="oppshowall">Show all rows</button>
+      </div>
+      <div class="twrap" style="max-height:600px; overflow-y:auto">
+        <table id="opptable"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="opprowsnote"></div>
+    </div>
+  </div>
+
+</main>
+<script>
+"use strict";
+/* ================================================================
+   Salary Packaging Audit Tool
+   Module 1: Fee Audit
+   Data model: window.DATA[key] holds parsed rows per file type.
+   ================================================================ */
+
+const MS_DAY = 86400000;
+const FILE_DEFS = [
+  { key: "details",  label: "Package Benefit Details",      detect: h => h.includes("Salary Package Item") },
+  { key: "finance",  label: "Finance Batch Report",         detect: h => h.includes("Item Name") && h.includes("Payment") },
+  { key: "usermgmt", label: "User Management Employee List",detect: h => h.includes("PayRollID") },
+  { key: "emppkg",   label: "Employer Package List",        detect: h => h.includes("Capped Balance") || h.includes("NLFM") },
+  { key: "novated",  label: "Novated Leasing",              detect: h => h.includes("Registration") && h.includes("Lease Rental Payment Amount") },
+  { key: "posttax",  label: "Novated Post Tax Audit",       detect: h => h.includes("Vehicle Base FBT Value") },
+  { key: "lecard",   label: "Active LE Card Report",        detect: (h, fn) => h.includes("CAK") && /le[-_]?report/i.test(fn) },
+  { key: "mecard",   label: "Active ME Card Report",        detect: (h, fn) => h.includes("CAK") && /me[-_]?report/i.test(fn) },
+  { key: "proxy",    label: "Active Proxy Card Report",     detect: (h, fn) => h.includes("CAK") && /proxy/i.test(fn) },
+  { key: "ecdeduct", label: "Current Deductions (Employee Central)", detect: h => h.includes("Austin Advantage SPack") }
+];
+const DATA = {};   // key -> { headers: [], rows: [][], filename, rowCount }
+
+/* ---------------- file ingestion ---------------- */
+const dz = document.getElementById("dropzone");
+const fi = document.getElementById("fileinput");
+dz.addEventListener("click", () => fi.click());
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag"));
+dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("drag"); ingest(e.dataTransfer.files); });
+fi.addEventListener("change", () => ingest(fi.files));
+
+function log(msg) { document.getElementById("log").textContent += msg + "\n"; }
+
+async function ingest(fileList) {
+  for (const f of fileList) {
+    try {
+      let headers = [], rows = [];
+      if (/\.csv$/i.test(f.name)) {
+        const text = await f.text();
+        const parsed = parseCSV(text);
+        headers = parsed[0].map(String);
+        rows = parsed.slice(1);
+      } else {
+        const buf = await f.arrayBuffer();
+        const wb = XLSX.read(buf, { type: "array", raw: true });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const arr = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+        headers = (arr[0] || []).map(v => String(v ?? ""));
+        rows = arr.slice(1);
+      }
+      const def = FILE_DEFS.find(d => d.detect(headers.join("|"), f.name));
+      if (!def) { log(`Unrecognised file skipped: ${f.name}`); continue; }
+      DATA[def.key] = { headers, rows, filename: f.name, rowCount: rows.filter(r => r && r.length).length };
+      log(`Loaded ${def.label}: ${DATA[def.key].rowCount} rows (${f.name})`);
+    } catch (err) {
+      log(`ERROR reading ${f.name}: ${err.message}`);
+    }
+  }
+  renderFileGrid();
+}
+
+function parseCSV(text) {
+  const out = []; let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+      else cur += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (cur !== "" || row.length) { row.push(cur); out.push(row); row = []; cur = ""; }
+      if (c === "\r" && text[i + 1] === "\n") i++;
+    } else cur += c;
+  }
+  if (cur !== "" || row.length) { row.push(cur); out.push(row); }
+  return out;
+}
+
+function renderFileGrid() {
+  const grid = document.getElementById("filegrid");
+  grid.innerHTML = "";
+  for (const def of FILE_DEFS) {
+    const d = DATA[def.key];
+    const el = document.createElement("div");
+    el.className = "fcard";
+    el.innerHTML = `<div><div class="fname">${def.label}</div>
+      <div class="fmeta">${d ? d.filename + " - " + d.rowCount.toLocaleString() + " rows" : "not loaded"}</div></div>
+      <span class="chip ${d ? "ok" : "missing"}">${d ? "loaded" : "missing"}</span>`;
+    grid.appendChild(el);
+  }
+  // fee audit needs these three
+  document.getElementById("runfee").disabled = !(DATA.details && DATA.finance && DATA.usermgmt);
+  // card audit needs these five
+  document.getElementById("runcard").disabled = !(DATA.details && DATA.finance && DATA.lecard && DATA.mecard && DATA.proxy);
+  // held balance needs these three (details supplies cap availability)
+  document.getElementById("runheld").disabled = !(DATA.emppkg && DATA.usermgmt && DATA.details);
+  // novated post-tax needs these two
+  document.getElementById("runposttax").disabled = !(DATA.posttax && DATA.details);
+  // lease variance needs these two
+  document.getElementById("runlease").disabled = !(DATA.novated && DATA.details);
+  // opportunity needs these four
+  document.getElementById("runopp").disabled = !(DATA.ecdeduct && DATA.finance && DATA.details && DATA.usermgmt);
+}
+
+/* ---------------- module switching ---------------- */
+document.querySelectorAll("#modnav button[data-mod]").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("#modnav button[data-mod]").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  document.querySelectorAll("[id^=mod-]").forEach(p => p.classList.add("hidden"));
+  document.getElementById("mod-" + b.dataset.mod).classList.remove("hidden");
+}));
+
+/* ---------------- shared helpers ---------------- */
+function parseDMY(v) {
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "number") return new Date(Math.round((v - 25569) * MS_DAY)); // excel serial fallback
+  const p = String(v).trim().split("/");
+  if (p.length !== 3) return null;
+  const d = parseInt(p[0], 10), m = parseInt(p[1], 10), y = parseInt(p[2], 10);
+  if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+  return new Date(y, m - 1, d);
+}
+function num(v) { if (typeof v === "number") return v; const n = parseFloat(String(v)); return isNaN(n) ? 0 : n; }
+// Employee Central deductions file: first data row is the real header row.
+// cols: 0 User ID, 1 Employment Status, 2 Termination Date, 3 Pay Group, 4 Business Email
+function ecData() {
+  if (!DATA.ecdeduct) return null;
+  const term = {}, active = {}, payGroup = {}, email = {};
+  for (const r of DATA.ecdeduct.rows) {
+    if (!r || !r[0]) continue;
+    const id = String(r[0]).trim();
+    if (id === "" || id === "User ID") continue;
+    const st = String(r[1] ?? "").trim();
+    if (st === "Terminated") term[id] = String(r[2] ?? "").trim() || "(no date)";
+    else if (st === "Active") active[id] = true;
+    payGroup[id] = String(r[3] ?? "").trim();
+    email[id] = String(r[4] ?? "").trim();
+  }
+  return { term, active, payGroup, email };
+}
+function money(v) { return "$" + v.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function r2(v) { return Math.round(v * 100) / 100; }
+
+/* ================================================================
+   MODULE: FEE AUDIT
+   ================================================================ */
+const LE_BENEFITS = ["Mortgage", "Credit Card", "EMLEBC", "Rent", "Personal Loan", "Living Expenses"];
+const ME_BENEFITS = ["EMLMEC", "Entertainment Benefits"];
+const LE_FEE_ITEM = "Admin Fee";
+const ME_FEE_ITEM = "Entertainment Benefits Fee";
+const SPECIAL_FEE_ITEM = "Admin Fee - Special";
+
+let feeResult = null; // { under: [], over: [], summary: {} }
+
+document.getElementById("runfee").addEventListener("click", runFeeAudit);
+
+function runFeeAudit() {
+  const P = {
+    leTarget: num(document.getElementById("p_letarget").value),
+    meTarget: num(document.getElementById("p_metarget").value),
+    leCap: num(document.getElementById("p_lecap").value),
+    meCap: num(document.getElementById("p_mecap").value),
+    tol: num(document.getElementById("p_tol").value),
+    tenPct: num(document.getElementById("p_tenpct").value) / 100,
+    maxPct: num(document.getElementById("p_maxpct").value) / 100
+  };
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const fbtEnd = new Date(today.getMonth() >= 3 ? today.getFullYear() + 1 : today.getFullYear(), 2, 31);
+
+  // active employees = anyone present in the User Management list
+  const activeIds = new Set();
+  for (const r of DATA.usermgmt.rows) {
+    if (r && r[1] !== null && r[1] !== undefined && String(r[1]).trim() !== "") activeIds.add(String(r[1]).trim());
+  }
+
+  // Advance a next-payment date forward in 14-day steps until it is >= today
+  // (a stale next date on a recurring line means a hold, not a stop - the calendar still applies)
+  function advance(nD) {
+    let t = nD.getTime();
+    while (t < today.getTime()) t += 14 * MS_DAY;
+    return new Date(t);
+  }
+
+  // Remaining collections for a line, derived from ITS OWN Next Payment Date.
+  // empNext = employee-level fallback calendar when the line has no next date.
+  function remainingCollections(freq, periods, sD, eD, nD, empNext) {
+    const isOnce = freq === "Once" || periods === "1";
+    if (isOnce) return (nD && nD >= today && nD <= fbtEnd) ? 1 : 0;
+    if (eD && eD < today) return 0;
+    const base = nD || empNext;
+    if (!base) return 0;
+    let first = advance(base);
+    if (sD && sD > first) { // line starts in the future: first collection on its calendar >= start
+      let t = first.getTime();
+      while (t < sD.getTime()) t += 14 * MS_DAY;
+      first = new Date(t);
+    }
+    const last = (eD && eD < fbtEnd) ? eD : fbtEnd;
+    if (first > last) return 0;
+    let cycles = Math.floor((last - first) / (14 * MS_DAY)) + 1;
+    const p = parseInt(periods, 10);
+    if (!isNaN(p) && p > 1 && sD) {
+      const taken = sD > today ? 0 : Math.floor((today - sD) / (14 * MS_DAY)) + 1;
+      cycles = Math.min(cycles, Math.max(0, p - taken));
+    }
+    return Math.max(0, cycles);
+  }
+  function stillActive(freq, periods, eD, nD) {
+    const isOnce = freq === "Once" || periods === "1";
+    if (isOnce) return nD !== null && nD >= today;
+    return !(eD && eD < today);
+  }
+
+  // accumulate
+  const emps = {};
+  const getEmp = id => emps[id] || (emps[id] = {
+    name: "", status: "", inDetails: false,
+    lbp: 0, mbp: 0, lfp: 0, mfp: 0, sp: 0, lfs: 0, mfs: 0, ss: 0, la: false, ma: false,
+    next: null, feeLines: []
+  });
+
+  for (const r of DATA.finance.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim(), item = String(r[2] ?? "").trim(), paid = num(r[3]);
+    const e = getEmp(id);
+    if (!e.name) e.name = String(r[0] ?? "").trim();
+    if (LE_BENEFITS.includes(item)) e.lbp += paid;
+    else if (ME_BENEFITS.includes(item)) e.mbp += paid;
+    else if (item === LE_FEE_ITEM) e.lfp += paid;
+    else if (item === ME_FEE_ITEM) e.mfp += paid;
+    else if (item === SPECIAL_FEE_ITEM) e.sp += paid;
+  }
+
+  for (const r of DATA.details.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    if (String(r[23] ?? "").trim() !== "Active") continue;
+    const id = String(r[1]).trim(), item = String(r[6] ?? "").trim(), dep = num(r[8]);
+    const freq = String(r[14] ?? "").trim(), periods = String(r[18] ?? "").trim();
+    const sD = parseDMY(r[15]), eD = parseDMY(r[16]), nD = parseDMY(r[17]);
+    const e = getEmp(id);
+    e.inDetails = true;
+    const nm = (String(r[4] ?? "").trim() + " " + String(r[5] ?? "").trim()).trim();
+    if (nm) e.name = nm;
+    e.status = String(r[2] ?? "").trim();
+    // track the employee's pay calendar: earliest upcoming next-payment date across all their lines
+    if (nD && (freq !== "Once" && periods !== "1")) {
+      const adv = advance(nD);
+      if (!e.next || adv < e.next) e.next = adv;
+    }
+    if (LE_BENEFITS.includes(item)) { if (stillActive(freq, periods, eD, nD)) e.la = true; }
+    else if (ME_BENEFITS.includes(item)) { if (stillActive(freq, periods, eD, nD)) e.ma = true; }
+    else if ((item === LE_FEE_ITEM || item === ME_FEE_ITEM || item === SPECIAL_FEE_ITEM) && dep > 0) {
+      e.feeLines.push({ item, dep, freq, periods, sD, eD, nD });
+    }
+  }
+
+  // second pass: schedule fee lines now the per-employee calendar is known
+  const cycleCounts = new Set();
+  for (const id of Object.keys(emps)) {
+    const e = emps[id];
+    e.cycles = e.next ? Math.floor((fbtEnd - e.next) / (14 * MS_DAY)) + 1 : 0;
+    if (e.cycles < 0) e.cycles = 0;
+    if (e.inDetails && e.cycles > 0) cycleCounts.add(e.cycles);
+    for (const f of e.feeLines) {
+      const sched = f.dep * remainingCollections(f.freq, f.periods, f.sD, f.eD, f.nD, e.next);
+      if (f.item === LE_FEE_ITEM) e.lfs += sched;
+      else if (f.item === ME_FEE_ITEM) e.mfs += sched;
+      else e.ss += sched;
+    }
+  }
+
+  // build lines
+  const under = [], over = [];
+  let okCount = 0, excluded = 0;
+  const ec = ecData(); // Employee Central terminations also exclude (when file loaded)
+  for (const id of Object.keys(emps)) {
+    if (!activeIds.has(id) || (ec && ec.term[id])) { excluded++; continue; } // terminated (User Mgmt absence or EC status)
+    const e = emps[id];
+    const hasLE = e.lbp > 0 || e.la || e.lfp > 0 || e.lfs > 0;
+    const hasME = e.mbp > 0 || e.ma || e.mfp > 0 || e.mfs > 0;
+
+    let spp = e.sp, sps = e.ss;
+    const al = { lp: 0, ls: 0, mp: 0, ms: 0 };
+    if (hasLE) {
+      al.lp = Math.min(spp, Math.max(0, P.leTarget - e.lfp)); spp -= al.lp;
+      al.ls = Math.min(sps, Math.max(0, P.leTarget - e.lfp - al.lp - e.lfs)); sps -= al.ls;
+    }
+    if (hasME) {
+      al.mp = Math.min(spp, Math.max(0, P.meTarget - e.mfp)); spp -= al.mp;
+      al.ms = Math.min(sps, Math.max(0, P.meTarget - e.mfp - al.mp - e.mfs)); sps -= al.ms;
+    }
+
+    const cats = [];
+    if (hasLE) cats.push(["Living Expenses", e.lbp, e.lfp + al.lp, e.lfs + al.ls, al.lp + al.ls, P.leTarget, P.leCap, e.la]);
+    if (hasME) cats.push(["Meal Entertainment", e.mbp, e.mfp + al.mp, e.mfs + al.ms, al.mp + al.ms, P.meTarget, P.meCap, e.ma]);
+
+    for (const [cat, benPaid, feePaid, feeSched, spec, target, cap, active] of cats) {
+      const projected = feePaid + feeSched;
+      const diff = projected - target;
+      const requiredFn = e.cycles > 0 ? Math.max(0, target - feePaid) / e.cycles : 0;
+      let status = "", bucket = "none";
+      if (benPaid <= 0 && !active) { status = "CHECK - fee activity but no benefit"; bucket = "over"; }
+      else if (diff > P.tol) { status = "OVER - will collect above full fee"; bucket = "over"; }
+      else if (diff >= -P.tol) { status = "OK"; }
+      else if (benPaid <= cap * P.tenPct && feeSched < 0.01 && !active) { status = "OK - discontinued (<=10% of cap used)"; }
+      else if (benPaid >= cap * P.maxPct) { status = "UNDER - maximised benefit, fee short"; bucket = "under"; }
+      else { status = "UNDER - not set up to collect full fee"; bucket = "under"; }
+
+      if (bucket === "none") { okCount++; continue; }
+      const line = {
+        id, name: e.name, empStatus: e.status || (e.inDetails ? "" : "Not in details file"), cat,
+        benPaid: r2(benPaid), feePaid: r2(feePaid), feeSched: r2(feeSched), spec: r2(spec),
+        projected: r2(projected), target, variance: r2(Math.abs(diff)), requiredFn: r2(requiredFn), status
+      };
+      (bucket === "under" ? under : over).push(line);
+    }
+  }
+  under.sort((a, b) => b.variance - a.variance);
+  over.sort((a, b) => b.variance - a.variance);
+
+  feeResult = {
+    under, over,
+    summary: {
+      cyclesRemaining: [...cycleCounts].sort((a, b) => a - b).join(" / ") || "0",
+      excluded, okCount, runDate: today.toLocaleDateString("en-AU")
+    }
+  };
+  renderFeeResults();
+}
+
+/* ---------------- fee audit rendering ---------------- */
+let currentTab = "under", showAllRows = false;
+const COLS = [
+  ["id", "Payroll ID"], ["name", "Employee Name"], ["empStatus", "Employment Status"], ["cat", "Category"],
+  ["benPaid", "Benefit Paid YTD", 1], ["feePaid", "Fee Paid YTD", 1], ["feeSched", "Fee Scheduled (Rem. Yr)", 1],
+  ["spec", "of which Special", 1], ["projected", "Projected Total Fee", 1], ["target", "Full Year Fee", 1],
+  ["variance", "Variance", 1], ["requiredFn", "Required Fee / FN", 1], ["status", "Status"]
+];
+
+document.querySelectorAll(".tabbar .tab").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabbar .tab").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  currentTab = b.dataset.tab; showAllRows = false;
+  renderTable();
+}));
+document.getElementById("tblsearch").addEventListener("input", renderTable);
+document.getElementById("showall").addEventListener("click", () => { showAllRows = true; renderTable(); });
+document.getElementById("exportcsv").addEventListener("click", exportCSV);
+
+function renderFeeResults() {
+  document.getElementById("feeresults").classList.remove("hidden");
+  const s = feeResult.summary;
+  document.getElementById("cards").innerHTML = `
+    <div class="card under"><div class="big">${feeResult.under.length.toLocaleString()}</div><div class="lbl">Collect more (under)</div></div>
+    <div class="card over"><div class="big">${feeResult.over.length.toLocaleString()}</div><div class="lbl">Over collection / check</div></div>
+    <div class="card okc"><div class="big">${s.okCount.toLocaleString()}</div><div class="lbl">OK / exempt (not listed)</div></div>
+    <div class="card"><div class="big">${s.excluded.toLocaleString()}</div><div class="lbl">Terminated excluded</div></div>
+    <div class="card"><div class="big">${s.cyclesRemaining}</div><div class="lbl">Pay cycles remaining (derived)</div></div>`;
+  renderTable();
+}
+
+function filteredRows() {
+  const q = document.getElementById("tblsearch").value.trim().toLowerCase();
+  let rows = feeResult[currentTab];
+  if (q) rows = rows.filter(r => (r.id + " " + r.name + " " + r.status + " " + r.cat + " " + r.empStatus).toLowerCase().includes(q));
+  return rows;
+}
+
+function renderTable() {
+  if (!feeResult) return;
+  const rows = filteredRows();
+  const cap = showAllRows ? rows.length : 400;
+  const varianceLabel = currentTab === "under" ? "Shortfall" : "Over Collection";
+  document.querySelector("#feetable thead").innerHTML =
+    "<tr>" + COLS.map(c => `<th class="${c[2] ? "num" : ""}">${c[1] === "Variance" ? varianceLabel : c[1]}</th>`).join("") + "</tr>";
+  const body = rows.slice(0, cap).map(r =>
+    "<tr>" + COLS.map(c => {
+      const v = r[c[0]];
+      const cls = c[2] ? "num" : (c[0] === "status" ? statusClass(v) : "");
+      return `<td class="${cls}">${c[2] ? money(v) : v}</td>`;
+    }).join("") + "</tr>").join("");
+  document.querySelector("#feetable tbody").innerHTML = body;
+  document.getElementById("rowsnote").textContent =
+    `Showing ${Math.min(cap, rows.length).toLocaleString()} of ${rows.length.toLocaleString()} rows` +
+    (rows.length > cap ? " - use search or 'Show all rows'." : ".") +
+    ` Run ${feeResult.summary.runDate}.`;
+  document.getElementById("showall").style.display = rows.length > cap ? "" : "none";
+}
+
+function statusClass(s) {
+  if (s.startsWith("UNDER")) return "status-under";
+  if (s.startsWith("OVER")) return "status-over";
+  if (s.startsWith("CHECK")) return "status-check";
+  return "";
+}
+
+function exportCSV() {
+  const rows = filteredRows();
+  const varianceLabel = currentTab === "under" ? "Shortfall" : "Over Collection";
+  const head = COLS.map(c => c[1] === "Variance" ? varianceLabel : c[1]).join(",");
+  const lines = rows.map(r => COLS.map(c => {
+    const v = r[c[0]];
+    return typeof v === "string" && v.includes(",") ? `"${v}"` : v;
+  }).join(","));
+  const blob = new Blob([head + "\n" + lines.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (currentTab === "under" ? "fee-audit-collect-more" : "fee-audit-over-collection") + ".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ================================================================
+   MODULE: CARD AUDIT
+   Card reports: col F (idx 5) = EmployeeNumber, col G (idx 6) = EAID,
+   col L (idx 11) = Balance. Details Bank Ref (idx 13) holds the EAID.
+   EMLMEC <-> Active ME report, EMLEBC <-> Active LE report.
+   ================================================================ */
+let cardResult = null;
+let cardShowAll = false;
+const CARD_COLS = [
+  ["id", "Payroll ID"], ["name", "Employee Name"], ["program", "Program"],
+  ["eaid", "EAID"], ["check", "Check Failed"], ["detail", "Detail"], ["inUserMgmt", "In User Mgmt List"]
+];
+
+document.getElementById("runcard").addEventListener("click", runCardAudit);
+document.getElementById("cardsearch").addEventListener("input", renderCardTable);
+document.getElementById("cardshowall").addEventListener("click", () => { cardShowAll = true; renderCardTable(); });
+document.getElementById("cardexport").addEventListener("click", exportCardCSV);
+
+function runCardAudit() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const findings = [];
+  const activeIds = new Set();
+  if (DATA.usermgmt) for (const r of DATA.usermgmt.rows) {
+    if (r && r[1] !== null && String(r[1]).trim() !== "") activeIds.add(String(r[1]).trim());
+  }
+  const inMgmt = id => DATA.usermgmt ? (activeIds.has(id) ? "Yes" : "No") : "n/a";
+
+  // --- card report maps: eaid -> employee id; employee id -> has card ---
+  function cardMap(key) {
+    const byEaid = {}, byEmp = {};
+    for (const r of DATA[key].rows) {
+      if (!r || !r[6]) continue;
+      const emp = String(r[5] ?? "").trim(), eaid = String(r[6]).trim();
+      byEaid[eaid] = { emp, balance: num(r[11]), name: (String(r[1] ?? "") + " " + String(r[2] ?? "")).trim() };
+      (byEmp[emp] = byEmp[emp] || []).push(eaid);
+    }
+    return { byEaid, byEmp };
+  }
+  const me = cardMap("mecard"), le = cardMap("lecard"), px = cardMap("proxy");
+
+  // --- finance: card load payments per employee ---
+  const paidMEC = {}, paidEBC = {};
+  for (const r of DATA.finance.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim(), item = String(r[2] ?? "").trim(), p = num(r[3]);
+    if (item === "EMLMEC") paidMEC[id] = (paidMEC[id] || 0) + p;
+    else if (item === "EMLEBC") paidEBC[id] = (paidEBC[id] || 0) + p;
+  }
+
+  // --- details: active card benefit lines, fee lines, all bank refs ---
+  const emp = {}; // id -> { name, mecLines:[{eaid}], ebcLines:[], mecFee, ebcFee }
+  const allBankRefs = {}; // ref -> {id, item}
+  function stillActive(freq, periods, eD, nD) {
+    const isOnce = freq === "Once" || periods === "1";
+    if (isOnce) return nD !== null && nD >= today;
+    return !(eD && eD < today);
+  }
+  for (const r of DATA.details.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    if (String(r[23] ?? "").trim() !== "Active") continue;
+    const id = String(r[1]).trim(), item = String(r[6] ?? "").trim(), dep = num(r[8]);
+    const freq = String(r[14] ?? "").trim(), periods = String(r[18] ?? "").trim();
+    const eD = parseDMY(r[16]), nD = parseDMY(r[17]);
+    const ref = String(r[13] ?? "").trim();
+    if (ref) allBankRefs[ref] = { id, item };
+    const e = emp[id] || (emp[id] = { name: "", mecLines: [], ebcLines: [], mecFee: false, ebcFee: false });
+    const nm = (String(r[4] ?? "").trim() + " " + String(r[5] ?? "").trim()).trim();
+    if (nm) e.name = nm;
+    const act = stillActive(freq, periods, eD, nD);
+    if (item === "EMLMEC" && act) e.mecLines.push(ref);
+    else if (item === "EMLEBC" && act) e.ebcLines.push(ref);
+    else if (item === "EMLMEC Fee" && act && dep > 0) e.mecFee = true;
+    else if (item === "EMLEBC Fee" && act && dep > 0) e.ebcFee = true;
+  }
+
+  function add(id, name, program, eaid, check, detail) {
+    findings.push({ id, name, program, eaid: eaid || "", check, detail, inUserMgmt: inMgmt(id) });
+  }
+
+  // --- Check 1 & 2: active card lines must reconcile to the card reports ---
+  for (const id of Object.keys(emp)) {
+    const e = emp[id];
+    for (const eaid of e.mecLines) {
+      if (!eaid) add(id, e.name, "EMLMEC", "", "No EAID on benefit line", "Active EMLMEC line has no card reference (Bank Ref blank)");
+      else if (!me.byEaid[eaid]) add(id, e.name, "EMLMEC", eaid, "EAID not in Active ME report", "Active EMLMEC line's card is not in the ME card report");
+      else if (me.byEaid[eaid].emp !== id) add(id, e.name, "EMLMEC", eaid, "Employee ID mismatch", `ME report shows this card against employee ${me.byEaid[eaid].emp} (${me.byEaid[eaid].name})`);
+    }
+    for (const eaid of e.ebcLines) {
+      if (!eaid) add(id, e.name, "EMLEBC", "", "No EAID on benefit line", "Active EMLEBC line has no card reference (Bank Ref blank)");
+      else if (!le.byEaid[eaid]) add(id, e.name, "EMLEBC", eaid, "EAID not in Active LE report", "Active EMLEBC line's card is not in the LE card report");
+      else if (le.byEaid[eaid].emp !== id) add(id, e.name, "EMLEBC", eaid, "Employee ID mismatch", `LE report shows this card against employee ${le.byEaid[eaid].emp} (${le.byEaid[eaid].name})`);
+    }
+    // --- Check 5: card benefit without an active card fee ---
+    if (e.mecLines.length > 0 && !e.mecFee) add(id, e.name, "EMLMEC", e.mecLines[0], "No active EMLMEC Fee", "Active EMLMEC benefit with no collecting EMLMEC Fee line (> $0)");
+    if (e.ebcLines.length > 0 && !e.ebcFee) add(id, e.name, "EMLEBC", e.ebcLines[0], "No active EMLEBC Fee", "Active EMLEBC benefit with no collecting EMLEBC Fee line (> $0)");
+  }
+
+  // --- Check 3: proxy cards must not be in details and must have zero balance ---
+  for (const eaid of Object.keys(px.byEaid)) {
+    const p = px.byEaid[eaid];
+    if (allBankRefs[eaid]) add(p.emp, p.name, "Proxy", eaid, "Proxy card in benefit details", `Proxy EAID appears on a ${allBankRefs[eaid].item} line for employee ${allBankRefs[eaid].id}`);
+    if (p.balance > 0) add(p.emp, p.name, "Proxy", eaid, "Proxy card has a balance", `Balance ${money(p.balance)} - proxy cards should always be $0`);
+  }
+
+  // --- Check 4: card holders must have payments and an active schedule.
+  // Exception: a card holder who has already maximised the card's FBT-year benefit
+  // (payments >= cap, $1 tolerance) needs no schedule - but must still have a fee line. ---
+  const LE_CARD_CAP = 9009.96, ME_CARD_CAP = 2649.98, CAP_TOL = 1;
+  for (const id of Object.keys(le.byEmp)) {
+    const nm = le.byEaid[le.byEmp[id][0]].name;
+    const e = emp[id];
+    if (!paidEBC[id]) add(id, (e && e.name) || nm, "EMLEBC", le.byEmp[id].join(" / "), "No EMLEBC payment ever", "Employee holds an LE card but the finance report has no EMLEBC payment");
+    if (!e || e.ebcLines.length === 0) {
+      const maxed = (paidEBC[id] || 0) >= LE_CARD_CAP - CAP_TOL;
+      if (!maxed) add(id, (e && e.name) || nm, "EMLEBC", le.byEmp[id].join(" / "), "No active EMLEBC schedule", "Employee holds an LE card but has no active EMLEBC line in benefit details, and has not maximised the benefit");
+      else if (!e || !e.ebcFee) add(id, (e && e.name) || nm, "EMLEBC", le.byEmp[id].join(" / "), "Maximised card but no EMLEBC Fee", `Benefit maximised (${money(paidEBC[id])} paid) so no schedule needed, but no collecting EMLEBC Fee line`);
+    }
+  }
+  for (const id of Object.keys(me.byEmp)) {
+    const nm = me.byEaid[me.byEmp[id][0]].name;
+    const e = emp[id];
+    if (!paidMEC[id]) add(id, (e && e.name) || nm, "EMLMEC", me.byEmp[id].join(" / "), "No EMLMEC payment ever", "Employee holds an ME card but the finance report has no EMLMEC payment");
+    if (!e || e.mecLines.length === 0) {
+      const maxed = (paidMEC[id] || 0) >= ME_CARD_CAP - CAP_TOL;
+      if (!maxed) add(id, (e && e.name) || nm, "EMLMEC", me.byEmp[id].join(" / "), "No active EMLMEC schedule", "Employee holds an ME card but has no active EMLMEC line in benefit details, and has not maximised the benefit");
+      else if (!e || !e.mecFee) add(id, (e && e.name) || nm, "EMLMEC", me.byEmp[id].join(" / "), "Maximised card but no EMLMEC Fee", `Benefit maximised (${money(paidMEC[id])} paid) so no schedule needed, but no collecting EMLMEC Fee line`);
+    }
+  }
+
+  // --- Check 6: terminated employees (Employee Central) still holding an active EML card ---
+  const ecC = ecData();
+  if (ecC) {
+    const seen = {};
+    const termCard = (map, program) => {
+      for (const id of Object.keys(map.byEmp)) {
+        if (!ecC.term[id] || seen[id + program]) continue;
+        seen[id + program] = true;
+        const nm = (emp[id] && emp[id].name) || map.byEaid[map.byEmp[id][0]].name;
+        add(id, nm, program, map.byEmp[id].join(" / "), "Terminated but card still active",
+          `Employee terminated ${ecC.term[id]} (Employee Central) but the ${program} card is still active in EML`);
+      }
+    };
+    termCard(le, "EMLEBC");
+    termCard(me, "EMLMEC");
+    termCard(px, "Proxy");
+  }
+
+  cardResult = { findings, runDate: today.toLocaleDateString("en-AU") };
+  renderCardResults();
+}
+
+function renderCardResults() {
+  document.getElementById("cardresults").classList.remove("hidden");
+  const counts = {};
+  for (const f of cardResult.findings) counts[f.check] = (counts[f.check] || 0) + 1;
+  const cardsEl = document.getElementById("cardcards");
+  cardsEl.id = "cardcards"; cardsEl.className = ""; cardsEl.style.cssText = "";
+  cardsEl.innerHTML = `<div id="cards" style="margin:14px 0">
+    <div class="card under"><div class="big">${cardResult.findings.length.toLocaleString()}</div><div class="lbl">Total findings</div></div>
+    ${Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map(k =>
+      `<div class="card"><div class="big">${counts[k].toLocaleString()}</div><div class="lbl">${k}</div></div>`).join("")}
+  </div>`;
+  cardShowAll = false;
+  renderCardTable();
+}
+
+function cardFilteredRows() {
+  const q = document.getElementById("cardsearch").value.trim().toLowerCase();
+  let rows = cardResult.findings;
+  if (q) rows = rows.filter(r => (r.id + " " + r.name + " " + r.eaid + " " + r.check + " " + r.program + " " + r.detail).toLowerCase().includes(q));
+  return rows;
+}
+
+function renderCardTable() {
+  if (!cardResult) return;
+  const rows = cardFilteredRows();
+  const cap = cardShowAll ? rows.length : 400;
+  document.querySelector("#cardtable thead").innerHTML =
+    "<tr>" + CARD_COLS.map(c => `<th>${c[1]}</th>`).join("") + "</tr>";
+  document.querySelector("#cardtable tbody").innerHTML = rows.slice(0, cap).map(r =>
+    "<tr>" + CARD_COLS.map(c => {
+      const v = r[c[0]];
+      const cls = c[0] === "check" ? "status-under" : "";
+      return `<td class="${cls}">${v}</td>`;
+    }).join("") + "</tr>").join("");
+  document.getElementById("cardrowsnote").textContent =
+    `Showing ${Math.min(cap, rows.length).toLocaleString()} of ${rows.length.toLocaleString()} findings` +
+    (rows.length > cap ? " - use search or 'Show all rows'." : ".") + ` Run ${cardResult.runDate}.`;
+  document.getElementById("cardshowall").style.display = rows.length > cap ? "" : "none";
+}
+
+function exportCardCSV() {
+  const rows = cardFilteredRows();
+  const head = CARD_COLS.map(c => c[1]).join(",");
+  const lines = rows.map(r => CARD_COLS.map(c => {
+    const v = String(r[c[0]]);
+    return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v;
+  }).join(","));
+  const blob = new Blob([head + "\n" + lines.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "card-audit-findings.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ================================================================
+   MODULE: HELD BALANCE
+   Employer Package List: col B (idx 1) = Payroll ID, col G (idx 6) = Balance.
+   User Management: col B (idx 1) = PayRollID, col J (idx 9) = E-Mail.
+   ================================================================ */
+let heldResult = null;   // { bands: [ band0[], band1[], band2[], returnToPayroll[] ], runDate }
+let heldBand = 0;
+const BAND_NAMES = ["$500 or less", "$501 to $1,000", "Above $1,000", "Return to Payroll", "Terminated with Balance"];
+const BAND_SHEETS = ["Up to 500", "501 to 1000", "Above 1000", "Return to Payroll", "Terminated"];
+const FULL_LE_CAP = 9009.96, FULL_EB_CAP = 2649.98;
+
+document.getElementById("runheld").addEventListener("click", runHeldBalance);
+document.getElementById("heldsearch").addEventListener("input", renderHeldTable);
+document.getElementById("heldexport").addEventListener("click", exportHeldXLSX);
+document.querySelectorAll("#mod-heldbal .tab").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("#mod-heldbal .tab").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  heldBand = parseInt(b.dataset.band, 10);
+  renderHeldTable();
+}));
+
+function runHeldBalance() {
+  const email = {};
+  for (const r of DATA.usermgmt.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    email[String(r[1]).trim()] = String(r[9] ?? "").trim();
+  }
+  // remaining cap entitlement per employee from benefit details (cols U/V, employee-level,
+  // NOT summed across lines - first line read wins; blank cell = full entitlement)
+  const caps = {};
+  for (const r of DATA.details.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim();
+    if (caps[id]) continue;
+    const le = (r[20] === null || r[20] === undefined || r[20] === "") ? FULL_LE_CAP : num(r[20]);
+    const eb = (r[21] === null || r[21] === undefined || r[21] === "") ? FULL_EB_CAP : num(r[21]);
+    caps[id] = { le, eb };
+  }
+  const bands = [[], [], [], [], []];
+  const ecH = ecData();
+  for (const r of DATA.emppkg.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim();
+    const bal = num(r[6]);
+    if (bal <= 0) continue;
+    const c = caps[id] || { le: FULL_LE_CAP, eb: FULL_EB_CAP }; // not in details = full entitlement
+    const line = { id, email: email[id] || (ecH && ecH.email[id]) || "(no email found)", balance: r2(bal),
+                   leAvail: r2(c.le), ebAvail: r2(c.eb), over: r2(bal - (c.le + c.eb)),
+                   termDate: (ecH && ecH.term[id]) || "" };
+    if (bal <= 500) bands[0].push(line);
+    else if (bal <= 1000) bands[1].push(line);
+    else bands[2].push(line);
+    if (line.over > 0) bands[3].push(line); // held balance exceeds releasable cap = over-deducted
+    if (line.termDate) bands[4].push(line); // terminated in Employee Central but balance still held
+  }
+  for (let i = 0; i < 3; i++) bands[i].sort((a, x) => x.balance - a.balance);
+  bands[3].sort((a, x) => x.over - a.over);
+  bands[4].sort((a, x) => x.balance - a.balance);
+  heldResult = { bands, runDate: new Date().toLocaleDateString("en-AU") };
+  renderHeldResults();
+}
+
+function renderHeldResults() {
+  document.getElementById("heldresults").classList.remove("hidden");
+  const totals = heldResult.bands.map(b => b.reduce((s, r) => s + r.balance, 0));
+  const overTotal = heldResult.bands[3].reduce((s, r) => s + r.over, 0);
+  document.getElementById("heldcards").innerHTML = `<div id="cards" style="margin:14px 0">
+    ${[0, 1, 2].map(i => `<div class="card"><div class="big">${heldResult.bands[i].length.toLocaleString()}</div>
+      <div class="lbl">${BAND_NAMES[i]} - ${money(totals[i])}</div></div>`).join("")}
+    <div class="card"><div class="big">${(heldResult.bands[0].length + heldResult.bands[1].length + heldResult.bands[2].length).toLocaleString()}</div>
+      <div class="lbl">Total employees with held balance - ${money(totals[0] + totals[1] + totals[2])}</div></div>
+    <div class="card under"><div class="big">${heldResult.bands[3].length.toLocaleString()}</div>
+      <div class="lbl">Return to payroll (over-deducted) - ${money(overTotal)}</div></div>
+    <div class="card under"><div class="big">${heldResult.bands[4].length.toLocaleString()}</div>
+      <div class="lbl">Terminated with balance - ${money(heldResult.bands[4].reduce((s, r) => s + r.balance, 0))}</div></div>
+  </div>`;
+  renderHeldTable();
+}
+
+function heldFilteredRows() {
+  const q = document.getElementById("heldsearch").value.trim().toLowerCase();
+  let rows = heldResult.bands[heldBand];
+  if (q) rows = rows.filter(r => (r.id + " " + r.email).toLowerCase().includes(q));
+  return rows;
+}
+
+function renderHeldTable() {
+  if (!heldResult) return;
+  const rows = heldFilteredRows();
+  if (heldBand === 4) {
+    document.querySelector("#heldtable thead").innerHTML =
+      "<tr><th>Employee ID</th><th>Email Address</th><th class='num'>Held Balance</th><th>Termination Date</th></tr>";
+    document.querySelector("#heldtable tbody").innerHTML = rows.map(r =>
+      `<tr><td>${r.id}</td><td>${r.email}</td><td class="num">${money(r.balance)}</td><td class="status-under">${r.termDate}</td></tr>`).join("");
+  } else if (heldBand === 3) {
+    document.querySelector("#heldtable thead").innerHTML =
+      "<tr><th>Employee ID</th><th>Email Address</th><th class='num'>Held Balance</th>" +
+      "<th class='num'>Capped Amount Available</th><th class='num'>EB Capped Available</th><th class='num'>Over-Deducted (Return)</th></tr>";
+    document.querySelector("#heldtable tbody").innerHTML = rows.map(r =>
+      `<tr><td>${r.id}</td><td>${r.email}</td><td class="num">${money(r.balance)}</td>` +
+      `<td class="num">${money(r.leAvail)}</td><td class="num">${money(r.ebAvail)}</td>` +
+      `<td class="num status-under">${money(r.over)}</td></tr>`).join("");
+  } else {
+    document.querySelector("#heldtable thead").innerHTML =
+      "<tr><th>Employee ID</th><th>Email Address</th><th class='num'>Held Balance</th></tr>";
+    document.querySelector("#heldtable tbody").innerHTML = rows.map(r =>
+      `<tr><td>${r.id}</td><td>${r.email}</td><td class="num">${money(r.balance)}</td></tr>`).join("");
+  }
+  document.getElementById("heldrowsnote").textContent =
+    `${rows.length.toLocaleString()} employees in "${BAND_NAMES[heldBand]}". Run ${heldResult.runDate}.`;
+}
+
+function exportHeldXLSX() {
+  const wb = XLSX.utils.book_new();
+  heldResult.bands.forEach((band, i) => {
+    let data;
+    if (i === 4) {
+      data = [["Employee ID", "Email Address", "Held Balance", "Termination Date"]]
+        .concat(band.map(r => [r.id, r.email, r.balance, r.termDate]));
+    } else if (i === 3) {
+      data = [["Employee ID", "Email Address", "Held Balance", "Capped Amount Available", "EB Capped Available", "Over-Deducted (Return)"]]
+        .concat(band.map(r => [r.id, r.email, r.balance, r.leAvail, r.ebAvail, r.over]));
+    } else {
+      data = [["Employee ID", "Email Address", "Held Balance"]]
+        .concat(band.map(r => [r.id, r.email, r.balance]));
+    }
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 14 }, { wch: 20 }, { wch: 18 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(wb, ws, BAND_SHEETS[i]);
+  });
+  XLSX.writeFile(wb, "held-balance-report.xlsx");
+}
+
+/* ================================================================
+   MODULE: NOVATED POST-TAX SPLIT
+   Post-tax audit report: idx 1 Last, 2 First, 3 Payroll ID, 4 Rego,
+   15 Ongoing PostTax/paycycle, 16 Paycycle Left, 24 Calculated Shortfall
+   (estimated - required: NEGATIVE = under-collected), 25 EV FBT Exempt.
+   Details lease triple: Post Tax Contribution (deposit) + NL - Finance
+   deposit-only (pre-tax) = NL - Finance payment-only line (fn amount).
+   ================================================================ */
+let ptResult = null;
+const PT_COLS = [
+  ["id", "Payroll ID"], ["name", "Employee Name"], ["rego", "Rego"],
+  ["under", "Under-Collected", 1], ["cycles", "Cycles Left"],
+  ["curPost", "Current Post-Tax / FN", 1], ["newPost", "Proposed Post-Tax / FN", 1],
+  ["curPre", "Current Pre-Tax / FN", 1], ["newPre", "Proposed Pre-Tax / FN", 1],
+  ["payment", "NL Finance Payment / FN", 1], ["note", "Status"]
+];
+
+document.getElementById("runposttax").addEventListener("click", runPostTax);
+document.getElementById("ptexport").addEventListener("click", exportPTXLSX);
+
+function runPostTax() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const fbtEnd = new Date(today.getMonth() >= 3 ? today.getFullYear() + 1 : today.getFullYear(), 2, 31);
+
+  // gather active NL lines per employee from details (ignore lines starting after this FBT year)
+  const nl = {}; // id -> { post: [{dep}], pre: [{dep}], pay: [{fn}] }
+  for (const r of DATA.details.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    if (String(r[23] ?? "").trim() !== "Active") continue;
+    const item = String(r[6] ?? "").trim();
+    if (item !== "Post Tax Contribution" && item !== "NL - Finance") continue;
+    const id = String(r[1]).trim();
+    const fn = num(r[7]), dep = num(r[8]);
+    const sD = parseDMY(r[15]), eD = parseDMY(r[16]);
+    if (sD && sD > fbtEnd) continue;          // next FBT year's generation
+    if (eD && eD < today) continue;           // window already over
+    const e = nl[id] || (nl[id] = { post: [], pre: [], pay: [] });
+    if (item === "Post Tax Contribution" && dep > 0) e.post.push(dep);
+    else if (item === "NL - Finance" && dep > 0 && fn === 0) e.pre.push(dep);
+    else if (item === "NL - Finance" && fn > 0 && dep === 0) e.pay.push(fn);
+    // NL - Finance lines carrying BOTH a deposit and payment are rare special cases - disregarded
+  }
+
+  const rows = [];
+  for (const r of DATA.posttax.rows) {
+    if (!r || r[3] === null || String(r[3]).trim() === "") continue;
+    const id = String(r[3]).trim();
+    const name = (String(r[2] ?? "").trim() + " " + String(r[1] ?? "").trim()).trim();
+    const rego = String(r[4] ?? "").trim();
+    const curPost = num(r[15]);
+    const cycles = Math.max(0, Math.round(num(r[16])));
+    const shortfall = num(r[24]);           // negative = under-collected
+    const evExempt = String(r[25] ?? "").trim().toLowerCase() === "yes";
+    const under = Math.max(0, -shortfall);
+
+    const e = nl[id] || { post: [], pre: [], pay: [] };
+    // current generation: post-tax deposit matching the report's ongoing figure
+    const post = e.post.find(d => Math.abs(d - curPost) <= 0.011) ?? (e.post.length === 1 ? e.post[0] : null);
+    // pre-tax + post-tax must sum to a payment line
+    let pre = null, payment = null;
+    if (post !== null) {
+      outer: for (const p of e.pre) for (const pay of e.pay) {
+        if (Math.abs(p + post - pay) <= 0.02) { pre = p; payment = pay; break outer; }
+      }
+      if (pre === null && e.pre.length === 1) { pre = e.pre[0]; payment = e.pay.length === 1 ? e.pay[0] : null; }
+    }
+
+    let note, newPost = null, newPre = null;
+    if (evExempt) note = "EV FBT exempt - no change required";
+    else if (under <= 0) note = "No change - already over-collecting";
+    else if (cycles <= 0) note = "CHECK - no pay cycles left to correct";
+    else if (post === null || pre === null) note = "CHECK - lease lines not matched in benefit details";
+    else {
+      const inc = Math.ceil((under / cycles) * 100) / 100;  // always round UP: overcollect, never undercollect
+      newPost = r2(post + inc);
+      newPre = r2(pre - inc);
+      note = newPre < 0 ? "CHECK - pre-tax would go negative" : "Increase post-tax by " + money(inc) + " / FN";
+    }
+    rows.push({
+      id, name, rego, under: r2(under), cycles,
+      curPost: r2(post ?? curPost), newPost: newPost ?? r2(post ?? curPost),
+      curPre: pre !== null ? r2(pre) : "", newPre: newPre ?? (pre !== null ? r2(pre) : ""),
+      payment: payment !== null ? r2(payment) : "", note
+    });
+  }
+  rows.sort((a, b) => b.under - a.under);
+  ptResult = { rows, runDate: today.toLocaleDateString("en-AU") };
+  renderPTResults();
+}
+
+function renderPTResults() {
+  document.getElementById("ptresults").classList.remove("hidden");
+  const changes = ptResult.rows.filter(r => r.note.startsWith("Increase")).length;
+  const checks = ptResult.rows.filter(r => r.note.startsWith("CHECK")).length;
+  document.getElementById("ptcards").innerHTML = `<div id="cards" style="margin:14px 0">
+    <div class="card"><div class="big">${ptResult.rows.length}</div><div class="lbl">Leases reviewed</div></div>
+    <div class="card under"><div class="big">${changes}</div><div class="lbl">Split changes proposed</div></div>
+    <div class="card over"><div class="big">${checks}</div><div class="lbl">Needs manual review</div></div>
+  </div>`;
+  document.querySelector("#pttable thead").innerHTML =
+    "<tr>" + PT_COLS.map(c => `<th class="${c[2] ? "num" : ""}">${c[1]}</th>`).join("") + "</tr>";
+  document.querySelector("#pttable tbody").innerHTML = ptResult.rows.map(r =>
+    "<tr>" + PT_COLS.map(c => {
+      const v = r[c[0]];
+      const isNum = c[2] && v !== "";
+      const cls = (c[2] ? "num" : "") + (c[0] === "note" && r.note.startsWith("CHECK") ? " status-under" : "") +
+        ((c[0] === "newPost" || c[0] === "newPre") && r.note.startsWith("Increase") ? " status-check" : "");
+      return `<td class="${cls}">${isNum ? money(v) : v}</td>`;
+    }).join("") + "</tr>").join("");
+  document.getElementById("ptrowsnote").textContent = `${ptResult.rows.length} leases. Run ${ptResult.runDate}.`;
+}
+
+function exportPTXLSX() {
+  const data = [PT_COLS.map(c => c[1])].concat(ptResult.rows.map(r => PT_COLS.map(c => r[c[0]])));
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws["!cols"] = PT_COLS.map(c => ({ wch: Math.max(14, c[1].length + 2) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Post-Tax Split");
+  XLSX.writeFile(wb, "novated-post-tax-split.xlsx");
+}
+
+/* ================================================================
+   MODULE: LEASE VARIANCE
+   Novated leasing file: idx 1 Last, 2 First, 3 Payroll ID, 4 Rego,
+   5 Brand, 6 Model, 12 Lease End Date, 17 Lease Rental Payment (col R),
+   20 Vehicle Next Deposit (col U). Deposit - Rental must equal $4.89.
+   ================================================================ */
+let lvResult = null;
+const NL_ADMIN_FEE = 4.89;
+const LV_COLS = [
+  ["id", "Payroll ID"], ["name", "Employee Name"], ["rego", "Rego"], ["vehicle", "Vehicle"],
+  ["leaseEnd", "Lease End"], ["rental", "Lease Rental / FN", 1], ["deposit", "Next Deposit / FN", 1],
+  ["variance", "Variance", 1], ["note", "Note"]
+];
+
+document.getElementById("runlease").addEventListener("click", runLeaseVariance);
+document.getElementById("lvsearch").addEventListener("input", renderLVTable);
+document.getElementById("lvexport").addEventListener("click", exportLVXLSX);
+
+function runLeaseVariance() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  // employees with an intentional once-off catch-up: an Active NL - Finance line
+  // carrying BOTH a payment and a deposit
+  const catchup = new Set();
+  for (const r of DATA.details.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    if (String(r[23] ?? "").trim() !== "Active") continue;
+    if (String(r[6] ?? "").trim() === "NL - Finance" && num(r[7]) > 0 && num(r[8]) > 0)
+      catchup.add(String(r[1]).trim());
+  }
+  const rows = [];
+  const ecL = ecData();
+  let okCount = 0, total = 0;
+  for (const r of DATA.novated.rows) {
+    if (!r || r[3] === null || String(r[3]).trim() === "") continue;
+    total++;
+    const id = String(r[3]).trim();
+    const name = (String(r[2] ?? "").trim() + " " + String(r[1] ?? "").trim()).trim();
+    const rego = String(r[4] ?? "").trim();
+    const vehicle = (String(r[5] ?? "").trim() + " " + String(r[6] ?? "").trim()).trim();
+    const leaseEnd = String(r[12] ?? "").trim();
+    const endD = parseDMY(r[12]);
+    const rental = num(r[17]), deposit = num(r[20]);
+    const variance = r2(deposit - rental);
+
+    let note = null, issue = true;
+    if (catchup.has(id) && Math.abs(variance - NL_ADMIN_FEE) > 0.005) {
+      note = "OK - intentional catch-up (deposit+payment NL Finance line)"; issue = false;
+    } else if (ecL && ecL.term[id] && (!endD || endD >= today)) {
+      note = "Terminated " + ecL.term[id] + " (Employee Central) but lease still active - cease";
+    } else if (endD && endD < today) {
+      note = "Cease Novated Lease";
+    } else if (Math.abs(variance - NL_ADMIN_FEE) <= 0.005) {
+      okCount++; continue;
+    } else if (rental > 0 && deposit === 0) {
+      note = "Payment in place but no deposit line";
+    } else if (rental === 0 && deposit > 0) {
+      note = "Deposit in place but no payment";
+    } else if (variance < NL_ADMIN_FEE) {
+      note = "Under-collecting NL admin fee (variance " + money(variance) + ", should be $4.89)";
+    } else {
+      note = "Over-collecting NL admin fee (variance " + money(variance) + ", should be $4.89)";
+    }
+    rows.push({ id, name, rego, vehicle, leaseEnd: leaseEnd || "(none)", rental: r2(rental), deposit: r2(deposit), variance, note, issue });
+  }
+  rows.sort((a, b) => (b.issue - a.issue) || (Math.abs(b.variance - NL_ADMIN_FEE) - Math.abs(a.variance - NL_ADMIN_FEE)));
+  lvResult = { rows, okCount, total, runDate: today.toLocaleDateString("en-AU") };
+  renderLVResults();
+}
+
+function renderLVResults() {
+  document.getElementById("lvresults").classList.remove("hidden");
+  const issues = lvResult.rows.filter(r => r.issue);
+  const cease = issues.filter(r => r.note === "Cease Novated Lease").length;
+  document.getElementById("lvcards").innerHTML = `<div id="cards" style="margin:14px 0">
+    <div class="card"><div class="big">${lvResult.total}</div><div class="lbl">Leases on file</div></div>
+    <div class="card okc"><div class="big">${lvResult.okCount}</div><div class="lbl">Variance $4.89 - OK</div></div>
+    <div class="card under"><div class="big">${issues.length}</div><div class="lbl">Flagged (${cease} to cease)</div></div>
+    <div class="card"><div class="big">${lvResult.rows.length - issues.length}</div><div class="lbl">Intentional catch-ups (cleared)</div></div>
+  </div>`;
+  renderLVTable();
+}
+
+function lvFilteredRows() {
+  const q = document.getElementById("lvsearch").value.trim().toLowerCase();
+  let rows = lvResult.rows;
+  if (q) rows = rows.filter(r => (r.id + " " + r.name + " " + r.rego + " " + r.vehicle + " " + r.note).toLowerCase().includes(q));
+  return rows;
+}
+
+function renderLVTable() {
+  if (!lvResult) return;
+  const rows = lvFilteredRows();
+  document.querySelector("#lvtable thead").innerHTML =
+    "<tr>" + LV_COLS.map(c => `<th class="${c[2] ? "num" : ""}">${c[1]}</th>`).join("") + "</tr>";
+  document.querySelector("#lvtable tbody").innerHTML = rows.map(r =>
+    "<tr>" + LV_COLS.map(c => {
+      const v = r[c[0]];
+      const cls = (c[2] ? "num" : "") + (c[0] === "note" ? (r.issue ? " status-under" : " status-check") : "");
+      return `<td class="${cls}">${c[2] ? money(v) : v}</td>`;
+    }).join("") + "</tr>").join("");
+  document.getElementById("lvrowsnote").textContent =
+    `${rows.length} flagged/cleared rows shown (${lvResult.okCount} OK leases hidden). Run ${lvResult.runDate}.`;
+}
+
+function exportLVXLSX() {
+  const data = [LV_COLS.map(c => c[1])].concat(lvFilteredRows().map(r => LV_COLS.map(c => r[c[0]])));
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws["!cols"] = LV_COLS.map(c => ({ wch: Math.max(14, c[1].length + 2) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Lease Variance");
+  XLSX.writeFile(wb, "lease-variance-report.xlsx");
+}
+
+/* ================================================================
+   MODULE: OPPORTUNITY
+   Active EC employees on Fortnightly General/Medical not packaging:
+   never paid (finance batch) and nothing in benefit details.
+   Plus: registered in the SP system (User Mgmt) with no deductions
+   set up and no LE/ME payments.
+   ================================================================ */
+let oppResult = null, oppShowAll = false;
+const OPP_COLS = [
+  ["id", "Employee ID"], ["email", "Email Address"], ["payGroup", "Pay Group"],
+  ["inSP", "In SP System"], ["flag", "Flag"]
+];
+const OPP_PAY_GROUPS = ["Fortnightly General", "Fortnightly Medical"];
+
+document.getElementById("runopp").addEventListener("click", runOpportunity);
+document.getElementById("oppsearch").addEventListener("input", renderOppTable);
+document.getElementById("oppshowall").addEventListener("click", () => { oppShowAll = true; renderOppTable(); });
+document.getElementById("oppexport").addEventListener("click", exportOppXLSX);
+
+function runOpportunity() {
+  const ec = ecData();
+  // employees ever paid anything / paid LE-ME, and those with any benefit details lines
+  const everPaid = new Set(), paidLEME = new Set();
+  const LEME = LE_BENEFITS.concat(ME_BENEFITS);
+  for (const r of DATA.finance.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim();
+    everPaid.add(id);
+    if (LEME.includes(String(r[2] ?? "").trim())) paidLEME.add(id);
+  }
+  const inDetails = new Set();
+  for (const r of DATA.details.rows) {
+    if (r && r[1] !== null && String(r[1]).trim() !== "") inDetails.add(String(r[1]).trim());
+  }
+  const inSP = new Set();
+  for (const r of DATA.usermgmt.rows) {
+    if (r && r[1] !== null && String(r[1]).trim() !== "") inSP.add(String(r[1]).trim());
+  }
+
+  const rows = [];
+  for (const id of Object.keys(ec.active)) {
+    const pg = ec.payGroup[id] || "";
+    const neverPackaged = OPP_PAY_GROUPS.includes(pg) && !everPaid.has(id) && !inDetails.has(id);
+    const registeredNotPackaging = inSP.has(id) && !inDetails.has(id) && !paidLEME.has(id);
+    if (!neverPackaged && !registeredNotPackaging) continue;
+    let flag;
+    if (neverPackaged && registeredNotPackaging) flag = "Registered in SP system - never packaged";
+    else if (neverPackaged) flag = "Never salary packaged";
+    else flag = "In SP system - no deductions set up, no LE/ME payments";
+    rows.push({ id, email: ec.email[id] || "(no email)", payGroup: pg || "(none)", inSP: inSP.has(id) ? "Yes" : "No", flag });
+  }
+  // terminated employees still registered in the SP system without packaging - shown for cleanup
+  for (const id of Object.keys(ec.term)) {
+    if (!inSP.has(id) || inDetails.has(id) || paidLEME.has(id)) continue;
+    rows.push({ id, email: ec.email[id] || "(no email)", payGroup: ec.payGroup[id] || "(none)", inSP: "Yes",
+                flag: "Terminated " + ec.term[id] + " - registered in SP system, not packaging",
+                group: "Terminated - registered in SP system, not packaging" });
+  }
+  for (const r of rows) if (!r.group) r.group = r.flag;
+  rows.sort((a, b) => a.group.localeCompare(b.group) || a.id.localeCompare(b.id, undefined, { numeric: true }));
+  oppResult = { rows, runDate: new Date().toLocaleDateString("en-AU") };
+  oppShowAll = false;
+  renderOppResults();
+}
+
+function renderOppResults() {
+  document.getElementById("oppresults").classList.remove("hidden");
+  const counts = {};
+  for (const r of oppResult.rows) counts[r.group] = (counts[r.group] || 0) + 1;
+  document.getElementById("oppcards").innerHTML = `<div id="cards" style="margin:14px 0">
+    <div class="card okc"><div class="big">${oppResult.rows.length.toLocaleString()}</div><div class="lbl">Total opportunities</div></div>
+    ${Object.keys(counts).map(k => `<div class="card"><div class="big">${counts[k].toLocaleString()}</div><div class="lbl">${k}</div></div>`).join("")}
+  </div>`;
+  renderOppTable();
+}
+
+function oppFilteredRows() {
+  const q = document.getElementById("oppsearch").value.trim().toLowerCase();
+  let rows = oppResult.rows;
+  if (q) rows = rows.filter(r => (r.id + " " + r.email + " " + r.payGroup + " " + r.flag).toLowerCase().includes(q));
+  return rows;
+}
+
+function renderOppTable() {
+  if (!oppResult) return;
+  const rows = oppFilteredRows();
+  const cap = oppShowAll ? rows.length : 400;
+  document.querySelector("#opptable thead").innerHTML =
+    "<tr>" + OPP_COLS.map(c => `<th>${c[1]}</th>`).join("") + "</tr>";
+  document.querySelector("#opptable tbody").innerHTML = rows.slice(0, cap).map(r =>
+    "<tr>" + OPP_COLS.map(c => `<td class="${c[0] === "flag" ? "status-check" : ""}">${r[c[0]]}</td>`).join("") + "</tr>").join("");
+  document.getElementById("opprowsnote").textContent =
+    `Showing ${Math.min(cap, rows.length).toLocaleString()} of ${rows.length.toLocaleString()} rows` +
+    (rows.length > cap ? " - use search or 'Show all rows'." : ".") + ` Run ${oppResult.runDate}.`;
+  document.getElementById("oppshowall").style.display = rows.length > cap ? "" : "none";
+}
+
+function exportOppXLSX() {
+  const data = [OPP_COLS.map(c => c[1])].concat(oppFilteredRows().map(r => OPP_COLS.map(c => r[c[0]])));
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws["!cols"] = [{ wch: 12 }, { wch: 42 }, { wch: 20 }, { wch: 12 }, { wch: 48 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Opportunity");
+  XLSX.writeFile(wb, "opportunity-report.xlsx");
+}
+
+document.getElementById("datestamp").textContent = new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+renderFileGrid();
+</script>
+</body>
+</html>
