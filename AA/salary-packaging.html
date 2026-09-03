@@ -472,6 +472,48 @@
                         </svg>
                     </div>
                     <div class="section-content">
+                        <!-- PAY CYCLE MISMATCH ERROR -->
+                        <div id="cycle-mismatch-badge" class="hidden mb-4 rounded-xl border-2 border-red-500 bg-red-50 p-5 flex items-start gap-4">
+                            <span class="flex-shrink-0 w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center text-3xl font-extrabold">!</span>
+                            <div>
+                                <p class="text-2xl font-extrabold uppercase tracking-wide text-red-800">Pay Cycle Mismatch</p>
+                                <p id="cycle-mismatch-msg" class="text-sm text-red-800 mt-1"></p>
+                                <p class="text-sm text-red-700 mt-2 font-semibold">Check that the Pre-Tax and Post-Tax files are from the same pay cycle before exporting.</p>
+                            </div>
+                        </div>
+                        <p id="cycle-match-ok" class="hidden mb-3 text-sm text-green-700 font-medium"></p>
+
+                        <!-- PAY TYPE BADGE -->
+                        <div id="pay-type-badge" class="hidden mb-4 rounded-xl border-2 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-4">
+                                <span id="pay-type-letter" class="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-3xl font-extrabold text-white">M</span>
+                                <div>
+                                    <p id="pay-type-title" class="text-2xl font-extrabold uppercase tracking-wide">Medical Pay</p>
+                                    <p id="pay-type-reason" class="text-sm mt-1"></p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="showPayTypePrompt()" id="pay-type-change"
+                                class="text-sm font-semibold underline underline-offset-2 hover:opacity-80 self-start md:self-center">Change pay type</button>
+                        </div>
+
+                        <!-- PAY TYPE PROMPT (shown when total is outside the auto bands, or when changing) -->
+                        <div id="pay-type-prompt" class="hidden mb-4 rounded-xl border-2 border-amber-400 bg-amber-50 p-5">
+                            <p class="text-lg font-bold text-amber-900">Which pay cycle is this?</p>
+                            <p id="pay-type-prompt-msg" class="text-sm text-amber-800 mt-1 mb-4"></p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <button type="button" onclick="setPayType('M', false)"
+                                    class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-5 rounded-lg shadow flex items-center justify-center gap-2">
+                                    <span class="w-8 h-8 rounded-full bg-white text-teal-700 flex items-center justify-center font-extrabold">M</span>
+                                    Medical Pay
+                                </button>
+                                <button type="button" onclick="setPayType('H', false)"
+                                    class="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 px-5 rounded-lg shadow flex items-center justify-center gap-2">
+                                    <span class="w-8 h-8 rounded-full bg-white text-purple-800 flex items-center justify-center font-extrabold">H</span>
+                                    Hospital Pay
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="bg-indigo-900 text-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row justify-between items-center hidden"
                             id="total-summary">
                             <div class="mb-4 md:mb-0">
@@ -479,12 +521,12 @@
                                 <p class="text-3xl font-bold tracking-tight" id="val-total">$0.00</p>
                             </div>
                             <button id="download-btn"
-                                class="bg-white text-indigo-900 hover:bg-indigo-50 font-semibold py-3 px-6 rounded-lg shadow transition duration-200 flex items-center">
+                                class="bg-white text-indigo-900 hover:bg-indigo-50 font-semibold py-3 px-6 rounded-lg shadow transition duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                 </svg>
-                                Download Salary_Packaging_Upload.xlsx
+                                <span id="download-btn-label">Download Salary_Packaging_Upload.xlsx</span>
                             </button>
                         </div>
                         <div id="summary-placeholder" class="text-center text-slate-400 italic py-4">
@@ -1048,7 +1090,10 @@
             gstReport: { processed: false, data: [], map: {} },
             combinedRecords: [],
             validationResults: [], // Store full validation details
-            hasError: false
+            hasError: false,
+            payType: null,      // 'M' (Medical) or 'H' (Hospital)
+            payTypeAuto: false, // true when set automatically from the total
+            cycleMismatch: null // result of pre/post pay cycle match check
         };
 
         const CONSTANTS = {
@@ -1058,8 +1103,134 @@
             GST_HEADER_DEPOSIT: "Deposit Amount",
             GST_HEADER_GST: "GST",
             PRE_TAX_CODE: "4202",
-            POST_TAX_CODE: "4024"
+            POST_TAX_CODE: "4024",
+            MEDICAL_MAX_TOTAL: 1500000,   // combined total at or below this = Medical (M)
+            HOSPITAL_MIN_TOTAL: 2500000,  // combined total at or above this = Hospital (H)
+            PRE_POST_MATCH_MIN: 0.80      // at least 80% of post-tax employees must appear in the pre-tax file
         };
+
+        // --- Pay Cycle Match Check (Pre-Tax vs Post-Tax) ---
+        function checkCycleMatch() {
+            const preIds = new Set(state.preTax.data.map(r => String(r.payrollId).trim()));
+            const postIds = new Set(state.postTax.data.map(r => String(r.payrollId).trim()));
+            const postCount = postIds.size;
+            let matched = 0;
+            postIds.forEach(id => { if (preIds.has(id)) matched++; });
+            const pct = postCount ? matched / postCount : 1;
+            const result = { postCount, matched, pct, ok: pct >= CONSTANTS.PRE_POST_MATCH_MIN };
+            state.cycleMismatch = result;
+            renderCycleMatch();
+            return result;
+        }
+
+        function renderCycleMatch() {
+            const badge = document.getElementById('cycle-mismatch-badge');
+            const okNote = document.getElementById('cycle-match-ok');
+            const r = state.cycleMismatch;
+            if (!r || !r.postCount) { badge.classList.add('hidden'); okNote.classList.add('hidden'); return; }
+            const pctText = Math.round(r.pct * 100) + '%';
+            if (r.ok) {
+                badge.classList.add('hidden');
+                okNote.textContent = `Pay cycle check passed: ${r.matched} of ${r.postCount} Post-Tax employees (${pctText}) also appear in the Pre-Tax file.`;
+                okNote.classList.remove('hidden');
+            } else {
+                okNote.classList.add('hidden');
+                document.getElementById('cycle-mismatch-msg').textContent =
+                    `Only ${r.matched} of ${r.postCount} Post-Tax employees (${pctText}) appear in the Pre-Tax file. At least ${Math.round(CONSTANTS.PRE_POST_MATCH_MIN * 100)}% is expected when both files are from the same pay cycle.`;
+                badge.classList.remove('hidden');
+            }
+        }
+
+        function cycleMismatchBlocksExport() {
+            return !!(state.cycleMismatch && !state.cycleMismatch.ok);
+        }
+
+        const PAY_TYPES = {
+            M: { name: 'Medical', label: 'Medical Pay', file: 'Medical',
+                 badge: 'border-teal-500 bg-teal-50 text-teal-900', circle: 'bg-teal-600' },
+            H: { name: 'Hospital', label: 'Hospital Pay', file: 'Hospital',
+                 badge: 'border-purple-500 bg-purple-50 text-purple-900', circle: 'bg-purple-700' }
+        };
+
+        // --- Pay Type (Medical / Hospital) ---
+        function detectPayType(total) {
+            if (total <= CONSTANTS.MEDICAL_MAX_TOTAL) return 'M';
+            if (total >= CONSTANTS.HOSPITAL_MIN_TOTAL) return 'H';
+            return null; // between bands: ask the user
+        }
+
+        function applyPayTypeFromTotal(total) {
+            const detected = detectPayType(total);
+            if (detected) {
+                setPayType(detected, true);
+            } else {
+                state.payType = null;
+                state.payTypeAuto = false;
+                renderPayType();
+                showPayTypePrompt(`Total deductions are ${formatCurrency(total)}. This is between the Medical band (${formatCurrency(CONSTANTS.MEDICAL_MAX_TOTAL)} or below) and the Hospital band (${formatCurrency(CONSTANTS.HOSPITAL_MIN_TOTAL)} or above), so it could not be set automatically.`);
+            }
+        }
+
+        function setPayType(type, auto) {
+            state.payType = type;
+            state.payTypeAuto = !!auto;
+            document.getElementById('pay-type-prompt').classList.add('hidden');
+            renderPayType();
+        }
+
+        function showPayTypePrompt(msg) {
+            const prompt = document.getElementById('pay-type-prompt');
+            const total = state.preTax.total + state.postTax.total;
+            document.getElementById('pay-type-prompt-msg').textContent = msg ||
+                `Total deductions are ${formatCurrency(total)}. Select the pay cycle for this export.`;
+            prompt.classList.remove('hidden');
+        }
+
+        function exportDateStamp() {
+            const d = new Date();
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')} ${d.getFullYear()}`;
+        }
+
+        function exportFileName() {
+            const pt = PAY_TYPES[state.payType];
+            return pt ? `${pt.file}_${exportDateStamp()}_Salary_Packaging_Upload.xlsx`
+                      : 'Salary_Packaging_Upload.xlsx';
+        }
+
+        function renderPayType() {
+            const badge = document.getElementById('pay-type-badge');
+            const letter = document.getElementById('pay-type-letter');
+            const title = document.getElementById('pay-type-title');
+            const reason = document.getElementById('pay-type-reason');
+            const label = document.getElementById('download-btn-label');
+            const btn = document.getElementById('download-btn');
+            const total = state.preTax.total + state.postTax.total;
+            const pt = PAY_TYPES[state.payType];
+
+            // Reset colour classes
+            badge.className = 'mb-4 rounded-xl border-2 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4';
+            letter.className = 'flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-3xl font-extrabold text-white';
+
+            if (!pt) {
+                badge.classList.add('hidden');
+                label.textContent = 'Select pay type to download';
+                btn.disabled = true;
+                return;
+            }
+
+            badge.classList.add(...pt.badge.split(' '));
+            letter.classList.add(pt.circle);
+            letter.textContent = state.payType;
+            title.textContent = pt.label + ' (' + state.payType + ')';
+            reason.textContent = state.payTypeAuto
+                ? (state.payType === 'M'
+                    ? `Set automatically: total ${formatCurrency(total)} is ${formatCurrency(CONSTANTS.MEDICAL_MAX_TOTAL)} or below.`
+                    : `Set automatically: total ${formatCurrency(total)} is ${formatCurrency(CONSTANTS.HOSPITAL_MIN_TOTAL)} or above.`)
+                : `Selected manually. Total ${formatCurrency(total)}.`;
+            label.textContent = 'Download ' + exportFileName();
+            btn.disabled = false;
+        }
 
         // UI Toggling
         window.toggleSection = function (header) {
@@ -1169,6 +1340,12 @@
             state.combinedRecords = [];
             state.validationResults = [];
             state.hasError = false;
+            state.payType = null;
+            state.payTypeAuto = false;
+            state.cycleMismatch = null;
+            renderCycleMatch();
+            document.getElementById('pay-type-prompt').classList.add('hidden');
+            renderPayType();
 
             [fileInputPre, fileInputPost, fileInputGst].forEach(inp => { if (inp) inp.value = ''; });
 
@@ -1399,6 +1576,12 @@
             // Toggle Section 2
             document.getElementById('total-summary').classList.remove('hidden');
             document.getElementById('summary-placeholder').classList.add('hidden');
+
+            // Check Pre-Tax and Post-Tax files are from the same pay cycle
+            checkCycleMatch();
+
+            // Work out Medical / Hospital pay type from the combined total
+            applyPayTypeFromTotal(grandTotal);
 
             // Initial Render (all data or subset)
             renderTable(combined);
@@ -1795,6 +1978,20 @@
 
         function generateExcel() {
             if (!state.combinedRecords.length) return;
+            if (cycleMismatchBlocksExport()) {
+                renderCycleMatch();
+                const r = state.cycleMismatch;
+                const proceed = confirm(`PAY CYCLE MISMATCH
+
+Only ${r.matched} of ${r.postCount} Post-Tax employees (${Math.round(r.pct * 100)}%) appear in the Pre-Tax file. The files may be from different pay cycles.
+
+Export anyway?`);
+                if (!proceed) return;
+            }
+            if (!state.payType) {
+                showPayTypePrompt();
+                return;
+            }
 
             // Columns required by the Eziway upload
             const header = ["Employee Name", "Payroll ID", "Projected Deduction", "Pre/Post Tax", "Comments"];
@@ -1823,7 +2020,7 @@
 
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Upload");
-            XLSX.writeFile(wb, "Salary_Packaging_Upload.xlsx");
+            XLSX.writeFile(wb, exportFileName());
         }
 
         function showError(msg) {
