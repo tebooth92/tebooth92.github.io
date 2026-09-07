@@ -78,7 +78,7 @@
 
   <div class="panel">
     <h2>1. Load files</h2>
-    <div id="dropzone">Drag the export files here, or click to browse.
+    <div id="dropzone">Drag the three export files here, or click to browse: Package Benefit Details, Finance Batch Report, Package Balances (data.xlsx).
       <input type="file" id="fileinput" multiple accept=".xlsx,.csv" style="display:none">
     </div>
     <div id="filegrid"></div>
@@ -122,15 +122,17 @@
 /* ================================================================
    Fee Audit - standalone tool
    Inputs: Package Benefit Details, Finance Batch Report (Payment
-   Transaction Summary from 1 April), User Management Employee List,
-   and optionally the Employee Central deductions CSV (terminations).
+   Transaction Summary from 1 April) and the Package Balances export
+   (data.xlsx: Status, Deposits, Payments, Closing Balance per package).
+   Status drives who is audited (Current only). Closing Balance is
+   money deducted but not yet paid to a benefit, and counts toward
+   the projected benefit so the fee is still collected on it.
    ================================================================ */
 const MS_DAY = 86400000;
 const FILE_DEFS = [
   { key: "details",  label: "Package Benefit Details",       detect: h => h.includes("Salary Package Item") },
   { key: "finance",  label: "Finance Batch Report",          detect: h => h.includes("Item Name") && h.includes("Payment") },
-  { key: "usermgmt", label: "User Management Employee List", detect: h => h.includes("PayRollID") },
-  { key: "ecdeduct", label: "Current Deductions (Employee Central)", optional: true, detect: h => h.includes("Austin Advantage SPack") }
+  { key: "balances", label: "Package Balances (data.xlsx)",    detect: h => h.includes("Package Number") && h.includes("Closing Balance") }
 ];
 const DATA = {};
 
@@ -193,7 +195,7 @@ function renderFileGrid() {
       <span class="chip ${d ? "ok" : def.optional ? "opt" : "missing"}">${d ? "loaded" : def.optional ? "optional" : "missing"}</span>`;
     grid.appendChild(el);
   }
-  document.getElementById("runfee").disabled = !(DATA.details && DATA.finance && DATA.usermgmt);
+  document.getElementById("runfee").disabled = !(DATA.details && DATA.finance && DATA.balances);
 }
 
 /* ---------------- helpers ---------------- */
@@ -211,17 +213,20 @@ function money(v) { return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en
 function r2(v) { return Math.round(v * 100) / 100; }
 function ceilCents(v) { return Math.ceil(Math.round(v * 10000) / 100) / 100; }   // round UP to the cent, never under-collect
 function listParam(id) { return document.getElementById(id).value.split(",").map(s => s.trim()).filter(Boolean); }
-// Employee Central deductions CSV: real header is the second row. cols: 0 User ID, 1 Employment Status, 2 Termination Date
-function ecTerminated() {
-  const term = {};
-  if (!DATA.ecdeduct) return term;
-  for (const r of DATA.ecdeduct.rows) {
-    if (!r || !r[0]) continue;
-    const id = String(r[0]).trim();
-    if (id === "" || id === "User ID") continue;
-    if (String(r[1] ?? "").trim() === "Terminated") term[id] = String(r[2] ?? "").trim() || "(no date)";
+// Package Balances (data.xlsx): Package Number, Last Name, First Name, Payroll ID, Status,
+// Opening Balance, Deposits, Payments, Closing Balance. Indexed by Payroll ID.
+function packageBalances() {
+  const out = {};
+  if (!DATA.balances) return out;
+  const h = DATA.balances.headers.map(x => String(x).trim().toLowerCase());
+  const col = name => h.indexOf(name);
+  const cId = col("payroll id"), cSt = col("status"), cDep = col("deposits"), cPay = col("payments"), cCl = col("closing balance");
+  for (const r of DATA.balances.rows) {
+    if (!r || r[cId] === null || r[cId] === undefined || String(r[cId]).trim() === "") continue;
+    const id = String(r[cId]).trim().replace(/\.0$/, "");
+    out[id] = { status: String(r[cSt] ?? "").trim(), deposits: num(r[cDep]), payments: num(r[cPay]), closing: num(r[cCl]) };
   }
-  return term;
+  return out;
 }
 
 /* ================================================================
@@ -249,9 +254,10 @@ function runFeeAudit() {
   const fbtEnd = new Date(today.getMonth() >= 3 ? today.getFullYear() + 1 : today.getFullYear(), 2, 31);
   const fmtD = d => d ? d.toLocaleDateString("en-AU") : "";
 
-  const activeIds = new Set();
-  for (const r of DATA.usermgmt.rows) if (r && r[1] !== null && r[1] !== undefined && String(r[1]).trim() !== "") activeIds.add(String(r[1]).trim());
-  const term = ecTerminated();
+  // Only packages with Status = Current are audited. Terminated, Pending, Suspended and anyone
+  // missing from the Package Balances file are excluded.
+  const bal = packageBalances();
+  const activeIds = new Set(Object.keys(bal).filter(id => bal[id].status.toLowerCase() === "current"));
 
   function advance(d) { let t = d.getTime(); while (t < today.getTime()) t += 14 * MS_DAY; return new Date(t); }
   // remaining collections for a line from its own Next Payment Date through 31 March
@@ -278,7 +284,7 @@ function runFeeAudit() {
   const getEmp = id => emps[id] || (emps[id] = {
     name: "", status: "", lbp: 0, mbp: 0, lfp: 0, mfp: 0, sp: 0, lfs: 0, mfs: 0, ss: 0, lbs: 0, mbs: 0,
     lNext: null, mNext: null, leAvail: null, ebAvail: null, next: null, feeLines: [], benLines: [], other: new Set(),
-    recur: 0, stale: 0
+    recur: 0, stale: 0, held: 0, lheld: 0, mheld: 0
   });
 
   for (const r of DATA.finance.rows) {
@@ -336,6 +342,18 @@ function runFeeAudit() {
       if (b.k === "L") e.lbs += s; else e.mbs += s;
     }
     if (e.leAvail !== null) { e.lbs = Math.min(e.lbs, Math.max(0, e.leAvail)); e.mbs = Math.min(e.mbs, Math.max(0, e.ebAvail)); }
+
+    // Held funds: closing balance is deducted but not yet paid to a benefit. Treat it as benefit
+    // still to be paid. Split LE / ME by scheduled benefit, then by benefit paid, else by fee lines.
+    const b = bal[id];
+    e.held = b ? Math.max(0, b.closing) : 0;
+    if (e.held > 0) {
+      let wl = e.lbs, wm = e.mbs;
+      if (wl <= 0 && wm <= 0) { wl = e.lbp; wm = e.mbp; }
+      if (wl <= 0 && wm <= 0) { wl = (e.lfp + e.lfs) > 0 ? 1 : 0; wm = (e.mfp + e.mfs) > 0 ? 1 : 0; }
+      const tot = wl + wm;
+      if (tot > 0) { e.lheld = e.held * wl / tot; e.mheld = e.held * wm / tot; }
+    }
   }
 
   // proposed fortnightly rate: remaining full-year fee spread over the remaining pays of the category's fee line
@@ -358,11 +376,11 @@ function runFeeAudit() {
 
   const under = [], over = [], nobenefit = [];
   for (const id of Object.keys(emps)) {
-    if (!activeIds.has(id) || term[id]) continue;                 // terminated
+    if (!activeIds.has(id)) continue;                              // not Current in Package Balances
     const e = emps[id];
     if (e.recur > 0 && e.stale === e.recur) continue;             // nothing collecting - every recurring line is stale
-    const hasLE = e.lbp > 0 || e.lbs > 0 || e.lfp > 0 || e.lfs > 0;
-    const hasME = e.mbp > 0 || e.mbs > 0 || e.mfp > 0 || e.mfs > 0;
+    const hasLE = e.lbp > 0 || e.lbs > 0 || e.lfp > 0 || e.lfs > 0 || e.lheld > 0;
+    const hasME = e.mbp > 0 || e.mbs > 0 || e.mfp > 0 || e.mfs > 0 || e.mheld > 0;
 
     // special fee payments/schedule count toward LE first, then ME
     let spp = e.sp, sps = e.ss; const al = { lp: 0, ls: 0, mp: 0, ms: 0 };
@@ -370,15 +388,15 @@ function runFeeAudit() {
     if (hasME) { al.mp = Math.min(spp, Math.max(0, P.meTarget - e.mfp)); spp -= al.mp; al.ms = Math.min(sps, Math.max(0, P.meTarget - e.mfp - al.mp - e.mfs)); sps -= al.ms; }
 
     const cats = [];
-    if (hasLE) cats.push(["Living Expenses", LE_FEE_ITEM, e.lbp, e.lbs, e.lNext, e.lfp + al.lp, e.lfs + al.ls, P.leTarget, P.leCap]);
-    if (hasME) cats.push(["Meal Entertainment", ME_FEE_ITEM, e.mbp, e.mbs, e.mNext, e.mfp + al.mp, e.mfs + al.ms, P.meTarget, P.meCap]);
+    if (hasLE) cats.push(["Living Expenses", LE_FEE_ITEM, e.lbp, e.lbs, e.lNext, e.lfp + al.lp, e.lfs + al.ls, P.leTarget, P.leCap, e.lheld]);
+    if (hasME) cats.push(["Meal Entertainment", ME_FEE_ITEM, e.mbp, e.mbs, e.mNext, e.mfp + al.mp, e.mfs + al.ms, P.meTarget, P.meCap, e.mheld]);
 
-    for (const [cat, feeItem, benPaid, benSched, benNext, feePaid, feeSched, target, cap] of cats) {
+    for (const [cat, feeItem, benPaid, benSched, benNext, feePaid, feeSched, target, cap, held] of cats) {
       const diff = feePaid + feeSched - target;
-      const benProj = benPaid + benSched, benPct = cap > 0 ? benProj / cap * 100 : 0;
-      const base = { id, name: e.name, empStatus: e.status, cat, feeItem, feePaid: r2(feePaid), feeSched: r2(feeSched) };
+      const benProj = Math.min(benPaid + benSched + held, cap > 0 ? Math.max(cap, benPaid) : Infinity), benPct = cap > 0 ? benProj / cap * 100 : 0;
+      const base = { id, name: e.name, empStatus: e.status, cat, feeItem, feePaid: r2(feePaid), feeSched: r2(feeSched), held: r2(held) };
 
-      if (benPaid <= 0 && benSched <= 0) {
+      if (benPaid <= 0 && benSched <= 0 && held <= 0) {
         const cross = cat === "Living Expenses" ? ((e.mbp > 0 || e.mbs > 0) ? ["Meal Entertainment benefit"] : []) : ((e.lbp > 0 || e.lbs > 0) ? ["Living Expenses benefit"] : []);
         const others = cross.concat([...e.other].sort()).join(", ");
         nobenefit.push({ ...base, curRate: r2(e.feeLines.filter(f => f.item === feeItem).reduce((s, f) => s + f.dep, 0)),
@@ -389,7 +407,8 @@ function runFeeAudit() {
       if (Math.abs(diff) <= P.tol || benPct <= P.reportPct) continue;
       const pr = propose(e, feeItem, feePaid, feeSched, target);
       let action = pr.action;
-      if (benPaid <= 0 && benNext && benNext < today) action += " - confirm benefit line first (next pay " + fmtD(benNext) + " stale, nothing claimed YTD)";
+      if (benPaid <= 0 && held <= 0 && benNext && benNext < today) action += " - confirm benefit line first (next pay " + fmtD(benNext) + " stale, nothing claimed YTD)";
+      else if (benPaid <= 0 && benSched <= 0 && held > 0) action += " - based on held balance of " + money(held) + " (deducted, not yet paid)";
       const line = { ...base, curRate: r2(pr.curRate), newRate: pr.newRate === "" ? "" : r2(pr.newRate), remPays: pr.cycles,
         variance: r2(diff), benProj: r2(benProj), benPct: r2(benPct), action };
       (diff < 0 ? under : over).push(line);
@@ -407,11 +426,11 @@ const COLS = [
   ["id", "Employee ID"], ["name", "Name"], ["empStatus", "Status"], ["cat", "Category"],
   ["curRate", "Current Fee / FN", 1], ["newRate", "Proposed Fee / FN", 1], ["remPays", "Remaining Pays"],
   ["feePaid", "Fee Paid YTD", 1], ["variance", "Fee Under (-) / Over (+)", 1],
-  ["benProj", "Benefit Paid + Scheduled", 1], ["benPct", "% of Cap", 2], ["action", "Action"]
+  ["benProj", "Benefit Paid + Scheduled + Held", 1], ["held", "Held Balance", 1], ["benPct", "% of Cap", 2], ["action", "Action"]
 ];
 const NOBEN_COLS = [
   ["id", "Employee ID"], ["name", "Name"], ["empStatus", "Status"], ["cat", "Category"], ["feeItem", "Fee Item"],
-  ["feePaid", "Fee Paid YTD", 1], ["feeSched", "Fee Scheduled (Rem. Yr)", 1], ["curRate", "Current Fee / FN", 1],
+  ["feePaid", "Fee Paid YTD", 1], ["feeSched", "Fee Scheduled (Rem. Yr)", 1], ["curRate", "Current Fee / FN", 1], ["held", "Held Balance", 1],
   ["otherBenefits", "Other Benefits (scheduled or claimed)"], ["action", "Action"]
 ];
 const SHEETS = { under: "Underpaid", over: "Overpaid", nobenefit: "Fee No Benefit" };
