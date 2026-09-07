@@ -78,7 +78,7 @@
 
   <div class="panel">
     <h2>1. Load files</h2>
-    <div id="dropzone">Drag the three export files here, or click to browse: Package Benefit Details, Finance Batch Report, Package Balances (data.xlsx).
+    <div id="dropzone">Drag the three export files here, or click to browse: Package Benefit Details, Finance Batch Report, Employer Bank Reconciliation Report.
       <input type="file" id="fileinput" multiple accept=".xlsx,.csv" style="display:none">
     </div>
     <div id="filegrid"></div>
@@ -122,7 +122,7 @@
 /* ================================================================
    Fee Audit - standalone tool
    Inputs: Package Benefit Details, Finance Batch Report (Payment
-   Transaction Summary from 1 April) and the Package Balances export
+   Transaction Summary from 1 April) and the Employer Bank Reconciliation Report
    (data.xlsx: Status, Deposits, Payments, Closing Balance per package).
    Status drives who is audited (Current only). Closing Balance is
    money deducted but not yet paid to a benefit, and counts toward
@@ -132,7 +132,7 @@ const MS_DAY = 86400000;
 const FILE_DEFS = [
   { key: "details",  label: "Package Benefit Details",       detect: h => h.includes("Salary Package Item") },
   { key: "finance",  label: "Finance Batch Report",          detect: h => h.includes("Item Name") && h.includes("Payment") },
-  { key: "balances", label: "Package Balances (data.xlsx)",    detect: h => h.includes("Package Number") && h.includes("Closing Balance") }
+  { key: "balances", label: "Employer Bank Reconciliation Report",    detect: h => h.includes("Package Number") && h.includes("Closing Balance") }
 ];
 const DATA = {};
 
@@ -213,7 +213,7 @@ function money(v) { return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en
 function r2(v) { return Math.round(v * 100) / 100; }
 function ceilCents(v) { return Math.ceil(Math.round(v * 10000) / 100) / 100; }   // round UP to the cent, never under-collect
 function listParam(id) { return document.getElementById(id).value.split(",").map(s => s.trim()).filter(Boolean); }
-// Package Balances (data.xlsx): Package Number, Last Name, First Name, Payroll ID, Status,
+// Employer Bank Reconciliation Report: Package Number, Last Name, First Name, Payroll ID, Status,
 // Opening Balance, Deposits, Payments, Closing Balance. Indexed by Payroll ID.
 function packageBalances() {
   const out = {};
@@ -255,7 +255,7 @@ function runFeeAudit() {
   const fmtD = d => d ? d.toLocaleDateString("en-AU") : "";
 
   // Only packages with Status = Current are audited. Terminated, Pending, Suspended and anyone
-  // missing from the Package Balances file are excluded.
+  // missing from the Employer Bank Reconciliation Report are excluded.
   const bal = packageBalances();
   const activeIds = new Set(Object.keys(bal).filter(id => bal[id].status.toLowerCase() === "current"));
 
@@ -376,7 +376,7 @@ function runFeeAudit() {
 
   const under = [], over = [], nobenefit = [];
   for (const id of Object.keys(emps)) {
-    if (!activeIds.has(id)) continue;                              // not Current in Package Balances
+    if (!activeIds.has(id)) continue;                              // not Current in Employer Bank Reconciliation Report
     const e = emps[id];
     if (e.recur > 0 && e.stale === e.recur) continue;             // nothing collecting - every recurring line is stale
     const hasLE = e.lbp > 0 || e.lbs > 0 || e.lfp > 0 || e.lfs > 0 || e.lheld > 0;
