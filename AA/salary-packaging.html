@@ -2622,6 +2622,8 @@ Export anyway?`);
                 // The current run's date = the Next Payment Date (col R) on the active payment line
                 // (Fortnightly Amount > 0). Lines that START AFTER that date belong to a future pay
                 // run and are excluded. A run-wide fallback date covers anyone with no payment line.
+                // Lines whose End Date (col Q) is before their Next Payment Date (col R) have finished
+                // before the next pay, so that payment will not occur and the line is excluded.
                 const reconLines = {};
                 let globalRun = null;
                 this.data.forEach((row, index) => {
@@ -2635,10 +2637,13 @@ Export anyway?`);
                     }
                     const h = parseFloat(row['Fortnightly Amount']);
                     const i = parseFloat(row['Deposit Amount']);
-                    reconLines[id].lines.push({ h: isNaN(h) ? 0 : h, i: isNaN(i) ? 0 : i, start: parseStartDate(row['Start Date']) });
+                    const endDate = parseStartDate(row['End Date']);
+                    const nextPayDate = parseStartDate(row['Next Payment Date']);
+                    const ended = !!(endDate && nextPayDate && endDate < nextPayDate); // finished before next pay: no payment
+                    reconLines[id].lines.push({ h: isNaN(h) ? 0 : h, i: isNaN(i) ? 0 : i, start: parseStartDate(row['Start Date']), ended });
                     // The active payment line (H > 0) carries this pay run's payment date.
-                    if (!isNaN(h) && h > 0) {
-                        const nextPay = parseStartDate(row['Next Payment Date']);
+                    if (!isNaN(h) && h > 0 && !ended) {
+                        const nextPay = nextPayDate;
                         if (nextPay) {
                             if (!reconLines[id].runDate || nextPay > reconLines[id].runDate) reconLines[id].runDate = nextPay;
                             if (!globalRun || nextPay > globalRun) globalRun = nextPay;
@@ -2650,6 +2655,7 @@ Export anyway?`);
                     const cutoff = e.runDate || globalRun; // fall back to the run-wide pay date
                     let sumH = 0, sumI = 0;
                     e.lines.forEach(ln => {
+                        if (ln.ended) return; // ended before next payment -> payment will not occur
                         if (cutoff && ln.start && ln.start > cutoff) return; // future pay run -> exclude
                         sumH += ln.h; sumI += ln.i;
                     });
