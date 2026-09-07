@@ -228,6 +228,51 @@
             background: #e0f2f1;
             color: #00695c;
         }
+
+        .audit-error-type.nlf-bankref {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .audit-error-type.deposit-payment-mismatch {
+            background: #ede7f6;
+            color: #4527a0;
+        }
+
+        /* EML card checks */
+        .audit-error-type.card-inactive {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .audit-error-type.card-wrong-type {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .audit-error-type.card-no-ref {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .audit-error-type.card-employee {
+            background: #fce7f3;
+            color: #9d174d;
+        }
+
+        .audit-drop.loaded {
+            border-style: solid;
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+        }
+
+        .audit-stat-card.warn {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        }
+
+        .audit-stat-card.neutral {
+            background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+        }
     </style>
 <style id="embed-style">body.embed #app-sidebar{display:none!important}</style>
 </head>
@@ -755,7 +800,7 @@
                 <!-- Header -->
                 <header class="mb-10 relative">
                     <h2 class="text-3xl font-bold text-slate-900 mb-2">Package Benefit Details Validator</h2>
-                    <p class="text-slate-500">Validate for negative amounts, EML rules, and business logic errors.
+                    <p class="text-slate-500">Validate for negative amounts, account rules and business logic errors, and check EMLMEC / EMLEBC lines against the active EML card reports.
                     </p>
 
                     <!-- Help Tooltip -->
@@ -775,14 +820,37 @@
                 </header>
 
                 <div class="max-w-4xl mx-auto">
-                    <!-- Upload Box -->
-                    <div id="audit-upload-box"
-                        class="bg-white border-2 border-dashed border-indigo-300 rounded-xl p-10 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm mb-6 group">
-                        <div class="text-6xl mb-4 group-hover:scale-110 transition-transform">📊</div>
-                        <h3 class="text-xl font-semibold text-slate-800 mb-2">Drag and drop your Excel file here
-                        </h3>
-                        <p class="text-slate-500 mb-4">or click to browse</p>
-                        <input type="file" id="audit-file-input" class="hidden" accept=".xlsx,.xls">
+                    <!-- Upload Boxes -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- File 1: Package Benefit Details (required) -->
+                        <div id="audit-upload-box"
+                            class="audit-drop bg-white border-2 border-dashed border-indigo-300 rounded-xl p-6 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm group">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">File 1 &middot; Required</span>
+                            <div class="text-4xl my-2 group-hover:scale-110 transition-transform">📊</div>
+                            <h3 class="text-base font-semibold text-slate-800">Package Benefit Details</h3>
+                            <p id="audit-pkg-status" class="text-xs text-slate-500 mt-1">Drop .xlsx here or click to browse</p>
+                            <input type="file" id="audit-file-input" class="hidden" accept=".xlsx,.xls,.csv">
+                        </div>
+
+                        <!-- File 2: Active ME Report -->
+                        <div id="audit-me-box"
+                            class="audit-drop bg-white border-2 border-dashed border-slate-300 rounded-xl p-6 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm group">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">File 2 &middot; Card check</span>
+                            <div class="text-4xl my-2 group-hover:scale-110 transition-transform">🍽️</div>
+                            <h3 class="text-base font-semibold text-slate-800">Active ME Report</h3>
+                            <p id="audit-me-status" class="text-xs text-slate-500 mt-1">EML meal entertainment cards (.csv / .xlsx)</p>
+                            <input type="file" id="audit-me-input" class="hidden" accept=".xlsx,.xls,.csv">
+                        </div>
+
+                        <!-- File 3: Active LE Report -->
+                        <div id="audit-le-box"
+                            class="audit-drop bg-white border-2 border-dashed border-slate-300 rounded-xl p-6 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm group">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">File 3 &middot; Card check</span>
+                            <div class="text-4xl my-2 group-hover:scale-110 transition-transform">🏠</div>
+                            <h3 class="text-base font-semibold text-slate-800">Active LE Report</h3>
+                            <p id="audit-le-status" class="text-xs text-slate-500 mt-1">EML living expenses cards (.csv / .xlsx)</p>
+                            <input type="file" id="audit-le-input" class="hidden" accept=".xlsx,.xls,.csv">
+                        </div>
                     </div>
 
                     <!-- File Info -->
@@ -791,11 +859,17 @@
                         <!-- Populated by JS -->
                     </div>
 
-                    <!-- Action Button -->
-                    <button id="audit-validate-btn" disabled
-                        class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-8">
-                        Validate File
-                    </button>
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 mb-8">
+                        <button id="audit-validate-btn" disabled
+                            class="flex-1 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                            Run Pre Payment Audit
+                        </button>
+                        <button id="audit-reset-btn" type="button"
+                            class="px-5 py-3 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors">
+                            Reset
+                        </button>
+                    </div>
 
                     <!-- Loading -->
                     <div id="audit-loading" class="hidden text-center py-8">
@@ -806,6 +880,9 @@
 
                     <!-- Results Section -->
                     <div id="audit-results-section" class="hidden">
+                        <!-- Card check note -->
+                        <div id="audit-card-note" class="hidden rounded-lg border p-4 mb-6 text-sm"></div>
+
                         <!-- Stats Grid -->
                         <div id="audit-stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                             <!-- Populated by JS -->
@@ -2064,90 +2141,198 @@ Export anyway?`);
             workbook: null,
             data: [],
             errors: [],
+            pkgFileName: '',
+            cards: { me: null, le: null },   // indexed Active ME / LE card reports (optional)
+            cardStats: null,
 
             elements: {
                 uploadBox: 'audit-upload-box',
                 fileInput: 'audit-file-input',
+                pkgStatus: 'audit-pkg-status',
+                meBox: 'audit-me-box',
+                meInput: 'audit-me-input',
+                meStatus: 'audit-me-status',
+                leBox: 'audit-le-box',
+                leInput: 'audit-le-input',
+                leStatus: 'audit-le-status',
                 validateBtn: 'audit-validate-btn',
+                resetBtn: 'audit-reset-btn',
                 fileInfo: 'audit-file-info',
                 loading: 'audit-loading',
                 resultsSection: 'audit-results-section',
+                cardNote: 'audit-card-note',
                 stats: 'audit-stats',
                 errorsContainer: 'audit-errors-container'
             },
 
             init: function () {
                 const el = (id) => document.getElementById(id);
-                const uploadBox = el(this.elements.uploadBox);
-                const fileInput = el(this.elements.fileInput);
-                const validateBtn = el(this.elements.validateBtn);
+                if (!el(this.elements.uploadBox)) return; // Guard if elements missing
 
-                if (!uploadBox) return; // Guard if elements missing
+                const wire = (boxId, inputId, handler) => {
+                    const box = el(boxId), input = el(inputId);
+                    box.addEventListener('click', () => input.click());
+                    box.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        box.classList.add('border-indigo-600', 'bg-indigo-50');
+                    });
+                    box.addEventListener('dragleave', () => {
+                        box.classList.remove('border-indigo-600', 'bg-indigo-50');
+                    });
+                    box.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        box.classList.remove('border-indigo-600', 'bg-indigo-50');
+                        if (e.dataTransfer.files.length > 0) handler(e.dataTransfer.files[0]);
+                    });
+                    input.addEventListener('change', (e) => {
+                        if (e.target.files.length > 0) handler(e.target.files[0]);
+                        input.value = '';
+                    });
+                };
 
-                // Event Listeners
-                uploadBox.addEventListener('click', () => fileInput.click());
+                wire(this.elements.uploadBox, this.elements.fileInput, (f) => this.handleFile(f));
+                wire(this.elements.meBox, this.elements.meInput, (f) => this.handleReport(f, 'me'));
+                wire(this.elements.leBox, this.elements.leInput, (f) => this.handleReport(f, 'le'));
 
-                uploadBox.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadBox.classList.add('border-indigo-600', 'bg-indigo-50');
+                el(this.elements.validateBtn).addEventListener('click', () => this.validateData());
+                el(this.elements.resetBtn).addEventListener('click', () => this.reset());
+            },
+
+            // Read the first sheet of an .xlsx/.xls/.csv file into row objects
+            readRows: function (file, opts) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const wb = XLSX.read(data, { type: 'array', cellDates: true });
+                            const ws = wb.Sheets[wb.SheetNames[0]];
+                            resolve(XLSX.utils.sheet_to_json(ws, opts));
+                        } catch (err) { reject(err); }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
                 });
+            },
 
-                uploadBox.addEventListener('dragleave', () => {
-                    uploadBox.classList.remove('border-indigo-600', 'bg-indigo-50');
-                });
+            // Index an Active ME / LE card report by EAID. Only rows with Status = active are kept.
+            indexCardReport: function (rows) {
+                if (!rows.length) throw new Error('report is empty');
+                const norm = (v) => String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9]/g, '');
+                const clean = (v) => String(v == null ? '' : v).trim();
+                const keys = Object.keys(rows[0]);
+                const eaidKey = keys.find(k => norm(k) === 'eaid') || keys.find(k => norm(k).includes('eaid'));
+                if (!eaidKey) throw new Error('could not find an "EAID" column');
+                const empKey = keys.find(k => norm(k) === 'employeenumber')
+                    || keys.find(k => norm(k).includes('employeenumber'))
+                    || keys.find(k => norm(k) === 'employeeid');
+                const firstKey = keys.find(k => norm(k) === 'firstname');
+                const lastKey = keys.find(k => norm(k) === 'lastname');
+                const statusKey = keys.find(k => norm(k) === 'status');
 
-                uploadBox.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadBox.classList.remove('border-indigo-600', 'bg-indigo-50');
-                    if (e.dataTransfer.files.length > 0) {
-                        this.handleFile(e.dataTransfer.files[0]);
+                const map = new Map();
+                let inactive = 0;
+                rows.forEach(r => {
+                    const eaid = clean(r[eaidKey]);
+                    if (!eaid) return;
+                    if (statusKey) {
+                        const st = clean(r[statusKey]).toLowerCase();
+                        if (st && st !== 'active') { inactive++; return; }
                     }
+                    map.set(eaid, {
+                        emp: empKey ? clean(r[empKey]) : '',
+                        name: [firstKey ? clean(r[firstKey]) : '', lastKey ? clean(r[lastKey]) : ''].filter(Boolean).join(' ')
+                    });
                 });
+                return { map, hasEmp: !!empKey, rows: rows.length, inactive };
+            },
 
-                fileInput.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        this.handleFile(e.target.files[0]);
-                    }
+            handleReport: function (file, key) {
+                const el = (id) => document.getElementById(id);
+                const label = key === 'me' ? 'Active ME report' : 'Active LE report';
+                const box = el(key === 'me' ? this.elements.meBox : this.elements.leBox);
+                const status = el(key === 'me' ? this.elements.meStatus : this.elements.leStatus);
+
+                if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+                    alert('Please upload a .csv or Excel file for the ' + label + '.');
+                    return;
+                }
+
+                this.readRows(file, { defval: '' }).then(rows => {
+                    const idx = this.indexCardReport(rows);
+                    idx.fileName = file.name;
+                    this.cards[key] = idx;
+                    box.classList.add('loaded');
+                    status.innerHTML = '<span class="text-green-700 font-semibold">&#10003; ' + file.name + '</span><br>'
+                        + idx.map.size.toLocaleString() + ' active cards'
+                        + (idx.inactive ? ' (' + idx.inactive + ' inactive ignored)' : '');
+                    el(this.elements.resultsSection).classList.add('hidden');
+                    this.updateFileInfo();
+                }).catch(err => {
+                    this.cards[key] = null;
+                    box.classList.remove('loaded');
+                    alert('Error reading ' + label + ': ' + err.message);
                 });
+            },
 
-                validateBtn.addEventListener('click', () => this.validateData());
+            updateFileInfo: function () {
+                const el = (id) => document.getElementById(id);
+                const fileInfo = el(this.elements.fileInfo);
+                if (!this.data.length) { fileInfo.classList.add('hidden'); return; }
+                const me = this.cards.me, le = this.cards.le;
+                let html = '<p class="font-bold text-green-800">&#9989; Package Benefit Details: ' + this.pkgFileName + '</p>'
+                    + '<p class="text-green-700 text-sm">Total Records: ' + this.data.length.toLocaleString() + '</p>';
+                if (me || le) {
+                    html += '<p class="text-green-700 text-sm mt-1">Card reports: '
+                        + (me ? 'ME ' + me.map.size.toLocaleString() + ' active cards' : '<span class="text-amber-700">ME not loaded</span>')
+                        + ' &middot; '
+                        + (le ? 'LE ' + le.map.size.toLocaleString() + ' active cards' : '<span class="text-amber-700">LE not loaded</span>')
+                        + '</p>';
+                } else {
+                    html += '<p class="text-amber-700 text-sm mt-1">No card reports loaded. EML card checks will be skipped.</p>';
+                }
+                fileInfo.innerHTML = html;
+                fileInfo.classList.remove('hidden');
+            },
+
+            reset: function () {
+                const el = (id) => document.getElementById(id);
+                this.workbook = null;
+                this.data = [];
+                this.errors = [];
+                this.pkgFileName = '';
+                this.cards = { me: null, le: null };
+                this.cardStats = null;
+                [this.elements.uploadBox, this.elements.meBox, this.elements.leBox].forEach(id => el(id).classList.remove('loaded'));
+                el(this.elements.pkgStatus).textContent = 'Drop .xlsx here or click to browse';
+                el(this.elements.meStatus).textContent = 'EML meal entertainment cards (.csv / .xlsx)';
+                el(this.elements.leStatus).textContent = 'EML living expenses cards (.csv / .xlsx)';
+                el(this.elements.fileInfo).classList.add('hidden');
+                el(this.elements.resultsSection).classList.add('hidden');
+                el(this.elements.validateBtn).disabled = true;
             },
 
             handleFile: function (file) {
                 const el = (id) => document.getElementById(id);
 
-                if (!file.name.match(/\.(xlsx|xls)$/)) {
+                if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
                     alert('Please upload a valid Excel file (.xlsx or .xls)');
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        this.workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                        const worksheet = this.workbook.Sheets[this.workbook.SheetNames[0]];
+                this.readRows(file, { defval: null }).then(rows => {
+                    this.data = rows;
+                    this.pkgFileName = file.name;
 
-                        // Convert to JSON
-                        this.data = XLSX.utils.sheet_to_json(worksheet, { defval: null });
-
-                        // Update UI
-                        const fileInfo = el(this.elements.fileInfo);
-                        fileInfo.innerHTML = `
-                            <p class="font-bold text-green-800">✅ File Loaded: ${file.name}</p>
-                            <p class="text-green-700 text-sm">Total Records: ${this.data.length}</p>
-                        `;
-                        fileInfo.classList.remove('hidden');
-                        el(this.elements.validateBtn).disabled = false;
-
-                        // Hide previous results
-                        el(this.elements.resultsSection).classList.add('hidden');
-
-                    } catch (error) {
-                        alert('Error reading file: ' + error.message);
-                    }
-                };
-                reader.readAsArrayBuffer(file);
+                    el(this.elements.uploadBox).classList.add('loaded');
+                    el(this.elements.pkgStatus).innerHTML = '<span class="text-green-700 font-semibold">&#10003; ' + file.name + '</span><br>'
+                        + this.data.length.toLocaleString() + ' records';
+                    el(this.elements.validateBtn).disabled = false;
+                    el(this.elements.resultsSection).classList.add('hidden');
+                    this.updateFileInfo();
+                }).catch(error => {
+                    alert('Error reading file: ' + error.message);
+                });
             },
 
             validateData: function () {
@@ -2312,7 +2497,7 @@ Export anyway?`);
                     }
 
                     // VALIDATION 5: Austin Account
-                    const isAustinPackageItem = ['Admin Fee', 'Entertainment Benefits Fee', 'Admin Fee – Special', 'Admin Fee - Special', 'Resend to Payroll', 'NL-Management Fee', 'NL - Management Fee', 'Portable Electronic Device Fee', 'NL - Establishment Fee'].includes(packageItem);
+                    const isAustinPackageItem = ['Admin Fee', 'Entertainment Benefits Fee', 'Admin Fee – Special', 'Admin Fee - Special', 'Resend to Payroll', 'Offline Resent to Payroll', 'NL-Management Fee', 'NL - Management Fee', 'Portable Electronic Device Fee', 'NL - Establishment Fee'].includes(packageItem);
                     const hasAustinAccount = bankAccountName === 'Austin Main Account' ||
                         bankAccountName === 'Austin Operating Account' ||
                         (bsb === '033286' && accountNumber === '00120120');
@@ -2368,6 +2553,47 @@ Export anyway?`);
                             category: 'Blocked Account',
                             errorMessage: `Austin Health EMP Benefit account (033077-243618) must not be used as a payment account`
                         });
+                    }
+
+                    // VALIDATION 10: Reverse account check. Items on the Austin / PBI allow lists must
+                    // pay to that account (matched on BSB + Account Number only). Rows with a zero
+                    // Fortnightly Amount are skipped.
+                    {
+                        const fnAmt = row['Fortnightly Amount'];
+                        const fnVal = typeof fnAmt === 'number' ? fnAmt : parseFloat(fnAmt);
+                        const hasPayment = !isNaN(fnVal) && fnVal !== 0;
+                        const isAustinBank = (bsb === '033286' && accountNumber === '00120120');
+                        const isPBIBank = (bsb === '012003' && accountNumber === '835839621');
+
+                        if (hasPayment && isAustinPackageItem && !isAustinBank) {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'Bank Account',
+                                value: `${bankAccountName} (${bsb}-${accountNumber})`,
+                                type: 'austin-account',
+                                category: 'Wrong Account',
+                                errorMessage: `"${packageItem}" must pay to Austin Main Account (033286-00120120), found: ${bsb}-${accountNumber}`
+                            });
+                        }
+
+                        if (hasPayment && isPBIPackageItem && !isPBIBank) {
+                            this.errors.push({
+                                row: rowNumber,
+                                payrollId: row['Payroll ID'],
+                                firstName: row['First Name'],
+                                lastName: row['Last Name'],
+                                packageItem: packageItem,
+                                field: 'Bank Account',
+                                value: `${bankAccountName} (${bsb}-${accountNumber})`,
+                                type: 'pbi-account',
+                                category: 'Wrong Account',
+                                errorMessage: `"${packageItem}" must pay to PBI Solutions (012003-835839621), found: ${bsb}-${accountNumber}`
+                            });
+                        }
                     }
 
                     // VALIDATION 8: NL - Finance line with a payment (col H > 0) must have a Bank Ref (col N)
@@ -2442,6 +2668,109 @@ Export anyway?`);
                         });
                     }
                 });
+
+                // VALIDATION 11: EML card checks (needs the Active ME / LE card reports).
+                // EMLMEC lines must reference an active ME card, EMLEBC lines an active LE card.
+                // Bank Ref (col N) = card EAID. The card's EmployeeNumber must match the Payroll ID.
+                // Zero Fortnightly Amount lines are skipped (nothing is paid).
+                this.cardStats = null;
+                const me = this.cards.me, le = this.cards.le;
+                if (me || le) {
+                    const stats = { checked: 0, inactive: 0, wrongType: 0, noRef: 0, empMismatch: 0, empBlank: 0, skippedZero: 0, unchecked: 0 };
+                    const stripZeros = (v) => String(v == null ? '' : v).trim().replace(/^0+/, '');
+
+                    this.data.forEach((row, index) => {
+                        const item = row['Salary Package Item'] ? String(row['Salary Package Item']).trim() : '';
+                        if (item !== 'EMLMEC' && item !== 'EMLEBC') return;
+
+                        const fnAmt = row['Fortnightly Amount'];
+                        const fnVal = typeof fnAmt === 'number' ? fnAmt : parseFloat(fnAmt);
+                        if (isNaN(fnVal) || fnVal === 0) { stats.skippedZero++; return; }
+
+                        const isMEC = item === 'EMLMEC';
+                        const expected = isMEC ? me : le;
+                        const other = isMEC ? le : me;
+                        const expectedName = isMEC ? 'Active ME report' : 'Active LE report';
+                        const otherName = isMEC ? 'Active LE report' : 'Active ME report';
+                        const correctItem = isMEC ? 'EMLEBC' : 'EMLMEC';
+                        const otherCardType = isMEC ? 'Living Expenses (LE)' : 'Meal Entertainment (ME)';
+
+                        if (!expected) { stats.unchecked++; return; } // that report is not loaded
+
+                        stats.checked++;
+                        const ref = row['Bank Ref'] ? String(row['Bank Ref']).trim() : '';
+                        const payrollId = String(row['Payroll ID'] == null ? '' : row['Payroll ID']).trim();
+                        const base = {
+                            row: index + 2,
+                            payrollId: row['Payroll ID'],
+                            firstName: row['First Name'],
+                            lastName: row['Last Name'],
+                            packageItem: item
+                        };
+
+                        if (!ref) {
+                            stats.noRef++;
+                            this.errors.push(Object.assign({}, base, {
+                                field: 'Bank Ref',
+                                value: '(blank)',
+                                type: 'card-no-ref',
+                                category: 'No Bank Ref',
+                                errorMessage: `${item} line with payment ${fnVal.toFixed(2)} has no Bank Ref (card EAID), so it cannot be matched to an active card`
+                            }));
+                            return;
+                        }
+
+                        const inExpected = expected.map.has(ref);
+                        const inOther = !!(other && other.map.has(ref));
+
+                        if (!inExpected) {
+                            if (inOther) {
+                                stats.wrongType++;
+                                this.errors.push(Object.assign({}, base, {
+                                    field: 'Salary Package Item',
+                                    value: `${item} (ref ${ref})`,
+                                    type: 'card-wrong-type',
+                                    category: 'Wrong Card Type',
+                                    errorMessage: `Bank Ref ${ref} is an active ${otherCardType} card but the line is set up as ${item}. It should be ${correctItem}`
+                                }));
+                            } else {
+                                stats.inactive++;
+                                this.errors.push(Object.assign({}, base, {
+                                    field: 'Bank Ref',
+                                    value: ref,
+                                    type: 'card-inactive',
+                                    category: 'Card Not Active',
+                                    errorMessage: `Bank Ref ${ref} was not found in the ${expectedName}${other ? ' or ' + otherName : ''}. The card is not active, so payment ${fnVal.toFixed(2)} must not be made`
+                                }));
+                            }
+                        }
+
+                        // Wrong-person guard: card EmployeeNumber vs benefit Payroll ID
+                        const card = expected.map.get(ref) || (other ? other.map.get(ref) : null);
+                        if (card) {
+                            if (!card.emp) {
+                                stats.empBlank++;
+                                this.errors.push(Object.assign({}, base, {
+                                    field: 'Bank Ref',
+                                    value: `${ref} (card: no Employee ID, ${card.name || 'no name'})`,
+                                    type: 'card-employee',
+                                    category: 'Card Employee ID',
+                                    errorMessage: `Card ${ref} has no EmployeeNumber in the report, so it cannot be confirmed as belonging to Payroll ID ${payrollId}`
+                                }));
+                            } else if (stripZeros(card.emp) !== stripZeros(payrollId)) {
+                                stats.empMismatch++;
+                                this.errors.push(Object.assign({}, base, {
+                                    field: 'Bank Ref',
+                                    value: `${ref} (card: ${card.emp} ${card.name})`,
+                                    type: 'card-employee',
+                                    category: 'Card Employee Mismatch',
+                                    errorMessage: `Payroll ID ${payrollId} does not match EmployeeNumber ${card.emp} (${card.name}) on card ${ref}. Payment may go to the wrong person's card`
+                                }));
+                            }
+                        }
+                    });
+                    this.cardStats = stats;
+                }
             },
 
             displayResults: function () {
@@ -2453,8 +2782,47 @@ Export anyway?`);
                 const recordsWithErrors = new Set(this.errors.map(e => e.row)).size;
                 const totalErrors = this.errors.length;
 
+                // Card check note
+                const note = el(this.elements.cardNote);
+                const me = this.cards.me, le = this.cards.le, cs = this.cardStats;
+                if (!me && !le) {
+                    note.className = 'rounded-lg border border-amber-300 bg-amber-50 text-amber-900 p-4 mb-6 text-sm';
+                    note.innerHTML = '<strong>EML card checks skipped.</strong> Load the Active ME and Active LE reports (Files 2 and 3) to confirm EMLMEC / EMLEBC lines pay to active cards of the right type and to the right person.';
+                } else if (!me || !le) {
+                    const missing = !me ? 'Active ME report' : 'Active LE report';
+                    const skippedItem = !me ? 'EMLMEC' : 'EMLEBC';
+                    note.className = 'rounded-lg border border-amber-300 bg-amber-50 text-amber-900 p-4 mb-6 text-sm';
+                    note.innerHTML = '<strong>Partial card check.</strong> ' + missing + ' not loaded, so ' + cs.unchecked.toLocaleString() + ' ' + skippedItem
+                        + ' lines were not checked and "wrong card type" cannot be detected. ' + cs.checked.toLocaleString() + ' lines checked.';
+                } else {
+                    note.className = 'rounded-lg border border-slate-200 bg-slate-50 text-slate-700 p-4 mb-6 text-sm';
+                    note.innerHTML = '<strong>EML card checks run.</strong> ' + cs.checked.toLocaleString() + ' EMLMEC / EMLEBC lines matched on Bank Ref = EAID against '
+                        + me.map.size.toLocaleString() + ' active ME cards and ' + le.map.size.toLocaleString() + ' active LE cards'
+                        + (cs.skippedZero ? '. ' + cs.skippedZero + ' zero-amount line' + (cs.skippedZero === 1 ? '' : 's') + ' skipped' : '')
+                        + ((me.hasEmp && le.hasEmp) ? '.' : '. <strong>An EmployeeNumber column was missing in one report, so employee checks are limited.</strong>');
+                }
+                note.classList.remove('hidden');
+
+                const cardStatsHtml = cs ? `
+                    <div class="audit-stat-card neutral">
+                        <h3>${cs.checked.toLocaleString()}</h3>
+                        <p>EML Lines Checked</p>
+                    </div>
+                    <div class="audit-stat-card ${cs.inactive + cs.noRef === 0 ? 'success' : 'error'}">
+                        <h3>${(cs.inactive + cs.noRef).toLocaleString()}</h3>
+                        <p>Card Not Active / No Ref</p>
+                    </div>
+                    <div class="audit-stat-card ${cs.wrongType === 0 ? 'success' : 'warn'}">
+                        <h3>${cs.wrongType.toLocaleString()}</h3>
+                        <p>Wrong Card Type</p>
+                    </div>
+                    <div class="audit-stat-card ${cs.empMismatch + cs.empBlank === 0 ? 'success' : 'error'}">
+                        <h3>${(cs.empMismatch + cs.empBlank).toLocaleString()}</h3>
+                        <p>Card Employee Mismatch</p>
+                    </div>` : '';
+
                 // Stats HTML
-                stats.innerHTML = `
+                stats.innerHTML = cardStatsHtml + `
                     <div class="audit-stat-card">
                         <h3>${totalRecords.toLocaleString()}</h3>
                         <p>Total Records</p>
