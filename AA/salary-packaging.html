@@ -7,6 +7,8 @@
     <title>Salary Packaging Processor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -309,7 +311,7 @@
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
                         </path>
                     </svg>
-                    <span class="font-medium">Pre Payment Audit</span>
+                    <span class="font-medium">Pre-Payment Audit</span>
                 </a>
 
                 <!-- NEW: EML Remittance Link -->
@@ -325,6 +327,19 @@
                     <span class="font-medium">Remittance</span>
                 </a>
 
+                <!-- Link: EML Onboarding -->
+                <a href="#" id="nav-eml-onboarding"
+                    class="flex items-center px-4 py-3 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group"
+                    onclick="switchView('eml-onboarding'); return false;">
+                    <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+                        </path>
+                    </svg>
+                    <span class="font-medium">EML Onboarding</span>
+                </a>
+
                 <!-- Divider: Other Tools -->
                 <div class="pt-4 mt-4 border-t border-slate-700/60">
                     <p class="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Other Tools</p>
@@ -336,7 +351,7 @@
                     <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    <span class="font-medium">Projected Deduction Reconciliation</span>
+                    <span class="font-medium">Pay Cutoff</span>
                 </a>
 
                 <!-- Link: Payroll Variance Reconciler -->
@@ -345,12 +360,12 @@
                     <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
                     </svg>
-                    <span class="font-medium">Payroll Variance Reconciler</span>
+                    <span class="font-medium">Reconcile Pay</span>
                 </a>
             </div>
 
             <div class="p-4 text-xs text-slate-600 text-center">
-                v1.2.0 | Layout Integration
+                v1.3.0 | EML Onboarding
             </div>
         </nav>
 
@@ -945,88 +960,208 @@
                     <!-- Results Section -->
                     <div id="eml-results-section" class="hidden">
 
-                        <!-- EML Card Remittance Panel -->
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-                            <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <span class="mr-2 text-lg">💳</span>
-                                    <span class="font-bold text-indigo-900">EML Card Remittance</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <!-- EML Card Remittance Panel -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                                <div class="px-4 py-3 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between gap-2">
+                                    <div class="flex items-center min-w-0">
+                                        <span class="mr-2">💳</span>
+                                        <span class="font-bold text-indigo-900 text-sm truncate">EML Card Remittance</span>
+                                    </div>
+                                    <button id="eml-generate-btn" disabled
+                                        class="bg-indigo-600 text-white font-semibold py-1.5 px-3 rounded-lg shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap">
+                                        Export EML CSV
+                                    </button>
                                 </div>
-                                <button id="eml-generate-btn" disabled
-                                    class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
-                                    Export EML CSV
+                                <div class="p-3 flex-1">
+                                    <div id="eml-stats" class="grid grid-cols-3 gap-2 mb-3"></div>
+                                    <!-- EML Errors -->
+                                    <div id="eml-errors-container"
+                                        class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
+                                        <div class="p-2 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-xs">
+                                            <span class="mr-2">&#9888;&#65039;</span> Validation Issues
+                                        </div>
+                                        <div class="p-2 overflow-x-auto">
+                                            <table class="w-full text-xs">
+                                                <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                                                    <tr>
+                                                        <th class="py-1.5 px-2 text-left">Row</th>
+                                                        <th class="py-1.5 px-2 text-left">Employee</th>
+                                                        <th class="py-1.5 px-2 text-left">Item Name</th>
+                                                        <th class="py-1.5 px-2 text-left">Issue</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="eml-errors-body" class="divide-y divide-slate-100 text-slate-700">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Novated Remittance Panel -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                                <div class="px-4 py-3 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between gap-2">
+                                    <div class="flex items-center min-w-0">
+                                        <span class="mr-2">&#128663;</span>
+                                        <span class="font-bold text-emerald-900 text-sm truncate">Novated Remittance</span>
+                                    </div>
+                                    <div class="flex gap-1.5">
+                                        <button id="novated-easifleet-btn" disabled
+                                            class="bg-emerald-600 text-white font-semibold py-1.5 px-3 rounded-lg shadow hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap">
+                                            Easifleet
+                                        </button>
+                                        <button id="novated-smartleasing-btn" disabled
+                                            class="bg-teal-600 text-white font-semibold py-1.5 px-3 rounded-lg shadow hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap">
+                                            Smartleasing
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-3 flex-1">
+                                    <div id="novated-stats" class="grid grid-cols-3 gap-2 mb-3"></div>
+                                    <!-- Novated Errors -->
+                                    <div id="novated-errors-container"
+                                        class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
+                                        <div class="p-2 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-xs">
+                                            <span class="mr-2">&#9888;&#65039;</span> Validation Issues
+                                        </div>
+                                        <div class="p-2 overflow-x-auto">
+                                            <table class="w-full text-xs">
+                                                <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                                                    <tr>
+                                                        <th class="py-1.5 px-2 text-left">Row</th>
+                                                        <th class="py-1.5 px-2 text-left">Employee</th>
+                                                        <th class="py-1.5 px-2 text-left">Account</th>
+                                                        <th class="py-1.5 px-2 text-left">Issue</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="novated-errors-body" class="divide-y divide-slate-100 text-slate-700">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pay Detail Report Panel -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+                            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between flex-wrap gap-3">
+                                <div class="flex items-center">
+                                    <span class="mr-2">&#128196;</span>
+                                    <div>
+                                        <span class="font-bold text-slate-900 text-sm">Pay Detail Report</span>
+                                        <p id="paydetail-summary" class="text-xs text-slate-500 mt-0.5"></p>
+                                    </div>
+                                </div>
+                                <button id="paydetail-btn" disabled
+                                    class="bg-slate-800 text-white font-semibold py-1.5 px-4 rounded-lg shadow hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap">
+                                    Export Pay Detail PDF
                                 </button>
                             </div>
-                            <div class="p-4">
-                                <div id="eml-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
-                                <!-- EML Errors -->
-                                <div id="eml-errors-container"
-                                    class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
-                                    <div class="p-3 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-sm">
-                                        <span class="mr-2">&#9888;&#65039;</span> Validation Issues
-                                    </div>
-                                    <div class="p-3 overflow-x-auto">
-                                        <table class="w-full text-sm">
-                                            <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-                                                <tr>
-                                                    <th class="py-2 px-3 text-left">Row</th>
-                                                    <th class="py-2 px-3 text-left">Employee</th>
-                                                    <th class="py-2 px-3 text-left">Item Name</th>
-                                                    <th class="py-2 px-3 text-left">Issue</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="eml-errors-body" class="divide-y divide-slate-100 text-slate-700">
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Novated Remittance Panel -->
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-                            <div class="p-4 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <span class="mr-2 text-lg">&#128663;</span>
-                                    <span class="font-bold text-emerald-900">Novated Remittance</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="novated-easifleet-btn" disabled
-                                        class="bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
-                                        Export Easifleet
-                                    </button>
-                                    <button id="novated-smartleasing-btn" disabled
-                                        class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
-                                        Export Smartleasing
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="p-4">
-                                <div id="novated-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
-                                <!-- Novated Errors -->
-                                <div id="novated-errors-container"
-                                    class="hidden bg-white rounded-lg border border-red-200 overflow-hidden">
-                                    <div class="p-3 bg-red-50 border-b border-red-100 font-bold text-red-800 flex items-center text-sm">
-                                        <span class="mr-2">&#9888;&#65039;</span> Validation Issues
-                                    </div>
-                                    <div class="p-3 overflow-x-auto">
-                                        <table class="w-full text-sm">
-                                            <thead class="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-                                                <tr>
-                                                    <th class="py-2 px-3 text-left">Row</th>
-                                                    <th class="py-2 px-3 text-left">Employee</th>
-                                                    <th class="py-2 px-3 text-left">Account</th>
-                                                    <th class="py-2 px-3 text-left">Issue</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="novated-errors-body" class="divide-y divide-slate-100 text-slate-700">
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- VIEW: EML ONBOARDING -->
+            <div id="view-eml-onboarding" class="view-section hidden p-8 max-w-5xl mx-auto">
+                <header class="mb-10 relative">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-2">EML Onboarding</h2>
+                    <p class="text-slate-500">Find employees who have completed EML signup and hold an active card, but have no EMLMEC / EMLEBC schedule set up yet.</p>
+                </header>
+
+                <div class="max-w-4xl mx-auto">
+                    <!-- Upload Boxes -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div id="onb-ch-box" class="audit-drop bg-white border-2 border-dashed border-indigo-300 rounded-xl p-4 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm group">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">File 1</span>
+                            <div class="text-3xl my-1 group-hover:scale-110 transition-transform">👤</div>
+                            <h3 class="text-sm font-semibold text-slate-800">Cardholders Report</h3>
+                            <p id="onb-ch-status" class="text-xs text-slate-500 mt-1">EML cardholders (.csv)</p>
+                            <input type="file" id="onb-ch-input" class="hidden" accept=".csv,.xlsx,.xls">
+                        </div>
+                        <div id="onb-me-box" class="audit-drop bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm group">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">File 2</span>
+                            <div class="text-3xl my-1 group-hover:scale-110 transition-transform">🍽️</div>
+                            <h3 class="text-sm font-semibold text-slate-800">Active ME Report</h3>
+                            <p id="onb-me-status" class="text-xs text-slate-500 mt-1">Meal entertainment cards</p>
+                            <input type="file" id="onb-me-input" class="hidden" accept=".csv,.xlsx,.xls">
+                        </div>
+                        <div id="onb-le-box" class="audit-drop bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm group">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">File 3</span>
+                            <div class="text-3xl my-1 group-hover:scale-110 transition-transform">🏠</div>
+                            <h3 class="text-sm font-semibold text-slate-800">Active LE Report</h3>
+                            <p id="onb-le-status" class="text-xs text-slate-500 mt-1">Living expenses cards</p>
+                            <input type="file" id="onb-le-input" class="hidden" accept=".csv,.xlsx,.xls">
+                        </div>
+                        <div id="onb-pkg-box" class="audit-drop bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center transition-all duration-300 hover:border-indigo-600 hover:bg-indigo-50 cursor-pointer shadow-sm group">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">File 4</span>
+                            <div class="text-3xl my-1 group-hover:scale-110 transition-transform">📊</div>
+                            <h3 class="text-sm font-semibold text-slate-800">Package Benefit Details</h3>
+                            <p id="onb-pkg-status" class="text-xs text-slate-500 mt-1">Current schedules (.xlsx)</p>
+                            <input type="file" id="onb-pkg-input" class="hidden" accept=".xlsx,.xls,.csv">
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-6">Files already loaded in the Pre Payment Audit are picked up automatically. Cardholder dates (Created, Modified, Termination) are read as US format (M/D/YYYY). Terminated or deleted cardholders are excluded.</p>
+
+                    <!-- Filters -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-wrap items-end gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Date to filter on</label>
+                            <select id="onb-date-field" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+                                <option value="modified">Signup completed (Modified)</option>
+                                <option value="created">Record created (Created)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">From</label>
+                            <input type="date" id="onb-from" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">To</label>
+                            <input type="date" id="onb-to" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="OnboardingTool.setWindow(30)" class="px-3 py-2 text-xs border border-slate-300 rounded-lg hover:bg-slate-50">Last 30 days</button>
+                            <button type="button" onclick="OnboardingTool.setWindow(60)" class="px-3 py-2 text-xs border border-slate-300 rounded-lg hover:bg-slate-50">60</button>
+                            <button type="button" onclick="OnboardingTool.setWindow(90)" class="px-3 py-2 text-xs border border-slate-300 rounded-lg hover:bg-slate-50">90</button>
+                        </div>
+                        <label class="flex items-center gap-2 text-sm text-slate-700">
+                            <input type="checkbox" id="onb-only-flagged" checked class="rounded"> Only show employees needing a schedule
+                        </label>
+                        <div class="ml-auto flex gap-2">
+                            <button id="onb-run-btn" disabled class="bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm">Run</button>
+                            <button id="onb-reset-btn" type="button" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300">Reset</button>
+                        </div>
+                    </div>
+
+                    <div id="onb-note" class="hidden rounded-lg border p-4 mb-6 text-sm"></div>
+
+                    <!-- Results -->
+                    <div id="onb-results" class="hidden">
+                        <div id="onb-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+                                <h2 id="onb-table-title" class="font-bold text-slate-700">Employees</h2>
+                                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium" onclick="OnboardingTool.exportCsv()">Export to CSV</button>
+                            </div>
+                            <div class="overflow-x-auto" id="onb-table"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-4">How this is worked out: a cardholder counts as onboarded when Status is Complete, they are not terminated or deleted, and their ClientAccountKey appears in an Active ME or LE report. Each card's EAID is then looked for as a Bank Ref on an EMLMEC (ME card) or EMLEBC (LE card) line with a Fortnightly Amount above zero. Employees who have maximised will also show no schedule; use the date window, Created date and card balance to tell them apart.</p>
+
+                        <!-- Terminated cards still scheduled -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-8">
+                            <div class="bg-red-50 p-4 border-b border-red-100 flex justify-between items-center">
+                                <div>
+                                    <h2 id="onb-term-title" class="font-bold text-red-800">Terminated cards still scheduled</h2>
+                                    <p class="text-xs text-red-700 mt-1">EMLMEC / EMLEBC lines whose Bank Ref is not an active card. Not limited by the date window.</p>
+                                </div>
+                                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium" onclick="OnboardingTool.exportTerminatedCsv()">Export to CSV</button>
+                            </div>
+                            <div class="overflow-x-auto" id="onb-term-table"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2134,6 +2269,8 @@ Export anyway?`);
                 activeLink.className = 'flex items-center px-4 py-3 bg-slate-800 text-white rounded-lg transition-colors group';
                 activeLink.querySelector('svg').className = 'w-5 h-5 mr-3 text-indigo-400';
             }
+
+            if (viewId === 'eml-onboarding' && typeof OnboardingTool !== 'undefined') OnboardingTool.adoptAuditFiles();
         }
 
         // --- Package Benefit Validator Tool (Namespaced) ---
@@ -2261,6 +2398,7 @@ Export anyway?`);
                 this.readRows(file, { defval: '' }).then(rows => {
                     const idx = this.indexCardReport(rows);
                     idx.fileName = file.name;
+                    idx.rawRows = rows;
                     this.cards[key] = idx;
                     box.classList.add('loaded');
                     status.innerHTML = '<span class="text-green-700 font-semibold">&#10003; ' + file.name + '</span><br>'
@@ -3009,6 +3147,13 @@ Export anyway?`);
                 el(this.elements.emlGenerateBtn).addEventListener('click', () => this.generateEmlCSV());
                 el(this.elements.novatedEasifleetBtn).addEventListener('click', () => this.generateNovatedCSV('Easifleet'));
                 el(this.elements.novatedSmartleasingBtn).addEventListener('click', () => this.generateNovatedCSV('Smartleasing'));
+                const pdBtn = el('paydetail-btn');
+                if (pdBtn) pdBtn.addEventListener('click', () => {
+                    if (!window.jspdf) { alert('PDF library not loaded. Check your internet connection and reload.'); return; }
+                    try {
+                        PayDetailReport.generate(this.data, this.fileName || '', {});
+                    } catch (e) { alert('Could not generate PDF: ' + e.message); }
+                });
             },
 
             handleFile: function (file) {
@@ -3025,6 +3170,7 @@ Export anyway?`);
                         this.workbook = XLSX.read(data, { type: 'array', cellDates: true });
                         const worksheet = this.workbook.Sheets[this.workbook.SheetNames[0]];
                         this.data = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                        this.fileName = file.name;
 
                         const fileInfo = el(this.elements.fileInfo);
                         fileInfo.innerHTML = '<p class="font-bold">File Loaded: ' + file.name + '</p><p class="text-sm">Total Rows: ' + this.data.length + '</p>';
@@ -3133,6 +3279,7 @@ Export anyway?`);
 
                     this.displayEmlResults(emlCount);
                     this.displayNovatedResults(novatedCount);
+                    this.displayPayDetailSummary();
 
                     loading.classList.add('hidden');
                     resultsSection.classList.remove('hidden');
@@ -3151,6 +3298,18 @@ Export anyway?`);
                 }, 100);
             },
 
+            displayPayDetailSummary: function () {
+                const el = (id) => document.getElementById(id);
+                const btn = el('paydetail-btn'), sum = el('paydetail-summary');
+                if (!btn) return;
+                try {
+                    const m = PayDetailReport.build(this.data, this.fileName || '');
+                    sum.textContent = 'Pay date ' + m.payDateLabel + ' · ' + m.count.toLocaleString() + ' transactions · ' + PayDetailReport.money(m.total)
+                        + (m.exported ? ' · exported ' + PayDetailReport.fmtDateTime(m.exported) : '');
+                    btn.disabled = !(window.jspdf && m.count > 0);
+                } catch (e) { sum.textContent = 'Could not summarise file: ' + e.message; btn.disabled = true; }
+            },
+
             displayEmlResults: function (totalEml) {
                 const el = (id) => document.getElementById(id);
                 const stats = el(this.elements.emlStats);
@@ -3158,16 +3317,16 @@ Export anyway?`);
                 const errorsBody = el(this.elements.emlErrorsBody);
 
                 stats.innerHTML =
-                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
-                        '<h3 class="text-xl font-bold text-slate-800">' + totalEml + '</h3>' +
+                    '<div class="p-2 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-lg font-bold text-slate-800">' + totalEml + '</h3>' +
                         '<p class="text-slate-500 text-xs">EML Card Rows</p>' +
                     '</div>' +
-                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
-                        '<h3 class="text-xl font-bold text-green-600">' + this.emlValidRows.length + '</h3>' +
+                    '<div class="p-2 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-lg font-bold text-green-600">' + this.emlValidRows.length + '</h3>' +
                         '<p class="text-slate-500 text-xs">Valid</p>' +
                     '</div>' +
-                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center ' + (this.emlErrors.length > 0 ? 'bg-red-50 border-red-200' : '') + '">' +
-                        '<h3 class="text-xl font-bold ' + (this.emlErrors.length > 0 ? 'text-red-600' : 'text-slate-400') + '">' + this.emlErrors.length + '</h3>' +
+                    '<div class="p-2 bg-slate-50 rounded-lg border border-slate-200 text-center ' + (this.emlErrors.length > 0 ? 'bg-red-50 border-red-200' : '') + '">' +
+                        '<h3 class="text-lg font-bold ' + (this.emlErrors.length > 0 ? 'text-red-600' : 'text-slate-400') + '">' + this.emlErrors.length + '</h3>' +
                         '<p class="text-slate-500 text-xs">Errors</p>' +
                     '</div>';
 
@@ -3196,16 +3355,16 @@ Export anyway?`);
                 var smartTotal = this.novatedSmartleasingRows.reduce(function(sum, r) { return sum + r.payment; }, 0);
 
                 stats.innerHTML =
-                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
-                        '<h3 class="text-xl font-bold text-slate-800">' + totalNovated + '</h3>' +
+                    '<div class="p-2 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-lg font-bold text-slate-800">' + totalNovated + '</h3>' +
                         '<p class="text-slate-500 text-xs">NL - Finance Rows</p>' +
                     '</div>' +
-                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
-                        '<h3 class="text-xl font-bold text-emerald-600">' + this.novatedEasifleetRows.length + '</h3>' +
+                    '<div class="p-2 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-lg font-bold text-emerald-600">' + this.novatedEasifleetRows.length + '</h3>' +
                         '<p class="text-slate-500 text-xs">Easifleet ($' + easiTotal.toFixed(2) + ')</p>' +
                     '</div>' +
-                    '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
-                        '<h3 class="text-xl font-bold text-teal-600">' + this.novatedSmartleasingRows.length + '</h3>' +
+                    '<div class="p-2 bg-slate-50 rounded-lg border border-slate-200 text-center">' +
+                        '<h3 class="text-lg font-bold text-teal-600">' + this.novatedSmartleasingRows.length + '</h3>' +
                         '<p class="text-slate-500 text-xs">Smartleasing ($' + smartTotal.toFixed(2) + ')</p>' +
                     '</div>';
 
@@ -3276,10 +3435,742 @@ Export anyway?`);
             }
         };
 
+        // --- Pay Detail Report (PDF, Meridian style) ---
+        const PayDetailReport = {
+            // Meridian tokens
+            C: {
+                navy: [22, 34, 74], delphinium: [59, 111, 212], accentText: [47, 93, 184], raspberry: [214, 51, 108],
+                rose: [242, 122, 155], ink2: [76, 84, 112], ink3: [94, 102, 127], rule: [216, 226, 244],
+                sunken: [231, 238, 250], paper: [242, 246, 253], white: [255, 255, 255], aqua: [43, 179, 177]
+            },
+
+            money: (n) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(n || 0),
+            num: (n) => (n || 0).toLocaleString('en-AU'),
+            fmtDate: (d) => d ? String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear() : '',
+            fmtDateTime: function (d) { return d ? this.fmtDate(d) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') : ''; },
+
+            parseDate: function (v) {
+                if (v instanceof Date) return isNaN(v) ? null : v;
+                const sv = String(v == null ? '' : v).trim();
+                if (!sv) return null;
+                const m = sv.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);   // AU d/m/yyyy
+                if (m) return new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+                const d = new Date(sv); return isNaN(d) ? null : d;
+            },
+
+            // Export timestamp from the report file name: ..._YYYYMMDD_HHMMSS.xlsx
+            exportStamp: function (fileName) {
+                const m = String(fileName || '').match(/_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+                return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : null;
+            },
+
+            provider: function (accountName) {
+                const a = String(accountName || '').toLowerCase();
+                if (a.indexOf('easifleet') !== -1) return 'Easifleet';
+                if (a.indexOf('smartleasing') !== -1 || a.indexOf('smart leasing') !== -1) return 'Smartleasing';
+                return String(accountName || '').trim() || 'Unknown';
+            },
+
+            destination: function (accountName, bsb, acct, itemName) {
+                const a = String(accountName || '').toLowerCase();
+                if (a === 'eml card' || (bsb === '014950' && acct === '23764409')) return 'EML cards (meal entertainment and living expenses)';
+                if (a === 'pbi solutions' || (bsb === '012003' && acct === '835839621')) return 'PBI Solutions (EML card fees)';
+                if (a.indexOf('austin') !== -1 || (bsb === '033286' && acct === '00120120')) return 'Austin Health (admin and program fees)';
+                if (itemName === 'NL - Finance') return 'Novated leasing providers';
+                return 'Employee nominated accounts';
+            },
+
+            build: function (rows, fileName) {
+                const get = (row, key) => RemittanceTool.getField(row, key);
+                const c = (v) => String(v == null ? '' : v).trim();
+                const model = {
+                    fileName, generated: new Date(), exported: this.exportStamp(fileName),
+                    payDates: new Map(), total: 0, count: 0, employees: new Set(),
+                    items: new Map(), cycles: new Map(), destinations: new Map(), novated: new Map(),
+                    reportTotal: null, reportAdminFees: null, reportCount: null
+                };
+                rows.forEach(row => {
+                    const item = c(get(row, 'Item Name') || get(row, 'Salary Package Item'));
+                    const txn = c(get(row, 'Transaction No.'));
+                    if (!item) {
+                        // Footer rows: "Total Payment:", "Admin Fees Total:", "Total Count: N"
+                        const label = txn.toLowerCase();
+                        const val = parseFloat(String(get(row, 'Payment') || '').replace(/[^0-9.\-]/g, ''));
+                        if (label.startsWith('total payment') && !isNaN(val)) model.reportTotal = val;
+                        else if (label.startsWith('admin fee') && !isNaN(val)) model.reportAdminFees = val;
+                        else if (label.startsWith('total count')) { const n = parseInt(label.replace(/[^0-9]/g, ''), 10); if (!isNaN(n)) model.reportCount = n; }
+                        return;
+                    }
+                    const payment = parseFloat(get(row, 'Payment') || get(row, 'Amount') || 0) || 0;
+                    const emp = c(get(row, 'Employee Name') || get(row, 'Name'));
+                    const accountName = c(get(row, 'Account Name') || get(row, 'Bank Account Name'));
+                    const bsb = c(get(row, 'BSB')).replace(/\D/g, '').padStart(6, '0');
+                    const acct = c(get(row, 'Account No.') || get(row, 'Account Number')).replace(/\D/g, '').padStart(8, '0');
+                    const bankRef = c(get(row, 'Bank Reference') || get(row, 'Bank Ref'));
+                    const cycle = c(get(row, 'Pay Cycle Category')) || '-';
+                    const payDate = this.parseDate(get(row, 'Pay Date'));
+                    const pdKey = payDate ? this.fmtDate(payDate) : 'Unknown';
+
+                    model.total += payment; model.count++;
+                    if (emp) model.employees.add(emp);
+                    model.payDates.set(pdKey, (model.payDates.get(pdKey) || 0) + 1);
+
+                    const it = model.items.get(item) || { item, count: 0, amount: 0, employees: new Set() };
+                    it.count++; it.amount += payment; if (emp) it.employees.add(emp); model.items.set(item, it);
+
+                    const cy = model.cycles.get(cycle) || { cycle, count: 0, amount: 0, employees: new Set() };
+                    cy.count++; cy.amount += payment; if (emp) cy.employees.add(emp); model.cycles.set(cycle, cy);
+
+                    const dest = this.destination(accountName, bsb, acct, item);
+                    const de = model.destinations.get(dest) || { dest, count: 0, amount: 0 };
+                    de.count++; de.amount += payment; model.destinations.set(dest, de);
+
+                    if (item === 'NL - Finance') {
+                        const p = this.provider(accountName);
+                        const nv = model.novated.get(p) || { provider: p, count: 0, amount: 0, rows: [] };
+                        nv.count++; nv.amount += payment;
+                        nv.rows.push({ employee: emp, accountName, bankRef, payment });
+                        model.novated.set(p, nv);
+                    }
+                });
+                model.itemList = [...model.items.values()].sort((a, b) => b.amount - a.amount);
+
+                // ---- Grouped view for the pay detail report ----
+                const LIVING = ['mortgage', 'rent', 'credit card', 'personal loan', 'living expenses'];
+                const RETURNS = ['resend to payroll', 'offline resent to payroll', 'offline resend to payroll'];
+                const EML_FEES = ['emlmec fee', 'emlebc fee'];
+                const isAustin = (accountName, bsb, acct) => String(accountName || '').toLowerCase().indexOf('austin') !== -1 || (bsb === '033286' && acct === '00120120');
+                const groups = { reimb: new Map(), eml: new Map(), austin: new Map(), returns: new Map(), emlFees: new Map(), novated: new Map() };
+                const bump = (map, key, emp, payment, order) => {
+                    const g = map.get(key) || { label: key, count: 0, amount: 0, employees: new Set(), order: order == null ? 99 : order };
+                    g.count++; g.amount += payment; if (emp) g.employees.add(emp); map.set(key, g);
+                };
+                rows.forEach(row => {
+                    const item = c(get(row, 'Item Name') || get(row, 'Salary Package Item'));
+                    if (!item) return;
+                    const li = item.toLowerCase();
+                    const payment = parseFloat(get(row, 'Payment') || get(row, 'Amount') || 0) || 0;
+                    const emp = c(get(row, 'Employee Name') || get(row, 'Name'));
+                    const accountName = c(get(row, 'Account Name') || get(row, 'Bank Account Name'));
+                    const bsb = c(get(row, 'BSB')).replace(/\D/g, '').padStart(6, '0');
+                    const acct = c(get(row, 'Account No.') || get(row, 'Account Number')).replace(/\D/g, '').padStart(8, '0');
+                    if (li === 'emlmec' || li === 'emlebc') bump(groups.eml, item, emp, payment, li === 'emlebc' ? 0 : 1);
+                    else if (EML_FEES.indexOf(li) !== -1) bump(groups.emlFees, item, emp, payment, li === 'emlmec fee' ? 0 : 1);
+                    else if (RETURNS.indexOf(li) !== -1) bump(groups.returns, item, emp, payment, li.startsWith('resend') ? 0 : 1);
+                    else if (li === 'nl - finance') bump(groups.novated, this.provider(accountName), emp, payment);
+                    else if (/\bfee\b/.test(li)) bump(groups.austin, item, emp, payment);   // fee items are paid to Austin Health
+                    else if (LIVING.indexOf(li) !== -1) bump(groups.reimb, 'Living expenses', emp, payment, 0);
+                    else if (li === 'entertainment benefits') bump(groups.reimb, 'Entertainment benefits', emp, payment, 1);
+                    else if (li === 'car parking austin') bump(groups.reimb, 'Car parking', emp, payment, 2);
+                    else if (li === 'portable electronic devices') bump(groups.reimb, 'Portable electronic devices', emp, payment, 3);
+                    else bump(groups.reimb, item, emp, payment);
+                });
+                const toList = (map, byAmount) => [...map.values()].sort((a, b) => (a.order - b.order) || (byAmount ? b.amount - a.amount : a.label.localeCompare(b.label)));
+                model.groups = {
+                    reimb: toList(groups.reimb), eml: toList(groups.eml), austin: toList(groups.austin, true),
+                    returns: toList(groups.returns), emlFees: toList(groups.emlFees), novated: toList(groups.novated, true)
+                };
+                model.cycleList = [...model.cycles.values()].sort((a, b) => b.amount - a.amount);
+                model.destList = [...model.destinations.values()].sort((a, b) => b.amount - a.amount);
+                model.novatedList = [...model.novated.values()].sort((a, b) => b.amount - a.amount);
+                model.novatedList.forEach(nv => nv.rows.sort((a, b) => a.employee.localeCompare(b.employee)));
+                model.novatedTotal = model.novatedList.reduce((s, n) => s + n.amount, 0);
+                model.payDateLabel = [...model.payDates.keys()].join(', ');
+                return model;
+            },
+
+            generate: function (rows, fileName, opts) {
+                opts = opts || {};
+                const m = this.build(rows, fileName);
+                const C = this.C;
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+                const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+                const ML = 20, MR = 20, MT = 22, MB = 20, CW = W - ML - MR;
+                const cycleName = (k) => k === 'H' ? 'Hospital (H)' : k === 'M' ? 'Medical (M)' : k;
+                const footerText = 'Pay detail report  ·  Pay date ' + m.payDateLabel + '  ·  Generated ' + this.fmtDateTime(m.generated);
+                let y = 0;
+
+                const setFont = (style, size, color) => { doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...color); };
+                const stripe = (yPos, h) => {   // navy 34 / delphinium 34 / raspberry 19 / rose 13, hard edges
+                    const segs = [[C.navy, 0.34], [C.delphinium, 0.34], [C.raspberry, 0.19], [C.rose, 0.13]];
+                    let x = 0; segs.forEach(([col, f]) => { doc.setFillColor(...col); doc.rect(x, yPos, W * f + 0.2, h, 'F'); x += W * f; });
+                };
+                const eyebrow = (text, yy) => { setFont('bold', 8.5, C.accentText); doc.text(text.toUpperCase(), ML, yy, { charSpace: 0.4 }); };
+                const sectionHeading = (title, sub) => {
+                    if (y > H - MB - 45) { doc.addPage(); y = MT; }
+                    setFont('bold', 14, C.navy); doc.text(title, ML, y); y += 6;
+                    if (sub) { setFont('normal', 9, C.ink2); const lines = doc.splitTextToSize(sub, CW); doc.text(lines, ML, y); y += 4.5 * lines.length; }
+                    y += 2;
+                };
+                const table = (head, body, colStyles, foot) => {
+                    doc.autoTable({
+                        startY: y, margin: { left: ML, right: MR, top: MT, bottom: MB },
+                        head: [head], body, foot: foot ? [foot] : undefined, showFoot: 'lastPage',
+                        theme: 'plain',
+                        styles: { font: 'helvetica', fontSize: 8.5, textColor: C.navy, cellPadding: { top: 1.8, bottom: 1.8, left: 1.5, right: 1.5 }, lineColor: C.rule, lineWidth: 0, overflow: 'linebreak' },
+                        headStyles: { fontStyle: 'bold', fontSize: 7.5, textColor: C.ink3, lineWidth: { bottom: 0.4 }, lineColor: C.ink3 },
+                        bodyStyles: { lineWidth: { bottom: 0.2 }, lineColor: C.rule },
+                        footStyles: { fontStyle: 'bold', textColor: C.navy, lineWidth: { top: 0.4 }, lineColor: C.navy, fillColor: false },
+                        columnStyles: colStyles,
+                        didParseCell: (d) => {   // numeric columns: align the header with the body
+                            if ((d.section === 'head' || d.section === 'foot') && colStyles[d.column.index] && colStyles[d.column.index].halign) d.cell.styles.halign = colStyles[d.column.index].halign;
+                        }
+                    });
+                    y = doc.lastAutoTable.finalY + 10;
+                };
+                const R = { halign: 'right' };
+
+                // ---------- Page 1: cover header ----------
+                stripe(0, 6);
+                y = 24;
+                eyebrow('Salary packaging  ·  Payment transaction report', y); y += 9;
+                setFont('bold', 24, C.navy); doc.text('Pay detail report', ML, y); y += 10;
+                setFont('normal', 10, C.ink2);
+                doc.text('Pay date ' + m.payDateLabel, ML, y); y += 5;
+                setFont('normal', 8.5, C.ink3);
+                doc.text('Generated ' + this.fmtDateTime(m.generated), ML, y); y += 10;
+
+                // KPI row
+                const kpis = [
+                    { label: 'Total paid', value: this.money(m.total), hi: true },
+                    { label: 'Transactions', value: this.num(m.count) },
+                    { label: 'Employees paid', value: this.num(m.employees.size) },
+                    { label: 'Novated leasing', value: this.money(m.novatedTotal) }
+                ];
+                const kw = (CW - 6 * 3) / 4, kh = 22;
+                kpis.forEach((k, i) => {
+                    const x = ML + i * (kw + 6);
+                    doc.setFillColor(...C.white); doc.setDrawColor(...C.rule); doc.setLineWidth(0.25);
+                    doc.roundedRect(x, y, kw, kh, 2.5, 2.5, 'FD');
+                    setFont('bold', 7, C.ink3); doc.text(k.label.toUpperCase(), x + 4, y + 6.5, { charSpace: 0.3 });
+                    setFont('bold', k.value.length > 12 ? 12 : 14, k.hi ? C.raspberry : C.navy);
+                    doc.text(k.value, x + 4, y + 16);
+                });
+                y += kh + 12;
+
+                const sum = (list) => list.reduce((s, g) => s + g.amount, 0);
+                const cnt = (list) => list.reduce((s, g) => s + g.count, 0);
+                const emps = (list) => { const s = new Set(); list.forEach(g => g.employees.forEach(e => s.add(e))); return s.size; };
+                const gRow = (g) => [g.label, this.num(g.count), this.num(g.employees.size), this.money(g.amount)];
+                const subhead = (label) => [{ content: label, colSpan: 4, styles: { fontStyle: 'bold', textColor: C.accentText, fontSize: 8, cellPadding: { top: 4, bottom: 1.5, left: 1.5, right: 1.5 } } }];
+                const numCols = { 0: { cellWidth: 80 }, 1: R, 2: R, 3: R };
+                const G = m.groups;
+
+                // ---------- Employee reimbursements ----------
+                table(['Employee reimbursements', 'Transactions', 'Employees', 'Amount'],
+                    G.reimb.map(gRow), numCols,
+                    ['Total', this.num(cnt(G.reimb)), this.num(emps(G.reimb)), this.money(sum(G.reimb))]);
+
+                // ---------- EML transactions ----------
+                table(['EML transactions', 'Transactions', 'Employees', 'Amount'],
+                    G.eml.map(gRow), numCols,
+                    ['Total', this.num(cnt(G.eml)), this.num(emps(G.eml)), this.money(sum(G.eml))]);
+
+                // ---------- Austin fees ----------
+                table(['Austin fees', 'Transactions', 'Employees', 'Amount'],
+                    G.austin.map(gRow), numCols,
+                    ['Total', this.num(cnt(G.austin)), this.num(emps(G.austin)), this.money(sum(G.austin))]);
+
+                // ---------- Payment returns ----------
+                table(['Payment returns', 'Transactions', 'Employees', 'Amount'],
+                    G.returns.length ? G.returns.map(gRow) : [[{ content: 'No payment returns in this report.', colSpan: 4, styles: { textColor: C.ink2 } }]], numCols,
+                    ['Total', this.num(cnt(G.returns)), this.num(emps(G.returns)), this.money(sum(G.returns))]);
+
+                // ---------- EML fees ----------
+                table(['EML fees', 'Transactions', 'Employees', 'Amount'],
+                    G.emlFees.map(gRow), numCols,
+                    ['Total', this.num(cnt(G.emlFees)), this.num(emps(G.emlFees)), this.money(sum(G.emlFees))]);
+
+                // ---------- Novated leasing ----------
+                table(['Novated leasing', 'Transactions', 'Employees', 'Amount'],
+                    G.novated.length ? G.novated.map(gRow) : [[{ content: 'No NL - Finance payments in this report.', colSpan: 4, styles: { textColor: C.ink2 } }]], numCols,
+                    ['Total', this.num(cnt(G.novated)), this.num(emps(G.novated)), this.money(sum(G.novated))]);
+
+                // ---------- Grand total ----------
+                if (y > H - MB - 20) { doc.addPage(); y = MT; }
+                doc.setDrawColor(...C.navy); doc.setLineWidth(0.5); doc.line(ML, y - 3, W - MR, y - 3);
+                setFont('bold', 10, C.navy); doc.text('Total payments', ML + 1.5, y + 3);
+                doc.text(this.money(m.total), W - MR - 1.5, y + 3, { align: 'right' });
+                setFont('normal', 8.5, C.ink2); doc.text(this.num(m.count) + ' transactions  ·  ' + this.num(m.employees.size) + ' employees', ML + 1.5, y + 8);
+                y += 18;
+
+                // ---------- Pay cycle ----------
+                sectionHeading('Payments by pay cycle');
+                table(['Pay cycle', 'Transactions', 'Employees', 'Amount'],
+                    m.cycleList.map(cy => [cycleName(cy.cycle), this.num(cy.count), this.num(cy.employees.size), this.money(cy.amount)]),
+                    { 1: R, 2: R, 3: R },
+                    ['Total', this.num(m.count), this.num(m.employees.size), this.money(m.total)]);
+
+                // ---------- Footer on every page ----------
+                const pages = doc.internal.getNumberOfPages();
+                for (let p = 1; p <= pages; p++) {
+                    doc.setPage(p);
+                    doc.setDrawColor(...C.rule); doc.setLineWidth(0.25); doc.line(ML, H - 13, W - MR, H - 13);
+                    setFont('normal', 7.5, C.ink3);
+                    doc.text(footerText, ML, H - 8.5);
+                    doc.text('Page ' + p + ' of ' + pages, W - MR, H - 8.5, { align: 'right' });
+                }
+
+                const pad = (n) => String(n).padStart(2, '0');
+                const stamp = (m.payDates.size === 1 ? 'PayDate_' + m.payDateLabel.replace(/\//g, '-') : 'Generated_' + this.fmtDate(m.generated).replace(/\//g, '-'))
+                    + (m.exported ? '_Run_' + m.exported.getFullYear() + pad(m.exported.getMonth() + 1) + pad(m.exported.getDate()) + '-' + pad(m.exported.getHours()) + pad(m.exported.getMinutes()) : '');
+                doc.save('Pay_Detail_Report_' + stamp + '.pdf');
+                return m;
+            }
+        };
+
+        // --- EML Onboarding Tool (Namespaced) ---
+        const OnboardingTool = {
+            cardholders: null,   // { rows, fileName }
+            cards: { me: null, le: null },   // { byCak: Map, byEaid: Map, fileName }
+            pkg: null,           // { activeRefs: { EMLMEC:Set, EMLEBC:Set }, zeroRefs:Set, payrollIds:Set, fileName }
+            results: [],
+            shown: [],
+            lastRun: null,
+
+            el: (id) => document.getElementById(id),
+
+            init: function () {
+                const el = this.el;
+                if (!el('onb-ch-box')) return;
+                const wire = (boxId, inputId, handler) => {
+                    const box = el(boxId), input = el(inputId);
+                    box.addEventListener('click', () => input.click());
+                    box.addEventListener('dragover', (e) => { e.preventDefault(); box.classList.add('border-indigo-600', 'bg-indigo-50'); });
+                    box.addEventListener('dragleave', () => box.classList.remove('border-indigo-600', 'bg-indigo-50'));
+                    box.addEventListener('drop', (e) => {
+                        e.preventDefault(); box.classList.remove('border-indigo-600', 'bg-indigo-50');
+                        if (e.dataTransfer.files.length > 0) handler(e.dataTransfer.files[0]);
+                    });
+                    input.addEventListener('change', (e) => { if (e.target.files.length > 0) handler(e.target.files[0]); input.value = ''; });
+                };
+                wire('onb-ch-box', 'onb-ch-input', (f) => this.loadCardholders(f));
+                wire('onb-me-box', 'onb-me-input', (f) => this.loadCards(f, 'me'));
+                wire('onb-le-box', 'onb-le-input', (f) => this.loadCards(f, 'le'));
+                wire('onb-pkg-box', 'onb-pkg-input', (f) => this.loadPackage(f));
+                el('onb-run-btn').addEventListener('click', () => this.run());
+                el('onb-reset-btn').addEventListener('click', () => this.reset());
+                ['onb-date-field', 'onb-from', 'onb-to', 'onb-only-flagged'].forEach(id =>
+                    el(id).addEventListener('change', () => { if (this.lastRun) this.render(); }));
+                this.setWindow(30);
+            },
+
+            setWindow: function (days) {
+                const fmt = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                const to = new Date(); const from = new Date(); from.setDate(from.getDate() - days);
+                this.el('onb-from').value = fmt(from);
+                this.el('onb-to').value = fmt(to);
+                if (this.lastRun) this.render();
+            },
+
+            // Cardholder report dates are US format: M/D/YYYY h:mm:ss AM
+            parseUSDate: function (v) {
+                if (v instanceof Date) return isNaN(v) ? null : v;
+                const sv = String(v == null ? '' : v).trim();
+                if (!sv) return null;
+                const m = sv.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?/i);
+                if (!m) { const d = new Date(sv); return isNaN(d) ? null : d; }
+                let hh = m[4] ? parseInt(m[4], 10) : 0;
+                if (m[7]) { const pm = m[7].toUpperCase() === 'PM'; if (pm && hh < 12) hh += 12; if (!pm && hh === 12) hh = 0; }
+                return new Date(parseInt(m[3], 10), parseInt(m[1], 10) - 1, parseInt(m[2], 10), hh, m[5] ? parseInt(m[5], 10) : 0, m[6] ? parseInt(m[6], 10) : 0);
+            },
+
+            readRows: function (file, opts, readOpts) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const wb = XLSX.read(new Uint8Array(e.target.result), Object.assign({ type: 'array' }, readOpts || {}));
+                            const ws = wb.Sheets[wb.SheetNames[0]];
+                            resolve(XLSX.utils.sheet_to_json(ws, opts));
+                        } catch (err) { reject(err); }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            },
+
+            setBox: function (key, fileName, detail, fromAudit) {
+                const box = this.el('onb-' + key + '-box'), st = this.el('onb-' + key + '-status');
+                box.classList.add('loaded');
+                st.innerHTML = '<span class="text-green-700 font-semibold">&#10003; ' + fileName + '</span><br>' + detail + (fromAudit ? ' <span class="text-slate-400">(from audit)</span>' : '');
+                this.el('onb-results').classList.add('hidden');
+                this.lastRun = null;
+                this.refreshRun();
+            },
+
+            refreshRun: function () {
+                this.el('onb-run-btn').disabled = !(this.cardholders && (this.cards.me || this.cards.le) && this.pkg);
+            },
+
+            norm: (v) => String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9]/g, ''),
+            findKey: function (keys, ...names) {
+                for (const n of names) { const k = keys.find(k => this.norm(k) === n); if (k) return k; }
+                return null;
+            },
+
+            loadCardholders: function (file) {
+                // raw:true keeps the US date strings as text so they are not misread as AU dates
+                this.readRows(file, { defval: '' }, { raw: true }).then(rows => {
+                    if (!rows.length) throw new Error('report is empty');
+                    const keys = Object.keys(rows[0]);
+                    const k = {
+                        cak: this.findKey(keys, 'clientaccountkey', 'cak'),
+                        status: this.findKey(keys, 'status'),
+                        emp: this.findKey(keys, 'employeeid', 'employeenumber'),
+                        first: this.findKey(keys, 'fname', 'firstname'),
+                        last: this.findKey(keys, 'lname', 'lastname'),
+                        email: this.findKey(keys, 'email'),
+                        created: this.findKey(keys, 'created'),
+                        modified: this.findKey(keys, 'modified'),
+                        kyc: this.findKey(keys, 'kycstatus'),
+                        deleted: this.findKey(keys, 'deleted'),
+                        term: this.findKey(keys, 'terminationdate'),
+                        me: this.findKey(keys, 'mealsentertainment'),
+                        le: this.findKey(keys, 'livingexpenses')
+                    };
+                    if (!k.cak) throw new Error('could not find a "ClientAccountKey" column');
+                    if (!k.status) throw new Error('could not find a "Status" column');
+                    const c = (v) => String(v == null ? '' : v).trim();
+                    const list = rows.map(r => ({
+                        cak: c(r[k.cak]),
+                        status: c(r[k.status]),
+                        emp: k.emp ? c(r[k.emp]).replace(/^0+/, '') : '',
+                        name: [k.first ? c(r[k.first]) : '', k.last ? c(r[k.last]) : ''].filter(Boolean).join(' '),
+                        email: k.email ? c(r[k.email]) : '',
+                        created: k.created ? this.parseUSDate(r[k.created]) : null,
+                        modified: k.modified ? this.parseUSDate(r[k.modified]) : null,
+                        kyc: k.kyc ? c(r[k.kyc]) : '',
+                        deleted: k.deleted ? c(r[k.deleted]).toLowerCase() === 'true' : false,
+                        term: k.term ? this.parseUSDate(r[k.term]) : null,
+                        optME: k.me ? c(r[k.me]).toLowerCase() === 'true' : null,
+                        optLE: k.le ? c(r[k.le]).toLowerCase() === 'true' : null
+                    })).filter(x => x.cak);
+                    this.cardholders = { rows: list, fileName: file.name };
+                    const complete = list.filter(x => x.status.toLowerCase() === 'complete').length;
+                    const terminated = list.filter(x => x.deleted || x.term).length;
+                    this.setBox('ch', file.name, list.length.toLocaleString() + ' cardholders, ' + complete.toLocaleString() + ' complete'
+                        + (terminated ? ', ' + terminated.toLocaleString() + ' terminated' : ''));
+                }).catch(err => alert('Error reading Cardholders report: ' + err.message));
+            },
+
+            indexCards: function (rows) {
+                if (!rows.length) throw new Error('report is empty');
+                const keys = Object.keys(rows[0]);
+                const eaidKey = this.findKey(keys, 'eaid') || keys.find(k => this.norm(k).includes('eaid'));
+                const cakKey = this.findKey(keys, 'cak', 'clientaccountkey');
+                if (!eaidKey) throw new Error('could not find an "EAID" column');
+                if (!cakKey) throw new Error('could not find a "CAK" column');
+                const empKey = this.findKey(keys, 'employeenumber', 'employeeid');
+                const statusKey = this.findKey(keys, 'status');
+                const balKey = this.findKey(keys, 'balance');
+                const firstKey = this.findKey(keys, 'firstname'), lastKey = this.findKey(keys, 'lastname');
+                const c = (v) => String(v == null ? '' : v).trim();
+                const byCak = new Map(), byEaid = new Map();
+                rows.forEach(r => {
+                    const eaid = c(r[eaidKey]), cak = c(r[cakKey]);
+                    if (!eaid) return;
+                    if (statusKey) { const st = c(r[statusKey]).toLowerCase(); if (st && st !== 'active') return; }
+                    const card = {
+                        eaid, cak,
+                        emp: empKey ? c(r[empKey]).replace(/^0+/, '') : '',
+                        balance: balKey ? (parseFloat(r[balKey]) || 0) : null,
+                        name: [firstKey ? c(r[firstKey]) : '', lastKey ? c(r[lastKey]) : ''].filter(Boolean).join(' ')
+                    };
+                    byEaid.set(eaid, card);
+                    if (cak) byCak.set(cak, card);
+                });
+                return { byCak, byEaid };
+            },
+
+            loadCards: function (file, key) {
+                this.readRows(file, { defval: '' }).then(rows => {
+                    const idx = this.indexCards(rows);
+                    idx.fileName = file.name;
+                    this.cards[key] = idx;
+                    this.setBox(key, file.name, idx.byEaid.size.toLocaleString() + ' active cards');
+                }).catch(err => alert('Error reading ' + (key === 'me' ? 'Active ME' : 'Active LE') + ' report: ' + err.message));
+            },
+
+            indexPackage: function (rows) {
+                const c = (v) => String(v == null ? '' : v).trim();
+                const activeRefs = { EMLMEC: new Set(), EMLEBC: new Set() };
+                const zeroRefs = new Set();
+                const payrollIds = new Set();
+                const emlLines = [];
+                rows.forEach((r, index) => {
+                    const pid = c(r['Payroll ID']).replace(/^0+/, '');
+                    if (pid) payrollIds.add(pid);
+                    const item = c(r['Salary Package Item']);
+                    if (item !== 'EMLMEC' && item !== 'EMLEBC') return;
+                    const ref = c(r['Bank Ref']);
+                    const fn = parseFloat(r['Fortnightly Amount']);
+                    emlLines.push({
+                        row: index + 2, pid, item, ref, amount: isNaN(fn) ? 0 : fn,
+                        name: [c(r['First Name']), c(r['Last Name'])].filter(Boolean).join(' '),
+                        endDate: c(r['End Date'])
+                    });
+                    if (!ref) return;
+                    if (!isNaN(fn) && fn > 0) activeRefs[item].add(ref); else zeroRefs.add(ref);
+                });
+                return { activeRefs, zeroRefs, payrollIds, emlLines };
+            },
+
+            loadPackage: function (file) {
+                this.readRows(file, { defval: null }, { cellDates: true }).then(rows => {
+                    const idx = this.indexPackage(rows);
+                    idx.fileName = file.name;
+                    this.pkg = idx;
+                    this.setBox('pkg', file.name, rows.length.toLocaleString() + ' records');
+                }).catch(err => alert('Error reading Package Benefit Details: ' + err.message));
+            },
+
+            // Reuse files already loaded in the Pre Payment Audit
+            adoptAuditFiles: function () {
+                if (typeof ValidatorTool === 'undefined') return;
+                if (!this.pkg && ValidatorTool.data && ValidatorTool.data.length) {
+                    const idx = this.indexPackage(ValidatorTool.data);
+                    idx.fileName = ValidatorTool.pkgFileName || 'Package Benefit Details';
+                    this.pkg = idx;
+                    this.setBox('pkg', idx.fileName, ValidatorTool.data.length.toLocaleString() + ' records', true);
+                }
+                ['me', 'le'].forEach(key => {
+                    const src = ValidatorTool.cards && ValidatorTool.cards[key];
+                    if (this.cards[key] || !src || !src.rawRows) return;
+                    try {
+                        const idx = this.indexCards(src.rawRows);
+                        idx.fileName = src.fileName;
+                        this.cards[key] = idx;
+                        this.setBox(key, src.fileName, idx.byEaid.size.toLocaleString() + ' active cards', true);
+                    } catch (e) { /* CAK column missing; user can load manually */ }
+                });
+            },
+
+            run: function () {
+                const ch = this.cardholders, me = this.cards.me, le = this.cards.le, pkg = this.pkg;
+                const results = [];
+                ch.rows.forEach(h => {
+                    const isComplete = h.status.toLowerCase() === 'complete';
+                    const gone = h.deleted || !!h.term;   // terminated / deleted cardholders are never actioned
+                    const meCard = me ? me.byCak.get(h.cak) : null;
+                    const leCard = le ? le.byCak.get(h.cak) : null;
+                    const cards = [];
+                    if (meCard) cards.push({ type: 'ME', item: 'EMLMEC', card: meCard });
+                    if (leCard) cards.push({ type: 'LE', item: 'EMLEBC', card: leCard });
+                    cards.forEach(cd => {
+                        cd.scheduled = pkg.activeRefs[cd.item].has(cd.card.eaid);
+                        cd.zeroSchedule = !cd.scheduled && pkg.zeroRefs.has(cd.card.eaid);
+                        cd.otherItem = !cd.scheduled && pkg.activeRefs[cd.item === 'EMLMEC' ? 'EMLEBC' : 'EMLMEC'].has(cd.card.eaid);
+                    });
+                    const missing = cards.filter(cd => !cd.scheduled);
+                    results.push({
+                        h, cards, missing, gone,
+                        onboarded: isComplete && !gone && cards.length > 0,
+                        signedUpNoCard: isComplete && !gone && cards.length === 0,
+                        needsSchedule: isComplete && !gone && missing.length > 0,
+                        inPkg: pkg.payrollIds.has(h.emp)
+                    });
+                });
+                this.results = results;
+
+                // Terminated cards still scheduled: package EML lines whose Bank Ref is not an active card.
+                // Enriched with the cardholder record and any active replacement card for that employee.
+                const byEmp = new Map();
+                ch.rows.forEach(h => {
+                    if (!h.emp) return;
+                    const list = byEmp.get(h.emp) || [];
+                    list.push(h); byEmp.set(h.emp, list);
+                });
+                const isActiveRef = (ref) => !!((me && me.byEaid.has(ref)) || (le && le.byEaid.has(ref)));
+                this.terminated = pkg.emlLines
+                    .filter(ln => ln.ref && !isActiveRef(ln.ref))
+                    .map(ln => {
+                        const recs = byEmp.get(ln.pid) || [];
+                        const live = recs.filter(h => !h.deleted && !h.term && h.status.toLowerCase() === 'complete');
+                        const rec = live[0] || recs.slice().sort((a, b) => (b.modified || 0) - (a.modified || 0))[0] || null;
+                        const replacement = [];
+                        live.forEach(h => {
+                            const mc = me ? me.byCak.get(h.cak) : null, lc = le ? le.byCak.get(h.cak) : null;
+                            if (mc) replacement.push({ type: 'ME', item: 'EMLMEC', card: mc });
+                            if (lc) replacement.push({ type: 'LE', item: 'EMLEBC', card: lc });
+                        });
+                        const sameType = replacement.find(c => c.item === ln.item);
+                        let action, cls;
+                        if (sameType) { action = 'Update schedule Bank Ref to active ' + sameType.type + ' card ' + sameType.card.eaid; cls = 'card-wrong-type'; }
+                        else if (rec && (rec.deleted || rec.term)) { action = 'Cardholder terminated' + (rec.term ? ' ' + this.fmtDate(rec.term) : '') + '. Delete or end the schedule'; cls = 'card-inactive'; }
+                        else if (!rec) { action = 'No cardholder record found. Check employee and delete or end the schedule'; cls = 'card-inactive'; }
+                        else { action = 'No active ' + (ln.item === 'EMLMEC' ? 'ME' : 'LE') + ' card. Create a new card, then update the schedule'; cls = 'card-no-ref'; }
+                        return { ln, rec, replacement, action, cls };
+                    })
+                    .sort((a, b) => (b.ln.amount - a.ln.amount));
+
+                this.lastRun = new Date();
+                this.render();
+                this.renderTerminated();
+            },
+
+            renderTerminated: function () {
+                const el = this.el;
+                const esc = (v) => String(v == null ? '' : v).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+                const list = this.terminated || [];
+                el('onb-term-title').textContent = 'Terminated cards still scheduled (' + list.length + ')';
+                if (!list.length) {
+                    el('onb-term-table').innerHTML = '<div class="p-10 text-center text-green-600"><h2 class="text-4xl mb-2">&#10003;</h2><p class="text-lg">Every scheduled EML line points to an active card.</p></div>';
+                    return;
+                }
+                const rows = list.map(t => `
+                    <tr>
+                        <td class="font-mono text-indigo-600 font-bold">${t.ln.row}</td>
+                        <td class="font-mono">${esc(t.ln.pid) || '-'}</td>
+                        <td>${esc(t.ln.name)}</td>
+                        <td>${esc(t.ln.item)}</td>
+                        <td><code class="text-xs bg-slate-100 px-1 rounded">${esc(t.ln.ref)}</code></td>
+                        <td class="font-mono">${t.ln.amount.toFixed(2)}</td>
+                        <td>${t.rec ? esc(t.rec.status) + (t.rec.deleted || t.rec.term ? ' <span class="text-red-600 text-xs">(terminated)</span>' : '') : '<span class="text-slate-400">none</span>'}</td>
+                        <td>${t.replacement.length ? t.replacement.map(c => '<div class="whitespace-nowrap"><strong>' + c.type + '</strong> <code class="text-xs bg-slate-100 px-1 rounded">' + esc(c.card.eaid) + '</code></div>').join('') : '<span class="text-slate-400">none</span>'}</td>
+                        <td><span class="audit-error-type ${t.cls}" style="text-transform:none;white-space:normal">${esc(t.action)}</span></td>
+                    </tr>`).join('');
+                el('onb-term-table').innerHTML = `
+                    <table class="audit-errors-table">
+                        <thead class="bg-white"><tr>
+                            <th>Row #</th><th>Payroll ID</th><th>Name</th><th>Item</th><th>Bank Ref</th><th>Amount</th><th>Cardholder</th><th>Active Cards</th><th>Action</th>
+                        </tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>`;
+            },
+
+            exportTerminatedCsv: function () {
+                const list = this.terminated || [];
+                if (!list.length) { alert('No rows to export'); return; }
+                const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+                const headers = ['Row #', 'Payroll ID', 'Name', 'Item', 'Bank Ref', 'Fortnightly Amount', 'End Date', 'Cardholder Status', 'Cardholder Terminated', 'Active Cards', 'Action'];
+                const rows = list.map(t => [t.ln.row, t.ln.pid, t.ln.name, t.ln.item, t.ln.ref, t.ln.amount.toFixed(2), t.ln.endDate,
+                    t.rec ? t.rec.status : '', t.rec && (t.rec.deleted || t.rec.term) ? 'Yes' : 'No',
+                    t.replacement.map(c => c.type + ' ' + c.card.eaid).join('; '), t.action].map(q).join(','));
+                const blob = new Blob([[headers.map(q).join(',')].concat(rows).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'EML_terminated_cards_' + new Date().toISOString().slice(0, 10) + '.csv';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            },
+
+            inWindow: function (r) {
+                const field = this.el('onb-date-field').value;
+                const d = field === 'created' ? r.h.created : r.h.modified;
+                const fromV = this.el('onb-from').value, toV = this.el('onb-to').value;
+                if (!fromV && !toV) return true;
+                if (!d) return false;
+                if (fromV) { const f = new Date(fromV + 'T00:00:00'); if (d < f) return false; }
+                if (toV) { const t = new Date(toV + 'T23:59:59'); if (d > t) return false; }
+                return true;
+            },
+
+            fmtDate: (d) => d ? d.toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '',
+
+            render: function () {
+                const el = this.el;
+                const onlyFlagged = el('onb-only-flagged').checked;
+                const windowed = this.results.filter(r => this.inWindow(r));
+                const complete = windowed.filter(r => r.h.status.toLowerCase() === 'complete' && !r.gone);
+                const terminated = windowed.filter(r => r.gone);
+                const onboarded = windowed.filter(r => r.onboarded);
+                const needs = windowed.filter(r => r.needsSchedule);
+                const noCard = windowed.filter(r => r.signedUpNoCard);
+                const shown = (onlyFlagged ? needs : onboarded.concat(noCard)).slice()
+                    .sort((a, b) => ((b.h.modified || 0) - (a.h.modified || 0)));
+                this.shown = shown;
+
+                const fieldLabel = el('onb-date-field').value === 'created' ? 'Created' : 'Modified';
+                const note = el('onb-note');
+                note.className = 'rounded-lg border border-slate-200 bg-slate-50 text-slate-700 p-4 mb-6 text-sm';
+                note.innerHTML = '<strong>' + windowed.length.toLocaleString() + '</strong> cardholder records have a ' + fieldLabel + ' date in the window'
+                    + (el('onb-from').value || el('onb-to').value ? ' (' + (el('onb-from').value || '...') + ' to ' + (el('onb-to').value || '...') + ')' : '')
+                    + (terminated.length ? ', ' + terminated.length.toLocaleString() + ' terminated/deleted excluded' : '')
+                    + '. Matched against ' + (this.cards.me ? this.cards.me.byEaid.size.toLocaleString() + ' ME' : 'no ME') + ' and '
+                    + (this.cards.le ? this.cards.le.byEaid.size.toLocaleString() + ' LE' : 'no LE') + ' active cards and '
+                    + (this.pkg.activeRefs.EMLMEC.size + this.pkg.activeRefs.EMLEBC.size).toLocaleString() + ' active EML schedules.'
+                    + (!this.cards.me || !this.cards.le ? ' <strong class="text-amber-700">One card report is missing, so only one card type can be checked.</strong>' : '');
+                note.classList.remove('hidden');
+
+                el('onb-stats').innerHTML = `
+                    <div class="audit-stat-card neutral"><h3>${complete.length.toLocaleString()}</h3><p>Signup Complete in Window</p></div>
+                    <div class="audit-stat-card success"><h3>${(onboarded.length - needs.length).toLocaleString()}</h3><p>Cards Set Up in System</p></div>
+                    <div class="audit-stat-card ${needs.length ? 'error' : 'success'}"><h3>${needs.length.toLocaleString()}</h3><p>Active Card, No Schedule</p></div>
+                    <div class="audit-stat-card ${noCard.length ? 'warn' : 'success'}"><h3>${noCard.length.toLocaleString()}</h3><p>Signup Complete, No Card Yet</p></div>`;
+
+                el('onb-table-title').textContent = (onlyFlagged ? 'Employees needing a schedule' : 'Onboarded employees') + ' (' + shown.length + ')';
+                const esc = (v) => String(v == null ? '' : v).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+                const cardCell = (r) => {
+                    if (!r.cards.length) return '<span class="text-amber-700 italic">No active card yet</span>';
+                    return r.cards.map(cd => {
+                        let pill;
+                        if (cd.scheduled) pill = '<span class="audit-error-type" style="background:#dcfce7;color:#15803d">Scheduled</span>';
+                        else if (cd.otherItem) pill = '<span class="audit-error-type card-wrong-type">Set up as ' + (cd.item === 'EMLMEC' ? 'EMLEBC' : 'EMLMEC') + '</span>';
+                        else if (cd.zeroSchedule) pill = '<span class="audit-error-type card-no-ref">Zero-amount line</span>';
+                        else pill = '<span class="audit-error-type card-inactive">No schedule</span>';
+                        return '<div class="whitespace-nowrap mb-1"><strong>' + cd.type + '</strong> <code class="text-xs bg-slate-100 px-1 rounded">' + esc(cd.card.eaid) + '</code> '
+                            + (cd.card.balance != null ? '<span class="text-slate-500 text-xs">$' + cd.card.balance.toFixed(2) + '</span> ' : '') + pill + '</div>';
+                    }).join('');
+                };
+                const rowsHtml = shown.map(r => `
+                    <tr>
+                        <td class="font-mono">${esc(r.h.emp) || '-'}</td>
+                        <td>${esc(r.h.name)}<br><span class="text-xs text-slate-400">${esc(r.h.email)}</span></td>
+                        <td class="whitespace-nowrap">${this.fmtDate(r.h.modified)}</td>
+                        <td class="whitespace-nowrap">${this.fmtDate(r.h.created)}</td>
+                        <td>${esc(r.h.kyc)}</td>
+                        <td>${cardCell(r)}</td>
+                        <td>${r.inPkg ? '<span class="text-green-700">Yes</span>' : '<span class="text-red-600 font-semibold">No</span>'}</td>
+                    </tr>`).join('');
+                el('onb-table').innerHTML = shown.length ? `
+                    <table class="audit-errors-table">
+                        <thead class="bg-white"><tr>
+                            <th>Employee ID</th><th>Name</th><th>Modified</th><th>Created</th><th>KYC</th><th>Cards / Schedule</th><th>In Package File</th>
+                        </tr></thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>`
+                    : '<div class="p-10 text-center text-green-600"><h2 class="text-4xl mb-2">&#10003;</h2><p class="text-lg">Nothing to action in this window.</p></div>';
+                el('onb-results').classList.remove('hidden');
+            },
+
+            exportCsv: function () {
+                if (!this.shown || !this.shown.length) { alert('No rows to export'); return; }
+                const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+                const headers = ['Employee ID', 'Name', 'Email', 'Status', 'KYC', 'Modified', 'Created', 'ME EAID', 'ME Balance', 'ME Schedule', 'LE EAID', 'LE Balance', 'LE Schedule', 'In Package File'];
+                const stateOf = (cd) => !cd ? '' : cd.scheduled ? 'Scheduled' : cd.otherItem ? 'Set up as wrong item' : cd.zeroSchedule ? 'Zero-amount line' : 'No schedule';
+                const rows = this.shown.map(r => {
+                    const meC = r.cards.find(c => c.type === 'ME'), leC = r.cards.find(c => c.type === 'LE');
+                    return [r.h.emp, r.h.name, r.h.email, r.h.status, r.h.kyc, this.fmtDate(r.h.modified), this.fmtDate(r.h.created),
+                        meC ? meC.card.eaid : '', meC && meC.card.balance != null ? meC.card.balance.toFixed(2) : '', stateOf(meC),
+                        leC ? leC.card.eaid : '', leC && leC.card.balance != null ? leC.card.balance.toFixed(2) : '', stateOf(leC),
+                        r.inPkg ? 'Yes' : 'No'].map(q).join(',');
+                });
+                const blob = new Blob([[headers.map(q).join(',')].concat(rows).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'EML_onboarding_' + new Date().toISOString().slice(0, 10) + '.csv';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            },
+
+            reset: function () {
+                this.cardholders = null; this.cards = { me: null, le: null }; this.pkg = null;
+                this.results = []; this.shown = []; this.terminated = []; this.lastRun = null;
+                const defaults = { ch: 'EML cardholders (.csv)', me: 'Meal entertainment cards', le: 'Living expenses cards', pkg: 'Current schedules (.xlsx)' };
+                Object.keys(defaults).forEach(k => { this.el('onb-' + k + '-box').classList.remove('loaded'); this.el('onb-' + k + '-status').textContent = defaults[k]; });
+                this.el('onb-results').classList.add('hidden');
+                this.el('onb-note').classList.add('hidden');
+                this.el('onb-only-flagged').checked = true;
+                this.setWindow(30);
+                this.refreshRun();
+            }
+        };
+
         // Initialize Tools
         document.addEventListener('DOMContentLoaded', () => {
             ValidatorTool.init();
             RemittanceTool.init();
+            OnboardingTool.init();
 
             // Default View
             switchView('pay-processing');
@@ -3293,7 +4184,7 @@ Export anyway?`);
   var params = new URLSearchParams(location.search);
   if (params.get('embed') !== '1') return;
   if (document.body) document.body.classList.add('embed');
-  var map = { 'pay-processing':'pay-processing', 'audit':'audit', 'eml-remittance':'eml-remittance', 'remittance':'eml-remittance' };
+  var map = { 'pay-processing':'pay-processing', 'audit':'audit', 'eml-remittance':'eml-remittance', 'remittance':'eml-remittance', 'eml-onboarding':'eml-onboarding', 'onboarding':'eml-onboarding' };
   function apply() {
     var key = (location.hash || '').replace('#','');
     var view = map[key] || 'pay-processing';

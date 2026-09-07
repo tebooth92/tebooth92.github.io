@@ -73,7 +73,7 @@
                     <span class="pt-switch"></span>
                 </button>
             </div>
-            <div class="p-4 text-xs text-slate-600 text-center">v2.1.0 | Unified</div>
+            <div class="p-4 text-xs text-slate-600 text-center">v2.2.0 | EML Onboarding</div>
         </nav>
 
         <!-- TOOL CONTENT + tracker drawer -->
@@ -112,22 +112,29 @@
             report:   "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
             scale:    "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3",
             card:     "M3 10h18M7 15h1m4 0h2m-9 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z",
+            person:   "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z",
+            receipt:  "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z",
+            calc:     "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z",
+            bank:     "M3 10h18M5 10v10m14-10v10M9 10v10m6-10v10M2 20h20M12 3l9 5H3l9-5z",
             search:   "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
         };
         const ROUTES = {
             'home':           { label:'Home',                              icon:'home',     file:'home.html' },
             'pay-processing': { label:'Pay Processing',                    icon:'currency', file:'salary-packaging.html?embed=1#pay-processing' },
-            'audit':          { label:'Pre Payment Audit',                 icon:'audit',    file:'salary-packaging.html?embed=1#audit' },
+            'audit':          { label:'Pre-Payment Audit',                 icon:'audit',    file:'salary-packaging.html?embed=1#audit' },
             'remittance':     { label:'Remittance',                        icon:'remit',    file:'salary-packaging.html?embed=1#eml-remittance' },
-            'sp-audit':       { label:'Audit',                             icon:'search',   file:'audit.html' },
+            'eml-onboarding': { label:'EML Onboarding',                    icon:'person',   file:'salary-packaging.html?embed=1#eml-onboarding' },
+            'fee-audit':      { label:'Fee Audit',                         icon:'receipt',  file:'fee-audit.html' },
+            'gst-itc':        { label:'GSTITC',                            icon:'calc',     file:'gst-itc-builder.html' },
+            'opportunity':    { label:'Opportunity',                       icon:'search',   file:'opportunity.html' },
+            'held-balance':   { label:'Held Balance',                      icon:'bank',     file:'held-balance.html' },
             'cutoff':         { label:'Pay Cutoff', icon:'report',  file:'cutoff.html' },
-            'reconciler':     { label:'Payroll Variance Reconciler',       icon:'scale',    file:'reconciler.html' },
-            'eml':            { label:'EML Card Reconciliation',            icon:'card',     file:'eml-reconciliation.html' },
+            'reconciler':     { label:'Reconcile Pay',                     icon:'scale',    file:'reconciler.html' },
         };
         const GROUPS = [
             { heading:null,               keys:['home'] },
-            { heading:'Salary Packaging', keys:['pay-processing','audit','remittance','sp-audit'] },
-            { heading:'Other Tools',      keys:['cutoff','reconciler','eml'] },
+            { heading:'Pay Related', keys:['pay-processing','cutoff','audit','remittance','gst-itc','reconciler'] },
+            { heading:'Checks',      keys:['eml-onboarding','fee-audit','opportunity','held-balance'] },
         ];
 
         const nav = document.getElementById('tool-nav');
@@ -193,8 +200,8 @@
             {n:12, ph:2, tool:'sys', t:'Re-finalise until clean',            d:'Repeat from step 8 until no GST errors remain.'},
             {n:13, ph:3, tool:'sys', t:'Open Bank Payments Process Log',     d:'Navigate to Quit Manager > Packages > Bank Payments Process Log.'},
             {n:14, ph:3, tool:'sys', t:'Enter GST-inclusive bank value',     d:'Click View on the pay date, then Edit in the Action column. Enter the GST-inclusive value in the “Bank” column.'},
-            {n:15, ph:4, tool:'sys', t:'Export Active Benefits report',      d:'Navigate to Reports > Employee > Active Benefits. Click Search and export the report.'},
-            {n:16, ph:4, tool:'aa',  link:'audit', go:'Pre Payment Audit', t:'Run the pre-payment audit', d:'In Pre Payment Audit, upload the report and fix any audit issues.'},
+            {n:15, ph:4, tool:'sys', t:'Export Active Benefits report',      d:'Navigate to Reports > Employee > Active Benefits. Click Search and export the report. Also download the Active ME and Active LE card reports from the EML portal.'},
+            {n:16, ph:4, tool:'aa',  link:'audit', go:'Pre Payment Audit', t:'Run the pre-payment audit', d:'In Pre Payment Audit, upload the Package Benefit Details plus the Active ME and LE card reports, then fix any audit or card issues.'},
             {n:17, ph:5, tool:'sys', t:'Commit the payment',                 d:'Navigate to Quit Manage > Packages > Commit Payment.'},
             {n:18, ph:5, tool:'sys', t:'Open Payment Transaction',           d:'Navigate to Reports > Payment > Payment Transaction.'},
             {n:19, ph:5, tool:'sys', t:'Open the payment batch',             d:'Scroll to the bottom and click the batch number above “Total Payment” (labelled WPB00022XXXXXXXX).'},

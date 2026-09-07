@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Held Balance | Payroll Tools</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc; --panel: #ffffff; --ink: #0f172a; --muted: #64748b;
+    --line: #e2e8f0; --accent: #4f46e5; --accent-hover: #4338ca; --accent-ink: #ffffff;
+    --ok: #10b981; --warn: #f59e0b; --bad: #dc2626; --chip: #f1f5f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 18px 32px; display: flex; align-items: baseline; gap: 14px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--ink); }
+  header .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 32px 60px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .panel h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: 12px; }
+  #dropzone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 26px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s; }
+  #dropzone.drag { border-color: var(--accent); background: #eef2ff; }
+  #filegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin-top: 14px; }
+  .fcard { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; }
+  .fcard .fname { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .fcard .fmeta { color: var(--muted); font-size: 12px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: var(--muted); white-space: nowrap; }
+  .chip.ok { background: #d1fae5; color: #047857; }
+  .chip.missing { background: #fee2e2; color: #b91c1c; }
+  .chip.opt { background: #f1f5f9; color: #64748b; }
+  .params { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+  .params label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .params input { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 120px; font: inherit; font-size: 13px; }
+  .params input:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .btn { background: var(--accent); color: var(--accent-ink); border: none; border-radius: 10px; padding: 9px 20px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .btn:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel); color: var(--accent); border: 1px solid #c7d2fe; padding: 6px 14px; font-size: 13px; }
+  .btn.ghost:hover:not(:disabled) { background: #eef2ff; }
+  #cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--panel); box-shadow: 0 1px 2px rgba(16,24,40,.04); cursor: pointer; transition: .15s; }
+  .card:hover, .card.sel { border-color: #c7d2fe; background: #f5f6ff; }
+  .card .big { font-size: 26px; font-weight: 700; color: var(--ink); }
+  .card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .card.under .big { color: var(--bad); }
+  .card.total { cursor: default; }
+  .card.total:hover { border-color: var(--line); background: var(--panel); }
+  .tabbar { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .tabbar button.tab { border: 1px solid var(--line); background: var(--panel); padding: 6px 14px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 500; color: var(--ink); transition: .15s; }
+  .tabbar button.tab:hover:not(.active) { background: #eef2ff; border-color: #c7d2fe; }
+  .tabbar button.tab.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tabbar input[type=search] { border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; width: 250px; margin-left: auto; font: inherit; font-size: 13px; }
+  .tabbar input[type=search]:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .twrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 640px; overflow-y: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 7px 11px; border-bottom: 1px solid #f1f5f9; text-align: left; white-space: nowrap; }
+  th { background: #f8fafc; position: sticky; top: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; border-bottom: 1px solid var(--line); }
+  td.num, th.num { text-align: right; }
+  tr:hover td { background: #f8fafc; }
+  .status-under { color: var(--bad); font-weight: 600; }
+  #rowsnote { font-size: 12px; color: var(--muted); margin: 8px 2px; }
+  #log { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; margin-top: 8px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Held Balance</h1>
+  <span class="sub">Held employee funds, over-deductions and terminated balances</span>
+  <span class="sub" id="datestamp" style="margin-left:auto"></span>
+</header>
+<main>
+
+  <div class="panel">
+    <h2>1. Load files</h2>
+    <div id="dropzone">Drag the export files here, or click to browse.
+      <input type="file" id="fileinput" multiple accept=".xlsx,.csv" style="display:none">
+    </div>
+    <div id="filegrid"></div>
+    <div id="log"></div>
+  </div>
+
+  <div class="panel">
+    <h2>2. Run</h2>
+    <div class="params">
+      <div><label>Full LE cap $</label><input id="p_lecap" type="number" value="9009.96" step="0.01"></div>
+      <div><label>Full EB cap $</label><input id="p_ebcap" type="number" value="2649.98" step="0.01"></div>
+      <div><label>Band 1 up to $</label><input id="p_band1" type="number" value="500"></div>
+      <div><label>Band 2 up to $</label><input id="p_band2" type="number" value="1000"></div>
+      <button class="btn" id="runheld" disabled>Run Held Balance</button>
+    </div>
+  </div>
+
+  <div class="panel hidden" id="results">
+    <h2>3. Results</h2>
+    <div id="cards"></div>
+    <div class="tabbar" id="tabs">
+      <input type="search" id="heldsearch" placeholder="Search ID or email...">
+      <button class="btn ghost" id="heldexport">Export XLSX (5 tabs)</button>
+    </div>
+    <div class="twrap"><table id="heldtable"><thead></thead><tbody></tbody></table></div>
+    <div id="rowsnote"></div>
+  </div>
+
+</main>
+<script>
+"use strict";
+/* ================================================================
+   Held Balance - standalone tool
+   Employer Package List: col B (idx 1) = Payroll ID, col G (idx 6) = Balance.
+   User Management: col B (idx 1) = PayRollID, col J (idx 9) = E-Mail.
+   Package Benefit Details: cols U/V (idx 20/21) = Capped / EB Capped Amount
+   Available (employee-level; blank = full entitlement).
+   Employee Central deductions CSV (optional): terminations + email fallback.
+   ================================================================ */
+const FILE_DEFS = [
+  { key: "emppkg",   label: "Employer Package List",        detect: h => h.includes("Capped Balance") || h.includes("NLFM") },
+  { key: "usermgmt", label: "User Management Employee List", detect: h => h.includes("PayRollID") },
+  { key: "details",  label: "Package Benefit Details",       detect: h => h.includes("Salary Package Item") },
+  { key: "ecdeduct", label: "Current Deductions (Employee Central)", optional: true, detect: h => h.includes("Austin Advantage SPack") }
+];
+const DATA = {};
+
+/* ---------------- file ingestion ---------------- */
+const dz = document.getElementById("dropzone");
+const fi = document.getElementById("fileinput");
+dz.addEventListener("click", () => fi.click());
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag"));
+dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("drag"); ingest(e.dataTransfer.files); });
+fi.addEventListener("change", () => ingest(fi.files));
+function log(msg) { document.getElementById("log").textContent += msg + "\n"; }
+
+async function ingest(fileList) {
+  for (const f of fileList) {
+    try {
+      let headers = [], rows = [];
+      if (/\.csv$/i.test(f.name)) {
+        const parsed = parseCSV(await f.text());
+        headers = parsed[0].map(String); rows = parsed.slice(1);
+      } else {
+        const wb = XLSX.read(await f.arrayBuffer(), { type: "array", raw: true });
+        const arr = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
+        headers = (arr[0] || []).map(v => String(v ?? "")); rows = arr.slice(1);
+      }
+      const def = FILE_DEFS.find(d => d.detect(headers.join("|"), f.name));
+      if (!def) { log(`Unrecognised file skipped: ${f.name}`); continue; }
+      DATA[def.key] = { headers, rows, filename: f.name, rowCount: rows.filter(r => r && r.length).length };
+      log(`Loaded ${def.label}: ${DATA[def.key].rowCount} rows (${f.name})`);
+    } catch (err) { log(`ERROR reading ${f.name}: ${err.message}`); }
+  }
+  renderFileGrid();
+}
+
+function parseCSV(text) {
+  const out = []; let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; } else cur += c; }
+    else if (c === '"') inQ = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (cur !== "" || row.length) { row.push(cur); out.push(row); row = []; cur = ""; }
+      if (c === "\r" && text[i + 1] === "\n") i++;
+    } else cur += c;
+  }
+  if (cur !== "" || row.length) { row.push(cur); out.push(row); }
+  return out;
+}
+
+function renderFileGrid() {
+  const grid = document.getElementById("filegrid");
+  grid.innerHTML = "";
+  for (const def of FILE_DEFS) {
+    const d = DATA[def.key];
+    const el = document.createElement("div");
+    el.className = "fcard";
+    el.innerHTML = `<div><div class="fname">${def.label}</div>
+      <div class="fmeta">${d ? d.filename + " - " + d.rowCount.toLocaleString() + " rows" : (def.optional ? "optional - not loaded" : "not loaded")}</div></div>
+      <span class="chip ${d ? "ok" : def.optional ? "opt" : "missing"}">${d ? "loaded" : def.optional ? "optional" : "missing"}</span>`;
+    grid.appendChild(el);
+  }
+  document.getElementById("runheld").disabled = !(DATA.emppkg && DATA.usermgmt && DATA.details);
+}
+
+/* ---------------- helpers ---------------- */
+function num(v) { if (typeof v === "number") return v; const n = parseFloat(String(v)); return isNaN(n) ? 0 : n; }
+function money(v) { return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function r2(v) { return Math.round(v * 100) / 100; }
+// Employee Central deductions CSV: the real header is the second row.
+// cols: 0 User ID, 1 Employment Status, 2 Termination Date, 4 Business Email
+function ecData() {
+  if (!DATA.ecdeduct) return null;
+  const term = {}, email = {};
+  for (const r of DATA.ecdeduct.rows) {
+    if (!r || !r[0]) continue;
+    const id = String(r[0]).trim();
+    if (id === "" || id === "User ID") continue;
+    if (String(r[1] ?? "").trim() === "Terminated") term[id] = String(r[2] ?? "").trim() || "(no date)";
+    email[id] = String(r[4] ?? "").trim();
+  }
+  return { term, email };
+}
+
+/* ================================================================
+   HELD BALANCE
+   ================================================================ */
+let heldResult = null;   // { bands: [band0, band1, band2, returnToPayroll, terminated], names, runDate }
+let heldBand = 0;
+const BAND_SHEETS = ["Up to band 1", "Band 1 to 2", "Above band 2", "Return to Payroll", "Terminated"];
+
+document.getElementById("runheld").addEventListener("click", runHeldBalance);
+document.getElementById("heldsearch").addEventListener("input", renderHeldTable);
+document.getElementById("heldexport").addEventListener("click", exportHeldXLSX);
+
+function runHeldBalance() {
+  const FULL_LE = num(document.getElementById("p_lecap").value), FULL_EB = num(document.getElementById("p_ebcap").value);
+  const B1 = num(document.getElementById("p_band1").value), B2 = num(document.getElementById("p_band2").value);
+  const names = [`$${B1.toLocaleString()} or less`, `$${(B1 + 1).toLocaleString()} to $${B2.toLocaleString()}`, `Above $${B2.toLocaleString()}`, "Return to Payroll", "Terminated with Balance"];
+
+  const email = {};
+  for (const r of DATA.usermgmt.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    email[String(r[1]).trim()] = String(r[9] ?? "").trim();
+  }
+  // remaining cap entitlement per employee (employee-level, first line read wins; blank = full entitlement)
+  const caps = {};
+  for (const r of DATA.details.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim();
+    if (caps[id]) continue;
+    const le = (r[20] === null || r[20] === undefined || r[20] === "") ? FULL_LE : num(r[20]);
+    const eb = (r[21] === null || r[21] === undefined || r[21] === "") ? FULL_EB : num(r[21]);
+    caps[id] = { le, eb };
+  }
+  const bands = [[], [], [], [], []];
+  const ec = ecData();
+  for (const r of DATA.emppkg.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim();
+    const bal = num(r[6]);
+    if (bal <= 0) continue;
+    const c = caps[id] || { le: FULL_LE, eb: FULL_EB };   // not in details = full entitlement
+    const line = { id, email: email[id] || (ec && ec.email[id]) || "(no email found)", balance: r2(bal),
+                   leAvail: r2(c.le), ebAvail: r2(c.eb), over: r2(bal - (c.le + c.eb)),
+                   termDate: (ec && ec.term[id]) || "" };
+    if (bal <= B1) bands[0].push(line);
+    else if (bal <= B2) bands[1].push(line);
+    else bands[2].push(line);
+    if (line.over > 0) bands[3].push(line);   // held balance exceeds releasable cap = over-deducted
+    if (line.termDate) bands[4].push(line);   // terminated in Employee Central but balance still held
+  }
+  for (let i = 0; i < 3; i++) bands[i].sort((a, x) => x.balance - a.balance);
+  bands[3].sort((a, x) => x.over - a.over);
+  bands[4].sort((a, x) => x.balance - a.balance);
+  heldResult = { bands, names, runDate: new Date().toLocaleDateString("en-AU") };
+  renderHeldResults();
+}
+
+function setBand(i) {
+  heldBand = i;
+  document.querySelectorAll("#tabs .tab").forEach(b => b.classList.toggle("active", parseInt(b.dataset.band, 10) === i));
+  document.querySelectorAll("#cards .card[data-band]").forEach(c => c.classList.toggle("sel", parseInt(c.dataset.band, 10) === i));
+  renderHeldTable();
+}
+
+function renderHeldResults() {
+  document.getElementById("results").classList.remove("hidden");
+  const b = heldResult.bands, n = heldResult.names;
+  const totals = b.map(x => x.reduce((s, r) => s + r.balance, 0));
+  const overTotal = b[3].reduce((s, r) => s + r.over, 0);
+  document.getElementById("cards").innerHTML =
+    [0, 1, 2].map(i => `<div class="card" data-band="${i}"><div class="big">${b[i].length.toLocaleString()}</div><div class="lbl">${n[i]} - ${money(totals[i])}</div></div>`).join("") +
+    `<div class="card total"><div class="big">${(b[0].length + b[1].length + b[2].length).toLocaleString()}</div><div class="lbl">Total employees with held balance - ${money(totals[0] + totals[1] + totals[2])}</div></div>
+     <div class="card under" data-band="3"><div class="big">${b[3].length.toLocaleString()}</div><div class="lbl">Return to payroll (over-deducted) - ${money(overTotal)}</div></div>
+     <div class="card under" data-band="4"><div class="big">${b[4].length.toLocaleString()}</div><div class="lbl">Terminated with balance - ${money(totals[4])}</div></div>`;
+  document.querySelectorAll("#cards .card[data-band]").forEach(c => c.addEventListener("click", () => setBand(parseInt(c.dataset.band, 10))));
+  const tabs = document.getElementById("tabs");
+  tabs.querySelectorAll(".tab").forEach(t => t.remove());
+  n.forEach((name, i) => {
+    const btn = document.createElement("button");
+    btn.className = "tab"; btn.dataset.band = i; btn.textContent = name;
+    btn.addEventListener("click", () => setBand(i));
+    tabs.insertBefore(btn, document.getElementById("heldsearch"));
+  });
+  setBand(0);
+}
+
+function heldFilteredRows() {
+  const q = document.getElementById("heldsearch").value.trim().toLowerCase();
+  let rows = heldResult.bands[heldBand];
+  if (q) rows = rows.filter(r => (r.id + " " + r.email).toLowerCase().includes(q));
+  return rows;
+}
+
+function bandCols(i) {
+  if (i === 4) return [["id", "Employee ID"], ["email", "Email Address"], ["balance", "Held Balance", 1], ["termDate", "Termination Date"]];
+  if (i === 3) return [["id", "Employee ID"], ["email", "Email Address"], ["balance", "Held Balance", 1],
+                       ["leAvail", "Capped Amount Available", 1], ["ebAvail", "EB Capped Available", 1], ["over", "Over-Deducted (Return)", 1]];
+  return [["id", "Employee ID"], ["email", "Email Address"], ["balance", "Held Balance", 1]];
+}
+
+function renderHeldTable() {
+  if (!heldResult) return;
+  const rows = heldFilteredRows(), cols = bandCols(heldBand);
+  document.querySelector("#heldtable thead").innerHTML = "<tr>" + cols.map(c => `<th class="${c[2] ? "num" : ""}">${c[1]}</th>`).join("") + "</tr>";
+  document.querySelector("#heldtable tbody").innerHTML = rows.map(r => "<tr>" + cols.map(c => {
+    const hot = (c[0] === "over" || c[0] === "termDate");
+    return `<td class="${c[2] ? "num" : ""}${hot ? " status-under" : ""}">${c[2] ? money(r[c[0]]) : r[c[0]]}</td>`;
+  }).join("") + "</tr>").join("");
+  document.getElementById("rowsnote").textContent =
+    `${rows.length.toLocaleString()} employees in "${heldResult.names[heldBand]}". Run ${heldResult.runDate}.`;
+}
+
+function exportHeldXLSX() {
+  const wb = XLSX.utils.book_new();
+  heldResult.bands.forEach((band, i) => {
+    const cols = bandCols(i);
+    const ws = XLSX.utils.aoa_to_sheet([cols.map(c => c[1])].concat(band.map(r => cols.map(c => r[c[0]]))));
+    ws["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 14 }, { wch: 22 }, { wch: 20 }, { wch: 22 }];
+    XLSX.utils.book_append_sheet(wb, ws, BAND_SHEETS[i]);
+  });
+  XLSX.writeFile(wb, "held-balance-report.xlsx", { compression: true });
+}
+
+document.getElementById("datestamp").textContent = new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+renderFileGrid();
+</script>
+</body>
+</html>

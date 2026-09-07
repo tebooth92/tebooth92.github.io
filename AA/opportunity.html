@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opportunity | Payroll Tools</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc; --panel: #ffffff; --ink: #0f172a; --muted: #64748b;
+    --line: #e2e8f0; --accent: #4f46e5; --accent-hover: #4338ca; --accent-ink: #ffffff;
+    --ok: #10b981; --warn: #f59e0b; --bad: #dc2626; --chip: #f1f5f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 18px 32px; display: flex; align-items: baseline; gap: 14px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--ink); }
+  header .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 32px 60px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .panel h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: 12px; }
+  #dropzone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 26px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s; }
+  #dropzone.drag { border-color: var(--accent); background: #eef2ff; }
+  #filegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin-top: 14px; }
+  .fcard { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; }
+  .fcard .fname { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .fcard .fmeta { color: var(--muted); font-size: 12px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: var(--muted); white-space: nowrap; }
+  .chip.ok { background: #d1fae5; color: #047857; }
+  .chip.missing { background: #fee2e2; color: #b91c1c; }
+  .params { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+  .params label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .params input { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 320px; font: inherit; font-size: 13px; }
+  .params input:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .btn { background: var(--accent); color: var(--accent-ink); border: none; border-radius: 10px; padding: 9px 20px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .btn:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel); color: var(--accent); border: 1px solid #c7d2fe; padding: 6px 14px; font-size: 13px; }
+  .btn.ghost:hover:not(:disabled) { background: #eef2ff; }
+  #cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--panel); box-shadow: 0 1px 2px rgba(16,24,40,.04); cursor: pointer; transition: .15s; }
+  .card:hover, .card.sel { border-color: #c7d2fe; background: #f5f6ff; }
+  .card .big { font-size: 26px; font-weight: 700; color: var(--ink); }
+  .card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .card.okc .big { color: #059669; }
+  .tabbar { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .tabbar input[type=search] { border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; width: 250px; margin-left: auto; font: inherit; font-size: 13px; }
+  .tabbar input[type=search]:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .twrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 640px; overflow-y: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 7px 11px; border-bottom: 1px solid #f1f5f9; text-align: left; white-space: nowrap; }
+  th { background: #f8fafc; position: sticky; top: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; border-bottom: 1px solid var(--line); }
+  tr:hover td { background: #f8fafc; }
+  .status-check { color: var(--accent); font-weight: 600; }
+  #rowsnote { font-size: 12px; color: var(--muted); margin: 8px 2px; }
+  #log { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; margin-top: 8px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Opportunity</h1>
+  <span class="sub">Active employees not salary packaging</span>
+  <span class="sub" id="datestamp" style="margin-left:auto"></span>
+</header>
+<main>
+
+  <div class="panel">
+    <h2>1. Load files</h2>
+    <div id="dropzone">Drag the export files here, or click to browse.
+      <input type="file" id="fileinput" multiple accept=".xlsx,.csv" style="display:none">
+    </div>
+    <div id="filegrid"></div>
+    <div id="log"></div>
+  </div>
+
+  <div class="panel">
+    <h2>2. Run</h2>
+    <div class="params">
+      <div><label>Pay groups in scope</label><input id="p_paygroups" value="Fortnightly General, Fortnightly Medical"></div>
+      <div><label>Email domain in scope</label><input id="p_domain" style="width:180px" value="@austin.org.au"></div>
+      <div><label>Living Expenses items</label><input id="p_leitems" style="width:420px" value="Mortgage, Credit Card, EMLEBC, Rent, Personal Loan, Living Expenses"></div>
+      <div><label>Meal Entertainment items</label><input id="p_meitems" style="width:260px" value="EMLMEC, Entertainment Benefits"></div>
+      <button class="btn" id="runopp" disabled>Run Opportunity</button>
+    </div>
+  </div>
+
+  <div class="panel hidden" id="results">
+    <h2>3. Results</h2>
+    <div id="cards"></div>
+    <div class="tabbar">
+      <input type="search" id="oppsearch" placeholder="Search ID, email, pay group, flag...">
+      <button class="btn ghost" id="oppexport">Export XLSX</button>
+      <button class="btn ghost" id="oppshowall">Show all rows</button>
+    </div>
+    <div class="twrap"><table id="opptable"><thead></thead><tbody></tbody></table></div>
+    <div id="rowsnote"></div>
+  </div>
+
+</main>
+<script>
+"use strict";
+/* ================================================================
+   Opportunity - standalone tool
+   Active Employee Central employees on the in-scope pay groups who are
+   not salary packaging: never paid (finance batch) and nothing in benefit
+   details. Plus employees registered in the SP system (User Mgmt) with
+   no deductions set up and no LE/ME payments.
+   ================================================================ */
+const FILE_DEFS = [
+  { key: "ecdeduct", label: "Current Deductions (Employee Central)", detect: h => h.includes("Austin Advantage SPack") },
+  { key: "finance",  label: "Finance Batch Report",                  detect: h => h.includes("Item Name") && h.includes("Payment") },
+  { key: "details",  label: "Package Benefit Details",               detect: h => h.includes("Salary Package Item") },
+  { key: "usermgmt", label: "User Management Employee List",         detect: h => h.includes("PayRollID") }
+];
+const DATA = {};
+
+/* ---------------- file ingestion ---------------- */
+const dz = document.getElementById("dropzone");
+const fi = document.getElementById("fileinput");
+dz.addEventListener("click", () => fi.click());
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag"));
+dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("drag"); ingest(e.dataTransfer.files); });
+fi.addEventListener("change", () => ingest(fi.files));
+function log(msg) { document.getElementById("log").textContent += msg + "\n"; }
+
+async function ingest(fileList) {
+  for (const f of fileList) {
+    try {
+      let headers = [], rows = [];
+      if (/\.csv$/i.test(f.name)) {
+        const parsed = parseCSV(await f.text());
+        headers = parsed[0].map(String); rows = parsed.slice(1);
+      } else {
+        const wb = XLSX.read(await f.arrayBuffer(), { type: "array", raw: true });
+        const arr = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
+        headers = (arr[0] || []).map(v => String(v ?? "")); rows = arr.slice(1);
+      }
+      const def = FILE_DEFS.find(d => d.detect(headers.join("|"), f.name));
+      if (!def) { log(`Unrecognised file skipped: ${f.name}`); continue; }
+      DATA[def.key] = { headers, rows, filename: f.name, rowCount: rows.filter(r => r && r.length).length };
+      log(`Loaded ${def.label}: ${DATA[def.key].rowCount} rows (${f.name})`);
+    } catch (err) { log(`ERROR reading ${f.name}: ${err.message}`); }
+  }
+  renderFileGrid();
+}
+
+function parseCSV(text) {
+  const out = []; let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; } else cur += c; }
+    else if (c === '"') inQ = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (cur !== "" || row.length) { row.push(cur); out.push(row); row = []; cur = ""; }
+      if (c === "\r" && text[i + 1] === "\n") i++;
+    } else cur += c;
+  }
+  if (cur !== "" || row.length) { row.push(cur); out.push(row); }
+  return out;
+}
+
+function renderFileGrid() {
+  const grid = document.getElementById("filegrid");
+  grid.innerHTML = "";
+  for (const def of FILE_DEFS) {
+    const d = DATA[def.key];
+    const el = document.createElement("div");
+    el.className = "fcard";
+    el.innerHTML = `<div><div class="fname">${def.label}</div>
+      <div class="fmeta">${d ? d.filename + " - " + d.rowCount.toLocaleString() + " rows" : "not loaded"}</div></div>
+      <span class="chip ${d ? "ok" : "missing"}">${d ? "loaded" : "missing"}</span>`;
+    grid.appendChild(el);
+  }
+  document.getElementById("runopp").disabled = !(DATA.ecdeduct && DATA.finance && DATA.details && DATA.usermgmt);
+}
+
+/* ---------------- helpers ---------------- */
+function listParam(id) { return document.getElementById(id).value.split(",").map(s => s.trim()).filter(Boolean); }
+// Employee Central deductions CSV: the real header is the second row.
+// cols: 0 User ID, 1 Employment Status, 2 Termination Date, 3 Pay Group, 4 Business Email
+function ecData() {
+  const term = {}, active = {}, payGroup = {}, email = {};
+  for (const r of DATA.ecdeduct.rows) {
+    if (!r || !r[0]) continue;
+    const id = String(r[0]).trim();
+    if (id === "" || id === "User ID") continue;
+    const st = String(r[1] ?? "").trim();
+    if (st === "Terminated") term[id] = String(r[2] ?? "").trim() || "(no date)";
+    else if (st === "Active") active[id] = true;
+    payGroup[id] = String(r[3] ?? "").trim();
+    email[id] = String(r[4] ?? "").trim();
+  }
+  return { term, active, payGroup, email };
+}
+
+/* ================================================================
+   OPPORTUNITY
+   ================================================================ */
+let oppResult = null, oppShowAll = false;
+const OPP_COLS = [
+  ["id", "Employee ID"], ["email", "Email Address"], ["payGroup", "Pay Group"],
+  ["inSP", "In SP System"], ["flag", "Flag"]
+];
+
+document.getElementById("runopp").addEventListener("click", runOpportunity);
+document.getElementById("oppsearch").addEventListener("input", renderOppTable);
+document.getElementById("oppshowall").addEventListener("click", () => { oppShowAll = true; renderOppTable(); });
+document.getElementById("oppexport").addEventListener("click", exportOppXLSX);
+
+function runOpportunity() {
+  const ec = ecData();
+  const PAY_GROUPS = listParam("p_paygroups");
+  // only employees with an in-scope business email are opportunities; anything else is out of scope
+  const domain = document.getElementById("p_domain").value.trim().toLowerCase();
+  const inScope = id => !domain || (ec.email[id] || "").toLowerCase().endsWith(domain);
+  const LEME = listParam("p_leitems").concat(listParam("p_meitems"));
+  // employees ever paid anything / paid LE-ME (finance batch, YTD)
+  const everPaid = new Set(), paidLEME = new Set();
+  for (const r of DATA.finance.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim();
+    everPaid.add(id);
+    if (LEME.includes(String(r[2] ?? "").trim())) paidLEME.add(id);
+  }
+  const inDetails = new Set();
+  for (const r of DATA.details.rows) if (r && r[1] !== null && String(r[1]).trim() !== "") inDetails.add(String(r[1]).trim());
+  const inSP = new Set();
+  for (const r of DATA.usermgmt.rows) if (r && r[1] !== null && String(r[1]).trim() !== "") inSP.add(String(r[1]).trim());
+
+  const rows = [];
+  let outOfScope = 0;
+  for (const id of Object.keys(ec.active)) {
+    if (!inScope(id)) { outOfScope++; continue; }
+    const pg = ec.payGroup[id] || "";
+    const neverPackaged = PAY_GROUPS.includes(pg) && !everPaid.has(id) && !inDetails.has(id);
+    const registeredNotPackaging = inSP.has(id) && !inDetails.has(id) && !paidLEME.has(id);
+    if (!neverPackaged && !registeredNotPackaging) continue;
+    let flag;
+    if (neverPackaged && registeredNotPackaging) flag = "Registered in SP system - never packaged";
+    else if (neverPackaged) flag = "Never salary packaged";
+    else flag = "In SP system - no deductions set up, no LE/ME payments";
+    rows.push({ id, email: ec.email[id] || "(no email)", payGroup: pg || "(none)", inSP: inSP.has(id) ? "Yes" : "No", flag, group: flag });
+  }
+  // terminated employees still registered in the SP system without packaging - shown for cleanup
+  for (const id of Object.keys(ec.term)) {
+    if (!inScope(id) || !inSP.has(id) || inDetails.has(id) || paidLEME.has(id)) continue;
+    rows.push({ id, email: ec.email[id] || "(no email)", payGroup: ec.payGroup[id] || "(none)", inSP: "Yes",
+                flag: "Terminated " + ec.term[id] + " - registered in SP system, not packaging",
+                group: "Terminated - registered in SP system, not packaging" });
+  }
+  rows.sort((a, b) => a.group.localeCompare(b.group) || a.id.localeCompare(b.id, undefined, { numeric: true }));
+  oppResult = { rows, outOfScope, domain, runDate: new Date().toLocaleDateString("en-AU") };
+  oppShowAll = false;
+  renderOppResults();
+}
+
+let groupFilter = null;
+function renderOppResults() {
+  document.getElementById("results").classList.remove("hidden");
+  const counts = {};
+  for (const r of oppResult.rows) counts[r.group] = (counts[r.group] || 0) + 1;
+  groupFilter = null;
+  document.getElementById("cards").innerHTML =
+    `<div class="card okc" data-group=""><div class="big">${oppResult.rows.length.toLocaleString()}</div><div class="lbl">Total opportunities${oppResult.domain ? " (" + oppResult.domain + " only)" : ""}</div></div>` +
+    Object.keys(counts).map(k => `<div class="card" data-group="${k}"><div class="big">${counts[k].toLocaleString()}</div><div class="lbl">${k}</div></div>`).join("");
+  document.querySelectorAll("#cards .card").forEach(c => c.addEventListener("click", () => {
+    groupFilter = c.dataset.group || null; oppShowAll = false;
+    document.querySelectorAll("#cards .card").forEach(x => x.classList.toggle("sel", x === c));
+    renderOppTable();
+  }));
+  renderOppTable();
+}
+
+function oppFilteredRows() {
+  const q = document.getElementById("oppsearch").value.trim().toLowerCase();
+  let rows = oppResult.rows;
+  if (groupFilter) rows = rows.filter(r => r.group === groupFilter);
+  if (q) rows = rows.filter(r => (r.id + " " + r.email + " " + r.payGroup + " " + r.flag).toLowerCase().includes(q));
+  return rows;
+}
+
+function renderOppTable() {
+  if (!oppResult) return;
+  const rows = oppFilteredRows();
+  const cap = oppShowAll ? rows.length : 400;
+  document.querySelector("#opptable thead").innerHTML = "<tr>" + OPP_COLS.map(c => `<th>${c[1]}</th>`).join("") + "</tr>";
+  document.querySelector("#opptable tbody").innerHTML = rows.slice(0, cap).map(r =>
+    "<tr>" + OPP_COLS.map(c => `<td class="${c[0] === "flag" ? "status-check" : ""}">${r[c[0]]}</td>`).join("") + "</tr>").join("");
+  document.getElementById("rowsnote").textContent =
+    `Showing ${Math.min(cap, rows.length).toLocaleString()} of ${rows.length.toLocaleString()} rows` +
+    (rows.length > cap ? " - use search or 'Show all rows'." : ".") + ` Run ${oppResult.runDate}.`;
+  document.getElementById("oppshowall").style.display = rows.length > cap ? "" : "none";
+}
+
+function exportOppXLSX() {
+  const data = [OPP_COLS.map(c => c[1])].concat(oppFilteredRows().map(r => OPP_COLS.map(c => r[c[0]])));
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws["!cols"] = [{ wch: 12 }, { wch: 42 }, { wch: 20 }, { wch: 12 }, { wch: 60 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Opportunity");
+  XLSX.writeFile(wb, "opportunity-report.xlsx", { compression: true });
+}
+
+document.getElementById("datestamp").textContent = new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+renderFileGrid();
+</script>
+</body>
+</html>

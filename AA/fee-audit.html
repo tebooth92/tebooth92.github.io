@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fee Audit | Payroll Tools</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc; --panel: #ffffff; --ink: #0f172a; --muted: #64748b;
+    --line: #e2e8f0; --accent: #4f46e5; --accent-hover: #4338ca; --accent-ink: #ffffff;
+    --ok: #10b981; --warn: #f59e0b; --bad: #dc2626; --chip: #f1f5f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 18px 32px; display: flex; align-items: baseline; gap: 14px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--ink); }
+  header .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 32px 60px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .panel h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: 12px; }
+  #dropzone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 26px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s; }
+  #dropzone.drag { border-color: var(--accent); background: #eef2ff; }
+  #filegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin-top: 14px; }
+  .fcard { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; }
+  .fcard .fname { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .fcard .fmeta { color: var(--muted); font-size: 12px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: var(--muted); white-space: nowrap; }
+  .chip.ok { background: #d1fae5; color: #047857; }
+  .chip.missing { background: #fee2e2; color: #b91c1c; }
+  .chip.opt { background: #f1f5f9; color: #64748b; }
+  .params { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+  .params label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .params input { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 110px; font: inherit; font-size: 13px; }
+  .params input.wide { width: 420px; }
+  .params input:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .btn { background: var(--accent); color: var(--accent-ink); border: none; border-radius: 10px; padding: 9px 20px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .btn:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel); color: var(--accent); border: 1px solid #c7d2fe; padding: 6px 14px; font-size: 13px; }
+  .btn.ghost:hover:not(:disabled) { background: #eef2ff; }
+  #cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--panel); box-shadow: 0 1px 2px rgba(16,24,40,.04); cursor: pointer; transition: .15s; }
+  .card:hover, .card.sel { border-color: #c7d2fe; background: #f5f6ff; }
+  .card .big { font-size: 26px; font-weight: 700; color: var(--ink); }
+  .card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .card.under .big { color: var(--bad); }
+  .card.over .big { color: #d97706; }
+  .card.check .big { color: var(--accent); }
+  .tabbar { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .tabbar button.tab { border: 1px solid var(--line); background: var(--panel); padding: 6px 14px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 500; color: var(--ink); transition: .15s; }
+  .tabbar button.tab:hover:not(.active) { background: #eef2ff; border-color: #c7d2fe; }
+  .tabbar button.tab.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tabbar input[type=search] { border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; width: 250px; margin-left: auto; font: inherit; font-size: 13px; }
+  .tabbar input[type=search]:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  .twrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 640px; overflow-y: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 7px 11px; border-bottom: 1px solid #f1f5f9; text-align: left; white-space: nowrap; }
+  th { background: #f8fafc; position: sticky; top: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; border-bottom: 1px solid var(--line); }
+  td.num, th.num { text-align: right; }
+  tr:hover td { background: #f8fafc; }
+  .status-under { color: var(--bad); font-weight: 600; }
+  .status-over { color: #d97706; font-weight: 600; }
+  .status-check { color: var(--accent); font-weight: 600; }
+  #rowsnote { font-size: 12px; color: var(--muted); margin: 8px 2px; }
+  #log { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; margin-top: 8px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fee Audit</h1>
+  <span class="sub">Salary packaging admin fee collection</span>
+  <span class="sub" id="datestamp" style="margin-left:auto"></span>
+</header>
+<main>
+
+  <div class="panel">
+    <h2>1. Load files</h2>
+    <div id="dropzone">Drag the export files here, or click to browse.
+      <input type="file" id="fileinput" multiple accept=".xlsx,.csv" style="display:none">
+    </div>
+    <div id="filegrid"></div>
+    <div id="log"></div>
+  </div>
+
+  <div class="panel">
+    <h2>2. Run</h2>
+    <div class="params">
+      <div><label>LE full-year fee $</label><input id="p_letarget" type="number" value="451"></div>
+      <div><label>ME full-year fee $</label><input id="p_metarget" type="number" value="133"></div>
+      <div><label>LE cap $</label><input id="p_lecap" type="number" value="9010"></div>
+      <div><label>ME cap $</label><input id="p_mecap" type="number" value="2650"></div>
+      <div><label>Tolerance $</label><input id="p_tol" type="number" value="1" step="0.5"></div>
+      <div><label>Include if benefit &gt; % of cap</label><input id="p_reportpct" type="number" value="50"></div>
+      <div style="flex-basis:100%;height:0"></div>
+      <div><label>Living Expenses items</label><input id="p_leitems" class="wide" value="Mortgage, Credit Card, EMLEBC, Rent, Personal Loan, Living Expenses"></div>
+      <div><label>Meal Entertainment items</label><input id="p_meitems" class="wide" style="width:280px" value="EMLMEC, Entertainment Benefits"></div>
+      <button class="btn" id="runfee" disabled>Run Fee Audit</button>
+    </div>
+  </div>
+
+  <div class="panel hidden" id="results">
+    <h2>3. Results</h2>
+    <div id="cards"></div>
+    <div class="tabbar">
+      <button class="tab active" data-tab="under">Collect More</button>
+      <button class="tab" data-tab="over">Over Collected</button>
+      <button class="tab" data-tab="nobenefit">Fee, No Benefit</button>
+      <input type="search" id="tblsearch" placeholder="Search ID, name, action...">
+      <button class="btn ghost" id="exportxlsx">Export XLSX (3 tabs)</button>
+      <button class="btn ghost" id="showall">Show all rows</button>
+    </div>
+    <div class="twrap"><table id="feetable"><thead></thead><tbody></tbody></table></div>
+    <div id="rowsnote"></div>
+  </div>
+
+</main>
+<script>
+"use strict";
+/* ================================================================
+   Fee Audit - standalone tool
+   Inputs: Package Benefit Details, Finance Batch Report (Payment
+   Transaction Summary from 1 April), User Management Employee List,
+   and optionally the Employee Central deductions CSV (terminations).
+   ================================================================ */
+const MS_DAY = 86400000;
+const FILE_DEFS = [
+  { key: "details",  label: "Package Benefit Details",       detect: h => h.includes("Salary Package Item") },
+  { key: "finance",  label: "Finance Batch Report",          detect: h => h.includes("Item Name") && h.includes("Payment") },
+  { key: "usermgmt", label: "User Management Employee List", detect: h => h.includes("PayRollID") },
+  { key: "ecdeduct", label: "Current Deductions (Employee Central)", optional: true, detect: h => h.includes("Austin Advantage SPack") }
+];
+const DATA = {};
+
+/* ---------------- file ingestion ---------------- */
+const dz = document.getElementById("dropzone");
+const fi = document.getElementById("fileinput");
+dz.addEventListener("click", () => fi.click());
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag"));
+dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("drag"); ingest(e.dataTransfer.files); });
+fi.addEventListener("change", () => ingest(fi.files));
+function log(msg) { document.getElementById("log").textContent += msg + "\n"; }
+
+async function ingest(fileList) {
+  for (const f of fileList) {
+    try {
+      let headers = [], rows = [];
+      if (/\.csv$/i.test(f.name)) {
+        const parsed = parseCSV(await f.text());
+        headers = parsed[0].map(String); rows = parsed.slice(1);
+      } else {
+        const wb = XLSX.read(await f.arrayBuffer(), { type: "array", raw: true });
+        const arr = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
+        headers = (arr[0] || []).map(v => String(v ?? "")); rows = arr.slice(1);
+      }
+      const def = FILE_DEFS.find(d => d.detect(headers.join("|"), f.name));
+      if (!def) { log(`Unrecognised file skipped: ${f.name}`); continue; }
+      DATA[def.key] = { headers, rows, filename: f.name, rowCount: rows.filter(r => r && r.length).length };
+      log(`Loaded ${def.label}: ${DATA[def.key].rowCount} rows (${f.name})`);
+    } catch (err) { log(`ERROR reading ${f.name}: ${err.message}`); }
+  }
+  renderFileGrid();
+}
+
+function parseCSV(text) {
+  const out = []; let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; } else cur += c; }
+    else if (c === '"') inQ = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (cur !== "" || row.length) { row.push(cur); out.push(row); row = []; cur = ""; }
+      if (c === "\r" && text[i + 1] === "\n") i++;
+    } else cur += c;
+  }
+  if (cur !== "" || row.length) { row.push(cur); out.push(row); }
+  return out;
+}
+
+function renderFileGrid() {
+  const grid = document.getElementById("filegrid");
+  grid.innerHTML = "";
+  for (const def of FILE_DEFS) {
+    const d = DATA[def.key];
+    const el = document.createElement("div");
+    el.className = "fcard";
+    el.innerHTML = `<div><div class="fname">${def.label}</div>
+      <div class="fmeta">${d ? d.filename + " - " + d.rowCount.toLocaleString() + " rows" : (def.optional ? "optional - not loaded" : "not loaded")}</div></div>
+      <span class="chip ${d ? "ok" : def.optional ? "opt" : "missing"}">${d ? "loaded" : def.optional ? "optional" : "missing"}</span>`;
+    grid.appendChild(el);
+  }
+  document.getElementById("runfee").disabled = !(DATA.details && DATA.finance && DATA.usermgmt);
+}
+
+/* ---------------- helpers ---------------- */
+function parseDMY(v) {
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "number") return new Date(Math.round((v - 25569) * MS_DAY));
+  const p = String(v).trim().split("/");
+  if (p.length !== 3) return null;
+  const d = parseInt(p[0], 10), m = parseInt(p[1], 10), y = parseInt(p[2], 10);
+  if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+  return new Date(y, m - 1, d);
+}
+function num(v) { if (typeof v === "number") return v; const n = parseFloat(String(v)); return isNaN(n) ? 0 : n; }
+function money(v) { return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function r2(v) { return Math.round(v * 100) / 100; }
+function ceilCents(v) { return Math.ceil(Math.round(v * 10000) / 100) / 100; }   // round UP to the cent, never under-collect
+function listParam(id) { return document.getElementById(id).value.split(",").map(s => s.trim()).filter(Boolean); }
+// Employee Central deductions CSV: real header is the second row. cols: 0 User ID, 1 Employment Status, 2 Termination Date
+function ecTerminated() {
+  const term = {};
+  if (!DATA.ecdeduct) return term;
+  for (const r of DATA.ecdeduct.rows) {
+    if (!r || !r[0]) continue;
+    const id = String(r[0]).trim();
+    if (id === "" || id === "User ID") continue;
+    if (String(r[1] ?? "").trim() === "Terminated") term[id] = String(r[2] ?? "").trim() || "(no date)";
+  }
+  return term;
+}
+
+/* ================================================================
+   FEE AUDIT
+   Details cols: 1 Payroll ID, 2 Employment Status, 4/5 name, 6 Item,
+   7 Fortnightly Amount, 8 Deposit, 14 Frequency, 15 Start, 16 End,
+   17 Next Payment, 18 Periods, 20/21 Capped Available, 23 Status.
+   Finance cols: 0 Name, 1 Payroll ID, 2 Item, 3 Payment (YTD).
+   ================================================================ */
+const LE_FEE_ITEM = "Admin Fee", ME_FEE_ITEM = "Entertainment Benefits Fee", SPECIAL_FEE_ITEM = "Admin Fee - Special";
+const NON_BENEFIT_ITEM = /fee|resen[dt] to payroll/i;
+let result = null;
+
+document.getElementById("runfee").addEventListener("click", runFeeAudit);
+
+function runFeeAudit() {
+  const P = {
+    leTarget: num(document.getElementById("p_letarget").value), meTarget: num(document.getElementById("p_metarget").value),
+    leCap: num(document.getElementById("p_lecap").value), meCap: num(document.getElementById("p_mecap").value),
+    tol: num(document.getElementById("p_tol").value), reportPct: num(document.getElementById("p_reportpct").value)
+  };
+  const LE = listParam("p_leitems"), ME = listParam("p_meitems");
+  const isLE = i => LE.includes(i), isME = i => ME.includes(i);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const fbtEnd = new Date(today.getMonth() >= 3 ? today.getFullYear() + 1 : today.getFullYear(), 2, 31);
+  const fmtD = d => d ? d.toLocaleDateString("en-AU") : "";
+
+  const activeIds = new Set();
+  for (const r of DATA.usermgmt.rows) if (r && r[1] !== null && r[1] !== undefined && String(r[1]).trim() !== "") activeIds.add(String(r[1]).trim());
+  const term = ecTerminated();
+
+  function advance(d) { let t = d.getTime(); while (t < today.getTime()) t += 14 * MS_DAY; return new Date(t); }
+  // remaining collections for a line from its own Next Payment Date through 31 March
+  function remaining(freq, periods, sD, eD, nD, empNext) {
+    const once = freq === "Once" || periods === "1";
+    if (once) return (nD && nD >= today && nD <= fbtEnd) ? 1 : 0;
+    if (eD && eD < today) return 0;
+    const base = nD || empNext; if (!base) return 0;
+    let first = advance(base);
+    if (sD && sD > first) { let t = first.getTime(); while (t < sD.getTime()) t += 14 * MS_DAY; first = new Date(t); }
+    const last = (eD && eD < fbtEnd) ? eD : fbtEnd;
+    if (first > last) return 0;
+    let cycles = Math.floor((last - first) / (14 * MS_DAY)) + 1;
+    const p = parseInt(periods, 10);
+    if (!isNaN(p) && p > 1 && sD) { const taken = sD > today ? 0 : Math.floor((today - sD) / (14 * MS_DAY)) + 1; cycles = Math.min(cycles, Math.max(0, p - taken)); }
+    return Math.max(0, cycles);
+  }
+  function stillActive(freq, periods, eD, nD) {
+    const once = freq === "Once" || periods === "1";
+    return once ? (nD !== null && nD >= today) : !(eD && eD < today);
+  }
+
+  const emps = {};
+  const getEmp = id => emps[id] || (emps[id] = {
+    name: "", status: "", lbp: 0, mbp: 0, lfp: 0, mfp: 0, sp: 0, lfs: 0, mfs: 0, ss: 0, lbs: 0, mbs: 0,
+    lNext: null, mNext: null, leAvail: null, ebAvail: null, next: null, feeLines: [], benLines: [], other: new Set(),
+    recur: 0, stale: 0
+  });
+
+  for (const r of DATA.finance.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    const id = String(r[1]).trim(), item = String(r[2] ?? "").trim(), paid = num(r[3]);
+    const e = getEmp(id);
+    if (!e.name) e.name = String(r[0] ?? "").trim();
+    if (isLE(item)) e.lbp += paid;
+    else if (isME(item)) e.mbp += paid;
+    else if (item === LE_FEE_ITEM) e.lfp += paid;
+    else if (item === ME_FEE_ITEM) e.mfp += paid;
+    else if (item === SPECIAL_FEE_ITEM) e.sp += paid;
+    else if (paid > 0 && !NON_BENEFIT_ITEM.test(item)) e.other.add(item);
+  }
+
+  for (const r of DATA.details.rows) {
+    if (!r || r[1] === null || String(r[1]).trim() === "") continue;
+    if (String(r[23] ?? "").trim() !== "Active") continue;
+    const id = String(r[1]).trim(), item = String(r[6] ?? "").trim(), dep = num(r[8]), amt = Math.max(dep, num(r[7]));
+    const freq = String(r[14] ?? "").trim(), periods = String(r[18] ?? "").trim();
+    const sD = parseDMY(r[15]), eD = parseDMY(r[16]), nD = parseDMY(r[17]);
+    const e = getEmp(id);
+    if (e.leAvail === null) {
+      e.leAvail = (r[20] === null || r[20] === undefined || r[20] === "") ? P.leCap : num(r[20]);
+      e.ebAvail = (r[21] === null || r[21] === undefined || r[21] === "") ? P.meCap : num(r[21]);
+    }
+    const nm = (String(r[4] ?? "").trim() + " " + String(r[5] ?? "").trim()).trim();
+    if (nm) e.name = nm;
+    e.status = String(r[2] ?? "").trim();
+    const once = freq === "Once" || periods === "1";
+    if (!once && !(eD && eD < today)) { e.recur++; if (nD && nD < today) e.stale++; }
+    if (nD && !once) { const a = advance(nD); if (!e.next || a < e.next) e.next = a; }
+    const sched = amt > 0 && stillActive(freq, periods, eD, nD);
+    if (isLE(item) || isME(item)) {
+      if (sched) {
+        const k = isLE(item) ? "L" : "M";
+        e.benLines.push({ k, amt, freq, periods, sD, eD, nD });
+        const key = k === "L" ? "lNext" : "mNext";
+        if (nD && (!e[key] || nD < e[key])) e[key] = nD;
+      }
+    } else if ((item === LE_FEE_ITEM || item === ME_FEE_ITEM || item === SPECIAL_FEE_ITEM) && dep > 0) {
+      e.feeLines.push({ item, dep, freq, periods, sD, eD, nD, rem: 0, sched: 0 });
+    } else if (sched && !NON_BENEFIT_ITEM.test(item)) e.other.add(item);
+  }
+
+  for (const id of Object.keys(emps)) {
+    const e = emps[id];
+    e.cycles = e.next ? Math.max(0, Math.floor((fbtEnd - e.next) / (14 * MS_DAY)) + 1) : 0;
+    for (const f of e.feeLines) {
+      f.rem = remaining(f.freq, f.periods, f.sD, f.eD, f.nD, e.next); f.sched = f.dep * f.rem;
+      if (f.item === LE_FEE_ITEM) e.lfs += f.sched; else if (f.item === ME_FEE_ITEM) e.mfs += f.sched; else e.ss += f.sched;
+    }
+    for (const b of e.benLines) {
+      const s = b.amt * remaining(b.freq, b.periods, b.sD, b.eD, b.nD, e.next);
+      if (b.k === "L") e.lbs += s; else e.mbs += s;
+    }
+    if (e.leAvail !== null) { e.lbs = Math.min(e.lbs, Math.max(0, e.leAvail)); e.mbs = Math.min(e.mbs, Math.max(0, e.ebAvail)); }
+  }
+
+  // proposed fortnightly rate: remaining full-year fee spread over the remaining pays of the category's fee line
+  function propose(e, feeItem, feePaid, feeSched, target) {
+    let primary = null;
+    for (const f of e.feeLines) if (f.item === feeItem && (!primary || f.rem > primary.rem || (f.rem === primary.rem && f.dep > primary.dep))) primary = f;
+    const otherSched = feeSched - (primary ? primary.sched : 0);
+    const cycles = primary && primary.rem > 0 ? primary.rem : e.cycles;
+    const curRate = primary ? primary.dep : 0;
+    if (cycles <= 0) return { curRate, cycles: 0, newRate: "", action: "CHECK - no pay cycles left" };
+    const newRate = Math.max(0, ceilCents((target - feePaid - otherSched) / cycles));
+    const newLine = !primary || primary.rem === 0;
+    let action;
+    if (newLine) action = newRate > 0 ? "New " + feeItem + " line required at " + money(newRate) : "No line required";
+    else if (Math.abs(newRate - curRate) < 0.005) action = "No change";
+    else if (newRate === 0) action = "Set " + feeItem + " to $0";
+    else action = (newRate > curRate ? "Increase " : "Decrease ") + feeItem + " to " + money(newRate);
+    return { curRate, cycles, newRate, action };
+  }
+
+  const under = [], over = [], nobenefit = [];
+  for (const id of Object.keys(emps)) {
+    if (!activeIds.has(id) || term[id]) continue;                 // terminated
+    const e = emps[id];
+    if (e.recur > 0 && e.stale === e.recur) continue;             // nothing collecting - every recurring line is stale
+    const hasLE = e.lbp > 0 || e.lbs > 0 || e.lfp > 0 || e.lfs > 0;
+    const hasME = e.mbp > 0 || e.mbs > 0 || e.mfp > 0 || e.mfs > 0;
+
+    // special fee payments/schedule count toward LE first, then ME
+    let spp = e.sp, sps = e.ss; const al = { lp: 0, ls: 0, mp: 0, ms: 0 };
+    if (hasLE) { al.lp = Math.min(spp, Math.max(0, P.leTarget - e.lfp)); spp -= al.lp; al.ls = Math.min(sps, Math.max(0, P.leTarget - e.lfp - al.lp - e.lfs)); sps -= al.ls; }
+    if (hasME) { al.mp = Math.min(spp, Math.max(0, P.meTarget - e.mfp)); spp -= al.mp; al.ms = Math.min(sps, Math.max(0, P.meTarget - e.mfp - al.mp - e.mfs)); sps -= al.ms; }
+
+    const cats = [];
+    if (hasLE) cats.push(["Living Expenses", LE_FEE_ITEM, e.lbp, e.lbs, e.lNext, e.lfp + al.lp, e.lfs + al.ls, P.leTarget, P.leCap]);
+    if (hasME) cats.push(["Meal Entertainment", ME_FEE_ITEM, e.mbp, e.mbs, e.mNext, e.mfp + al.mp, e.mfs + al.ms, P.meTarget, P.meCap]);
+
+    for (const [cat, feeItem, benPaid, benSched, benNext, feePaid, feeSched, target, cap] of cats) {
+      const diff = feePaid + feeSched - target;
+      const benProj = benPaid + benSched, benPct = cap > 0 ? benProj / cap * 100 : 0;
+      const base = { id, name: e.name, empStatus: e.status, cat, feeItem, feePaid: r2(feePaid), feeSched: r2(feeSched) };
+
+      if (benPaid <= 0 && benSched <= 0) {
+        const cross = cat === "Living Expenses" ? ((e.mbp > 0 || e.mbs > 0) ? ["Meal Entertainment benefit"] : []) : ((e.lbp > 0 || e.lbs > 0) ? ["Living Expenses benefit"] : []);
+        const others = cross.concat([...e.other].sort()).join(", ");
+        nobenefit.push({ ...base, curRate: r2(e.feeLines.filter(f => f.item === feeItem).reduce((s, f) => s + f.dep, 0)),
+          otherBenefits: others || "(none)",
+          action: (feeSched > 0 ? "Cease " + feeItem + " line" : "No " + feeItem + " line to cease") + (feePaid > 0 ? " - review refund of " + money(feePaid) : "") });
+        continue;
+      }
+      if (Math.abs(diff) <= P.tol || benPct <= P.reportPct) continue;
+      const pr = propose(e, feeItem, feePaid, feeSched, target);
+      let action = pr.action;
+      if (benPaid <= 0 && benNext && benNext < today) action += " - confirm benefit line first (next pay " + fmtD(benNext) + " stale, nothing claimed YTD)";
+      const line = { ...base, curRate: r2(pr.curRate), newRate: pr.newRate === "" ? "" : r2(pr.newRate), remPays: pr.cycles,
+        variance: r2(diff), benProj: r2(benProj), benPct: r2(benPct), action };
+      (diff < 0 ? under : over).push(line);
+    }
+  }
+  under.sort((a, b) => a.variance - b.variance);
+  over.sort((a, b) => b.variance - a.variance);
+  nobenefit.sort((a, b) => b.feePaid - a.feePaid || b.feeSched - a.feeSched);
+  result = { under, over, nobenefit, runDate: today.toLocaleDateString("en-AU") };
+  render();
+}
+
+/* ---------------- rendering & export ---------------- */
+const COLS = [
+  ["id", "Employee ID"], ["name", "Name"], ["empStatus", "Status"], ["cat", "Category"],
+  ["curRate", "Current Fee / FN", 1], ["newRate", "Proposed Fee / FN", 1], ["remPays", "Remaining Pays"],
+  ["feePaid", "Fee Paid YTD", 1], ["variance", "Fee Under (-) / Over (+)", 1],
+  ["benProj", "Benefit Paid + Scheduled", 1], ["benPct", "% of Cap", 2], ["action", "Action"]
+];
+const NOBEN_COLS = [
+  ["id", "Employee ID"], ["name", "Name"], ["empStatus", "Status"], ["cat", "Category"], ["feeItem", "Fee Item"],
+  ["feePaid", "Fee Paid YTD", 1], ["feeSched", "Fee Scheduled (Rem. Yr)", 1], ["curRate", "Current Fee / FN", 1],
+  ["otherBenefits", "Other Benefits (scheduled or claimed)"], ["action", "Action"]
+];
+const SHEETS = { under: "Underpaid", over: "Overpaid", nobenefit: "Fee No Benefit" };
+let tab = "under", showAll = false;
+
+function setTab(t) {
+  tab = t; showAll = false;
+  document.querySelectorAll(".tabbar .tab").forEach(b => b.classList.toggle("active", b.dataset.tab === t));
+  document.querySelectorAll("#cards .card").forEach(c => c.classList.toggle("sel", c.dataset.tab === t));
+  renderTable();
+}
+document.querySelectorAll(".tabbar .tab").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+document.getElementById("tblsearch").addEventListener("input", renderTable);
+document.getElementById("showall").addEventListener("click", () => { showAll = true; renderTable(); });
+document.getElementById("exportxlsx").addEventListener("click", exportXLSX);
+
+function render() {
+  document.getElementById("results").classList.remove("hidden");
+  document.getElementById("cards").innerHTML = `
+    <div class="card under" data-tab="under"><div class="big">${result.under.length.toLocaleString()}</div><div class="lbl">Collect more</div></div>
+    <div class="card over" data-tab="over"><div class="big">${result.over.length.toLocaleString()}</div><div class="lbl">Over collected</div></div>
+    <div class="card check" data-tab="nobenefit"><div class="big">${result.nobenefit.length.toLocaleString()}</div><div class="lbl">Fee, no benefit</div></div>`;
+  document.querySelectorAll("#cards .card").forEach(c => c.addEventListener("click", () => setTab(c.dataset.tab)));
+  setTab("under");
+}
+function cols() { return tab === "nobenefit" ? NOBEN_COLS : COLS; }
+function filteredRows() {
+  const q = document.getElementById("tblsearch").value.trim().toLowerCase();
+  let rows = result[tab];
+  if (q) rows = rows.filter(r => Object.values(r).join(" ").toLowerCase().includes(q));
+  return rows;
+}
+function fmt(c, v) { return c[2] === 2 ? v.toFixed(1) + "%" : c[2] ? (v === "" ? "" : money(v)) : v; }
+function renderTable() {
+  if (!result) return;
+  const rows = filteredRows(), cap = showAll ? rows.length : 400, cs = cols();
+  document.querySelector("#feetable thead").innerHTML = "<tr>" + cs.map(c => `<th class="${c[2] ? "num" : ""}">${c[1]}</th>`).join("") + "</tr>";
+  document.querySelector("#feetable tbody").innerHTML = rows.slice(0, cap).map(r => "<tr>" + cs.map(c => {
+    let cls = c[2] ? "num" : "";
+    if (c[0] === "action") cls = tab === "under" ? "status-under" : tab === "over" ? "status-over" : "status-check";
+    return `<td class="${cls}">${fmt(c, r[c[0]])}</td>`;
+  }).join("") + "</tr>").join("");
+  document.getElementById("rowsnote").textContent = `Showing ${Math.min(cap, rows.length).toLocaleString()} of ${rows.length.toLocaleString()} rows` +
+    (rows.length > cap ? " - use search or 'Show all rows'." : ".") + ` Run ${result.runDate}.`;
+  document.getElementById("showall").style.display = rows.length > cap ? "" : "none";
+}
+function exportXLSX() {
+  const wb = XLSX.utils.book_new();
+  for (const key of ["under", "over", "nobenefit"]) {
+    const cs = key === "nobenefit" ? NOBEN_COLS : COLS;
+    const ws = XLSX.utils.aoa_to_sheet([cs.map(c => c[1])].concat(result[key].map(r => cs.map(c => r[c[0]]))));
+    ws["!cols"] = cs.map(c => ({ wch: Math.max(12, Math.min(48, c[1].length + 2)) }));
+    XLSX.utils.book_append_sheet(wb, ws, SHEETS[key]);
+  }
+  XLSX.writeFile(wb, "fee-audit.xlsx", { compression: true });
+}
+
+document.getElementById("datestamp").textContent = new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+renderFileGrid();
+</script>
+</body>
+</html>
