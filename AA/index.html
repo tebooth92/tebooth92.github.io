@@ -73,7 +73,7 @@
                     <span class="pt-switch"></span>
                 </button>
             </div>
-            <div class="p-4 text-xs text-slate-600 text-center">v2.2.0 | EML Onboarding</div>
+            <div class="p-4 text-xs text-slate-600 text-center">v2.3.0 | FBT Reconciliation</div>
         </nav>
 
         <!-- TOOL CONTENT + tracker drawer -->
@@ -116,7 +116,8 @@
             receipt:  "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z",
             calc:     "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z",
             bank:     "M3 10h18M5 10v10m14-10v10M9 10v10m6-10v10M2 20h20M12 3l9 5H3l9-5z",
-            search:   "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            search:   "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+            vehicle:  "M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1"
         };
         const ROUTES = {
             'home':           { label:'Home',                              icon:'home',     file:'home.html' },
@@ -130,11 +131,12 @@
             'held-balance':   { label:'Held Balance',                      icon:'bank',     file:'held-balance.html' },
             'cutoff':         { label:'Pay Cutoff', icon:'report',  file:'cutoff.html' },
             'reconciler':     { label:'Reconcile Pay',                     icon:'scale',    file:'reconciler.html' },
+            'fbt-rec':        { label:'FBT Reconciliation',                icon:'vehicle',  file:'fbt-reconciliation.html' },
         };
         const GROUPS = [
             { heading:null,               keys:['home'] },
             { heading:'Pay Related', keys:['pay-processing','cutoff','audit','remittance','gst-itc','reconciler'] },
-            { heading:'Checks',      keys:['eml-onboarding','fee-audit','opportunity','held-balance'] },
+            { heading:'Checks',      keys:['eml-onboarding','fee-audit','opportunity','held-balance','fbt-rec'] },
         ];
 
         const nav = document.getElementById('tool-nav');
