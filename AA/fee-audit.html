@@ -26,6 +26,8 @@
   .fcard { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; }
   .fcard .fname { font-weight: 600; font-size: 13px; color: var(--ink); }
   .fcard .fmeta { color: var(--muted); font-size: 12px; }
+  .fcard .qlink { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 6px; border: 1px solid #c7d2fe; border-radius: 5px; color: var(--accent); background: #eef2ff; font-size: 11px; font-weight: 700; text-decoration: none; vertical-align: middle; line-height: 1; transition: .15s; }
+  .fcard .qlink:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: var(--muted); white-space: nowrap; }
   .chip.ok { background: #d1fae5; color: #047857; }
   .chip.missing { background: #fee2e2; color: #b91c1c; }
@@ -78,7 +80,7 @@
 
   <div class="panel">
     <h2>1. Load files</h2>
-    <div id="dropzone">Drag the three export files here, or click to browse: Package Benefit Details, Finance Batch Report, Employer Bank Reconciliation Report.
+    <div id="dropzone">Drag the three export files here, or click to browse: Package Benefit Details, Payment Transaction Summary Report, Employer Bank Reconciliation Report.
       <input type="file" id="fileinput" multiple accept=".xlsx,.csv" style="display:none">
     </div>
     <div id="filegrid"></div>
@@ -121,8 +123,8 @@
 "use strict";
 /* ================================================================
    Fee Audit - standalone tool
-   Inputs: Package Benefit Details, Finance Batch Report (Payment
-   Transaction Summary from 1 April) and the Employer Bank Reconciliation Report
+   Inputs: Package Benefit Details, Payment Transaction Summary Report
+   (from 1 April) and the Employer Bank Reconciliation Report
    (data.xlsx: Status, Deposits, Payments, Closing Balance per package).
    Status drives who is audited (Current only). Closing Balance is
    money deducted but not yet paid to a benefit, and counts toward
@@ -130,9 +132,9 @@
    ================================================================ */
 const MS_DAY = 86400000;
 const FILE_DEFS = [
-  { key: "details",  label: "Package Benefit Details",       detect: h => h.includes("Salary Package Item") },
-  { key: "finance",  label: "Finance Batch Report",          detect: h => h.includes("Item Name") && h.includes("Payment") },
-  { key: "balances", label: "Employer Bank Reconciliation Report",    detect: h => h.includes("Package Number") && h.includes("Closing Balance") }
+  { key: "details",  label: "Package Benefit Details", link: "https://ah.eziway.net.au/ASPX/Employers/SubstantiationReport.aspx", detect: h => h.includes("Salary Package Item") },
+  { key: "finance",  label: "Payment Transaction Summary Report", link: "https://ah.eziway.net.au/Payment/PaymentProcessLogEmployerWise", note: "Ensure you select Payment Transaction Summary Report from the drop down, and set the report start date to 1 April.", detect: h => h.includes("Item Name") && h.includes("Payment") },
+  { key: "balances", label: "Employer Bank Reconciliation Report", link: "https://ah.eziway.net.au/EmployerReconcillationReport", detect: h => h.includes("Package Number") && h.includes("Closing Balance") }
 ];
 const DATA = {};
 
@@ -190,9 +192,11 @@ function renderFileGrid() {
     const d = DATA[def.key];
     const el = document.createElement("div");
     el.className = "fcard";
-    el.innerHTML = `<div><div class="fname">${def.label}</div>
+    const link = def.link ? `<a class="qlink" href="${def.link}" target="_blank" rel="noopener" title="Open report in Eziway" aria-label="Open ${def.label} in Eziway" data-key="${def.key}">&#8599;</a>` : "";
+    el.innerHTML = `<div><div class="fname">${def.label}${link}</div>
       <div class="fmeta">${d ? d.filename + " - " + d.rowCount.toLocaleString() + " rows" : (def.optional ? "optional - not loaded" : "not loaded")}</div></div>
       <span class="chip ${d ? "ok" : def.optional ? "opt" : "missing"}">${d ? "loaded" : def.optional ? "optional" : "missing"}</span>`;
+    if (def.note) el.querySelector(".qlink").addEventListener("click", e => { if (!confirm(def.note)) e.preventDefault(); });
     grid.appendChild(el);
   }
   document.getElementById("runfee").disabled = !(DATA.details && DATA.finance && DATA.balances);
