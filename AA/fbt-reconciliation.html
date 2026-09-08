@@ -71,6 +71,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .drop strong { display: block; margin-bottom: 4px; }
   .drop small { color: var(--muted); }
   .drop input { display: none; }
+  .drop .qlink { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 6px; border: 1px solid var(--violet-t2); border-radius: 5px; color: var(--accent); background: var(--accent-soft); font-size: 11px; font-weight: 700; text-decoration: none; vertical-align: middle; line-height: 1; transition: .15s; }
+  .drop .qlink:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
   label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
   input[type=text], input[type=number], input[type=date], select {
     width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; color: var(--ink);
@@ -246,13 +248,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <div class="grid g2">
     <div class="drop" id="dropA">
       <input type="file" id="fileA" accept=".xlsx,.xls,.csv">
-      <strong>FBT extract</strong>
-      <small id="statA">Base value, contributions, pay cycles and lease end date (the "data 12" file). Click or drop here.</small>
+      <strong>Post-Tax Audit Report<a class="qlink" id="linkA" href="https://ah.eziway.net.au/Leasing/NovatedLeaseSummaryReport" target="_blank" rel="noopener" title="Open report in Eziway" aria-label="Open Post-Tax Audit Report in Eziway">&#8599;</a></strong>
+      <small id="statA"></small>
     </div>
     <div class="drop" id="dropB">
       <input type="file" id="fileB" accept=".xlsx,.xls,.csv">
-      <strong>Vehicle extract</strong>
-      <small id="statB">Vehicle details (the "data 13" file). Click or drop here.</small>
+      <strong>Novated Lease Details<a class="qlink" id="linkB" href="https://ah.eziway.net.au/Leasing/NovatedLeaseSummaryReport" target="_blank" rel="noopener" title="Open report in Eziway" aria-label="Open Novated Lease Details in Eziway">&#8599;</a></strong>
+      <small id="statB"></small>
     </div>
   </div>
   <div class="note">Files are detected by their headers, so either file can go in either box. Nothing leaves your browser.</div>
@@ -493,6 +495,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); [...e.dataTransfer.files].forEach(handleFile); });
   }
   wireDrop('dropA', 'fileA'); wireDrop('dropB', 'fileB');
+  // Report links: stop the tile's click from opening the file picker. The Post-Tax Audit Report link also shows report instructions.
+  $('linkA').addEventListener('click', e => {
+    e.stopPropagation();
+    if (!confirm('Select "Post-Tax Audit Report" from the Report dropdown, and untick the "Post Tax Shortfall" button.')) e.preventDefault();
+  });
+  $('linkB').addEventListener('click', e => e.stopPropagation());
 
   function setDefaultNextPay(rows) {
     const counts = {};
