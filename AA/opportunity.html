@@ -110,9 +110,9 @@
    ================================================================ */
 const FILE_DEFS = [
   { key: "ecdeduct", label: "Current Deductions (Employee Central)", detect: h => h.includes("Austin Advantage SPack") },
-  { key: "finance",  label: "Finance Batch Report",                  detect: h => h.includes("Item Name") && h.includes("Payment") },
+  { key: "finance",  label: "Payment Transaction Summary Report",   detect: h => h.includes("Item Name") && h.includes("Payment") },
   { key: "details",  label: "Package Benefit Details",               detect: h => h.includes("Salary Package Item") },
-  { key: "usermgmt", label: "User Management Employee List",         detect: h => h.includes("PayRollID") }
+  { key: "usermgmt", label: "Total Employee Report",                detect: h => h.includes("PayRollID") }
 ];
 const DATA = {};
 
