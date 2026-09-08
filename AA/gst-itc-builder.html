@@ -29,6 +29,8 @@
   .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
   header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
   header p { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+  header .qlink { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 22px; padding: 6px 12px; border: 1px solid var(--accent-soft); border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; transition: 0.15s; }
+  header .qlink:hover { background: var(--accent); color: #fff; }
 
   .panel {
     background: var(--panel);
@@ -170,7 +172,13 @@
   <header>
     <h1>GST ITC Claimable Builder</h1>
     <p>Combine one or more employer list files, review the totals, then download the GST ITC claimable summary.</p>
+    <a class="qlink" id="sourceLink" href="https://ah.eziway.net.au/ASPX/Employers/EmployeeProjectedDeductionDepositHistory.aspx" target="_blank" rel="noopener">Open source report &#8599;</a>
   </header>
+  <script>
+    document.getElementById("sourceLink").addEventListener("click", function (e) {
+      if (!confirm("Set the start date and end date to the month you are reporting on before running the report.")) e.preventDefault();
+    });
+  </script>
 
   <section class="panel">
     <h2>1. Add input files</h2>
