@@ -123,7 +123,28 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .hidden { display: none !important; }
   .muted { color: var(--muted); }
   .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .who-id { display: flex; align-items: center; gap: 18px; flex: 1; min-width: 0; }
+  .who-input { display: flex; flex-direction: column; align-items: flex-end; margin-left: 18px; }
+  .who-input label { color: rgba(255,255,255,.8); margin-bottom: 4px; }
+  .who-input input { width: 220px; font-family: var(--head); font-weight: 700; font-size: 20px; padding: 6px 10px; border: 2px solid var(--orange); border-radius: 6px; color: var(--midnight); text-align: right; }
+  .who-input input:focus { outline: 3px solid rgba(224,94,38,.35); }
+  .who { display: flex; align-items: center; gap: 18px; background: var(--midnight); color: #fff; border-radius: 6px; padding: 8px 14px; margin: 0 0 14px; }
+  .who .rego { font-family: var(--head); font-weight: 700; font-size: 20px; letter-spacing: .04em; color: #fff; }
+  .who .name { font-family: var(--head); font-weight: 500; font-size: 15px; }
+  .who .id { font-size: 13px; color: rgba(255,255,255,.75); }
+  .who .id b { color: #fff; font-weight: 500; }
+  .who .veh { margin-left: auto; font-size: 13px; color: rgba(255,255,255,.75); }
+  @media (max-width: 800px) { .who { flex-wrap: wrap; gap: 8px 14px; } .who .veh { margin-left: 0; } }
+  details.calcdetail { margin-top: 12px; }
+  details.calcdetail summary { font-size: 13px; font-weight: 500; color: var(--violet); }
+  details.calcdetail[open] summary { margin-bottom: 4px; }
   .refund-in { max-width: 320px; }
+  section.enddate { border-left: 5px solid var(--orange); }
+  section.enddate input[type=date] { font-size: 20px; font-family: var(--head); font-weight: 700; padding: 10px 12px; }
+  section.enddate .field.edited input { border-color: var(--orange); background: var(--warn-soft); }
+  table.dates td { padding: 6px 8px; }
+  table.dates td.num { font-family: var(--head); font-weight: 500; }
+  table.dates button { padding: 3px 10px; font-size: 12px; margin-left: 8px; }
   .callouts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   @media (max-width: 800px) { .callouts { grid-template-columns: 1fr; } }
   .callout { border: 2px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
@@ -138,6 +159,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .callout.refund { border-color: var(--midnight); background: var(--midnight); color: #fff; }
   .callout.refund .lead, .callout.refund .sub { color: rgba(255,255,255,.75); }
   .callout.refund .big { color: #fff; font-size: 30px; }
+  .callout .split { display: flex; gap: 14px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.25); font-size: 13px; }
+  .callout .split b { color: #fff; font-family: var(--head); font-size: 15px; margin-left: 4px; }
   .callout.off { opacity: .45; }
   .received { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 12px; border-left: 4px solid var(--orange); background: #fff7f3; margin-bottom: 12px; font-size: 13px; }
   .received strong { font-family: var(--head); font-size: 16px; }
@@ -150,17 +173,23 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   table.breakdown td { padding: 8px; font-size: 14px; }
   table.breakdown tr.keep td { color: var(--muted); }
   table.breakdown tr.fbt td { color: var(--bad); font-weight: 600; }
+  table.breakdown tr.hl td { font-weight: 700; font-family: var(--head); }
+  table.breakdown tr.hl.gst td { background: var(--accent-soft); color: var(--violet); }
+  table.breakdown tr.hl.fbt td { background: var(--bad-soft); color: var(--magenta); }
+  table.breakdown tr.hl.post td { background: #e6f6f7; color: #0b6f74; }
+  table.breakdown tr.hl.pre td { background: #eef4e6; color: #3f6a1f; }
+  table.breakdown tr.hl td:first-child { border-left: 4px solid currentColor; padding-left: 8px; }
   table.breakdown tr.refund td { font-weight: 700; font-size: 16px; border-top: 2px solid var(--ink); border-bottom: none; }
 
   /* Print sheet: hidden on screen, the only thing shown when printing */
   #printSheet { display: none; }
   @media print {
-    @page { size: A4; margin: 12mm 14mm 12mm; }
+    @page { size: A4; margin: 10mm 14mm 10mm; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { background: #fff; font-size: 10.5pt; color: var(--midnight); font-family: var(--font); }
     header, main { display: none !important; }
     #printSheet { display: block; }
-    #printSheet .bar { height: 5pt; background: var(--midnight); margin-bottom: 12pt; }
+    #printSheet .bar { height: 4pt; background: var(--midnight); margin-bottom: 9pt; }
     #printSheet .masthead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16pt; margin-bottom: 4pt; }
     #printSheet .masthead > div:first-child { flex: 1; }
     #printSheet .h1sub { font-family: var(--head); font-weight: 500; font-size: 12pt; color: var(--violet); margin-top: 2pt; }
@@ -168,32 +197,40 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     #printSheet h1 { font-family: var(--head); font-weight: 700; font-size: 18pt; line-height: 1.1; margin: 0; color: var(--midnight); }
     #printSheet .org { font-family: var(--head); font-weight: 700; font-size: 10pt; color: var(--violet); text-align: right; line-height: 1.3; }
     #printSheet .org small { display: block; font-family: var(--font); font-weight: 400; color: var(--slate); font-size: 8.5pt; }
-    #printSheet .sub { color: var(--slate); font-size: 9.5pt; margin-bottom: 10pt; }
-    #printSheet h2 { font-family: var(--head); font-weight: 700; font-size: 11pt; color: var(--violet); margin: 12pt 0 4pt; padding-bottom: 2pt; border-bottom: 1.5px solid var(--violet-t2); }
+    #printSheet .sub { color: var(--slate); font-size: 9pt; margin-bottom: 6pt; }
+    #printSheet h2 { font-family: var(--head); font-weight: 700; font-size: 11pt; color: var(--violet); margin: 9pt 0 3pt; padding-bottom: 2pt; border-bottom: 1.5px solid var(--violet-t2); }
     #printSheet .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20pt; }
     #printSheet table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
-    #printSheet td, #printSheet th { padding: 2.5pt 4pt; border-bottom: 1px solid #e6e3ec; vertical-align: top; }
+    #printSheet td, #printSheet th { padding: 2pt 4pt; border-bottom: 1px solid #e6e3ec; vertical-align: top; }
     #printSheet td.k { color: var(--slate); width: 42%; }
     #printSheet td.num, #printSheet th.num { text-align: right; font-family: var(--head); font-weight: 500; white-space: nowrap; }
     #printSheet td.txt { text-align: right; }
     #printSheet tr.total td { font-family: var(--head); font-weight: 700; border-top: 1.5px solid var(--midnight); border-bottom: none; color: var(--midnight); }
-    #printSheet .received { display: flex; justify-content: space-between; align-items: baseline; border-left: 4pt solid var(--orange); background: #fff6f1; padding: 5pt 9pt; margin: 4pt 0 8pt; font-size: 10pt; }
+    #printSheet .received { display: flex; justify-content: space-between; align-items: baseline; border-left: 4pt solid var(--orange); background: #fff6f1; padding: 4pt 9pt; margin: 3pt 0 6pt; font-size: 10pt; }
     #printSheet .received strong { font-family: var(--head); font-size: 13pt; }
     #printSheet .callouts { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8pt; }
-    #printSheet .co { border-radius: 4pt; padding: 8pt 10pt; }
+    #printSheet .co { border-radius: 4pt; padding: 6pt 9pt; }
     #printSheet .co .lead { font-family: var(--head); font-weight: 500; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em; }
-    #printSheet .co .big { font-family: var(--head); font-weight: 700; font-size: 19pt; line-height: 1.2; margin: 2pt 0; }
+    #printSheet .co .big { font-family: var(--head); font-weight: 700; font-size: 17pt; line-height: 1.2; margin: 1pt 0; }
     #printSheet .co .sub { font-size: 8.5pt; }
     #printSheet .co.gst { background: #efeaf5; border: 1px solid var(--violet-t2); color: var(--violet); }
     #printSheet .co.fbt { background: #fde6ec; border: 1px solid var(--magenta); color: var(--magenta); }
     #printSheet .co.refund { background: var(--midnight); color: #fff; }
-    #printSheet .co.refund .big { font-size: 24pt; }
+    #printSheet .co.refund .big { font-size: 21pt; }
     #printSheet .co.refund .lead, #printSheet .co.refund .sub { color: rgba(255,255,255,.8); }
+    #printSheet .co .split { display: flex; gap: 12pt; margin-top: 5pt; padding-top: 5pt; border-top: 1px solid rgba(255,255,255,.3); font-size: 9pt; color: rgba(255,255,255,.85); }
+    #printSheet .co .split b { font-family: var(--head); font-size: 11pt; color: #fff; margin-left: 3pt; }
+    #printSheet tr.hl td { font-family: var(--head); font-weight: 700; font-size: 10.5pt; }
+    #printSheet tr.hl.gst td { background: #efeaf5; color: var(--violet); }
+    #printSheet tr.hl.fbt td { background: #fde6ec; color: var(--magenta); }
+    #printSheet tr.hl.post td { background: #e6f6f7; color: #0b6f74; }
+    #printSheet tr.hl.pre td { background: #eef4e6; color: #3f6a1f; }
+    #printSheet tr.hl td:first-child { border-left: 3pt solid currentColor; padding-left: 6pt; }
     #printSheet .flag { font-family: var(--head); font-weight: 700; color: var(--magenta); font-size: 9.5pt; margin: 6pt 0 0; }
-    #printSheet .note { font-size: 7.5pt; color: var(--slate); margin-top: 8pt; line-height: 1.35; }
+    #printSheet .note { font-size: 7pt; color: var(--slate); margin-top: 6pt; line-height: 1.3; }
     #printSheet .sig { display: grid; grid-template-columns: 1fr 1fr; gap: 24pt; margin-top: 18pt; font-size: 8.5pt; }
     #printSheet .sig div { border-top: 1px solid var(--midnight); padding-top: 3pt; color: var(--slate); }
-    #printSheet .foot { display: flex; justify-content: space-between; font-size: 7.5pt; color: var(--slate); margin-top: 10pt; border-top: 1px solid #e6e3ec; padding-top: 4pt; }
+    #printSheet .foot { display: flex; justify-content: space-between; font-size: 7pt; color: var(--slate); margin-top: 6pt; border-top: 1px solid #e6e3ec; padding-top: 4pt; }
   }
 </style>
 </head>
@@ -249,6 +286,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
 <section>
   <h2><span class="step">3</span> Vehicle and lease</h2>
+  <div class="who"><div class="who-id"></div></div>
   <div id="alerts"></div>
   <div class="grid g3">
     <div>
@@ -266,52 +304,67 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   </div>
 </section>
 
-<section>
-  <h2><span class="step">4</span> Calculation</h2>
+<section class="enddate">
+  <h2><span class="step">4</span> Confirm the lease end date</h2>
+  <div class="who"><div class="who-id"></div></div>
   <div class="grid g2">
-    <div>
-      <h3>Inputs (edit to test a scenario)</h3>
-      <div class="grid g2">
-        <div class="field" data-key="baseValue"><label>Vehicle base FBT value $</label><input type="number" id="inBase" step="0.01"></div>
-        <div class="field" data-key="leaseEnd"><label>Lease end date (FBT extract)</label><input type="date" id="inEnd"></div>
-        <div class="field" data-key="daysUnavail"><label>Days unavailable</label><input type="number" id="inUnavail" step="1" min="0"></div>
-        <div class="field" data-key="actual"><label>Post-tax paid to date $</label><input type="number" id="inActual" step="0.01"></div>
-        <div class="field" data-key="ongoing"><label>Ongoing post-tax per pay $</label><input type="number" id="inOngoing" step="0.01"></div>
-        <div class="field" data-key="cap"><label>Contribution from CAP $</label><input type="number" id="inCap" step="0.01"></div>
-        <div class="field" data-key="evExempt"><label>EV FBT exempt</label><select id="inEV"><option>No</option><option>Yes</option></select></div>
-        <div class="field" data-key="bills"><label>Paid bills $</label><input type="number" id="inBills" step="0.01"></div>
-      </div>
-      <div class="actions">
-        <button class="secondary" id="btnReset">Reset to file values</button>
-      </div>
+    <div class="field" data-key="leaseEnd">
+      <label>Lease end date used for this calculation</label>
+      <input type="date" id="inEnd">
+      <div class="note">Defaults to the FBT extract. Change it if the lease was terminated early. Days held, pay cycles and the shortfall all follow this date.</div>
     </div>
     <div>
-      <div class="result" id="resultBox">
-        <div class="lead" id="resLead"></div>
-        <div class="big" id="resBig"></div>
-        <div id="resSub"></div>
-      </div>
-      <table style="margin-top:12px" id="calcTable"></table>
+      <table class="dates" id="endDateTable"></table>
     </div>
   </div>
 </section>
 
 <section>
-  <h2><span class="step">5</span> Supplier refund</h2>
-  <div class="grid g2">
-    <div>
-      <div class="field refund-in">
-        <label>Funds received from supplier (GST inclusive) $</label>
-        <input type="number" id="inRefund" step="0.01" min="0" placeholder="0.00">
+  <h2><span class="step">5</span> Calculation</h2>
+  <div class="who"><div class="who-id"></div></div>
+  <div class="result" id="resultBox">
+    <div class="lead" id="resLead"></div>
+    <div class="big" id="resBig"></div>
+    <div id="resSub"></div>
+  </div>
+  <details class="calcdetail">
+    <summary>Show calculation detail and inputs</summary>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <h3>Inputs (edit to test a scenario)</h3>
+        <div class="grid g2">
+          <div class="field" data-key="baseValue"><label>Vehicle base FBT value $</label><input type="number" id="inBase" step="0.01"></div>
+          <div class="field" data-key="daysUnavail"><label>Days unavailable</label><input type="number" id="inUnavail" step="1" min="0"></div>
+          <div class="field" data-key="actual"><label>Post-tax paid to date $</label><input type="number" id="inActual" step="0.01"></div>
+          <div class="field" data-key="ongoing"><label>Ongoing post-tax per pay $</label><input type="number" id="inOngoing" step="0.01"></div>
+          <div class="field" data-key="cap"><label>Contribution from CAP $</label><input type="number" id="inCap" step="0.01"></div>
+          <div class="field" data-key="evExempt"><label>EV FBT exempt</label><select id="inEV"><option>No</option><option>Yes</option></select></div>
+          <div class="field" data-key="bills"><label>Paid bills $</label><input type="number" id="inBills" step="0.01"></div>
+        </div>
+        <div class="actions">
+          <button class="secondary" id="btnReset">Reset to file values</button>
+        </div>
       </div>
-      <div class="field refund-in">
-        <label>GST rate %</label>
-        <input type="number" id="gstRate" value="10" step="0.01">
+      <div>
+        <h3>Working</h3>
+        <table id="calcTable"></table>
       </div>
-      <div class="note">GST is retained by Austin Health. The post-tax shortfall is collected from the remainder, and whatever is left goes back to the employee.</div>
     </div>
+  </details>
+</section>
+
+<section>
+  <h2><span class="step">6</span> Supplier refund</h2>
+  <div class="who">
+    <div class="who-id"></div>
+    <div class="who-input">
+      <label for="inRefund">Funds received from supplier (GST inclusive) $</label>
+      <input type="number" id="inRefund" step="0.01" min="0" placeholder="0.00">
+    </div>
+  </div>
+  <input type="hidden" id="gstRate" value="10">
+  <div>
     <div>
-      <div class="received" id="receivedLine"><span>Funds received from supplier (GST inclusive)</span><strong id="receivedAmt"></strong></div>
       <div class="callouts three">
         <div class="callout gst" id="coGst"><div class="lead">GST to retain</div><div class="big" id="coGstBig"></div><div class="sub" id="coGstSub"></div></div>
         <div class="callout fbt" id="coFbt"><div class="lead">FBT to be paid</div><div class="big" id="coFbtBig"></div><div class="sub" id="coFbtSub"></div></div>
@@ -319,6 +372,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       </div>
       <table class="breakdown" id="refundTable"></table>
       <div id="refundMsg" class="note"></div>
+      <div class="note">GST (10%) is retained by Austin Health. The net amount is applied in order: FBT payable first, then a post-tax refund of any over-collected contributions, then the balance as a pre-tax refund.</div>
       <div class="actions">
         <button id="btnPdf">Export PDF</button>
         <span class="note" style="align-self:center">Opens the sheet in a new window. Choose "Save as PDF" as the printer.</span>
@@ -330,6 +384,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
 <section>
   <h2>Check against the FBT extract</h2>
+  <div class="who"><div class="who-id"></div></div>
   <table id="cmpTable"></table>
   <div class="note">Differences usually mean the FBT extract used a different lease end date or pay cycle count. The FBT extract end date is treated as correct.</div>
 </section>
@@ -575,10 +630,15 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     const net = r2(gross - gst);
     // FBT on the uncollected taxable value: shortfall × gross-up × FBT rate
     const owed = c.evExempt ? 0 : r2(Math.max(0, c.shortfall) * s.grossUp * s.fbtRate);
+    // Order of application: FBT first, then refund any over-collected post-tax, then the balance as pre-tax
     const fbt = r2(Math.min(owed, net));
-    const refund = r2(net - fbt);
     const uncovered = r2(owed - fbt);
-    return { gross, gst, net, owed, fbt, refund, uncovered };
+    const afterFbt = r2(net - fbt);
+    const surplus = c.evExempt ? 0 : r2(Math.max(0, -c.shortfall));   // post-tax over-collected
+    const postRefund = r2(Math.min(surplus, afterFbt));
+    const preRefund = r2(afterFbt - postRefund);
+    const refund = r2(postRefund + preRefund);
+    return { gross, gst, net, owed, fbt, uncovered, surplus, postRefund, preRefund, refund };
   }
 
   // ---------- lookup and render ----------
@@ -634,6 +694,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   }
   ['inBase', 'inEnd', 'inUnavail', 'inActual', 'inOngoing', 'inCap', 'inEV', 'inBills'].forEach(id => $(id).addEventListener('input', () => { readOverrides(); render(); }));
   ['fyStart', 'nextPay', 'statRate', 'fbtRate', 'grossUp'].forEach(id => $(id).addEventListener('change', () => { if (state.current) render(); if (state.fbt && state.veh) renderAll(); }));
+  $('endDateTable').addEventListener('click', e => { const b = e.target.closest('button[data-use]'); if (b) { $('inEnd').value = b.dataset.use; readOverrides(); render(); } });
   $('btnReset').addEventListener('click', () => { state.overrides = {}; fillInputs(state.current); render(); });
 
   function kv(el, pairs) { el.innerHTML = pairs.filter(p => p[1] !== '' && p[1] != null).map(p => `<dt>${p[0]}</dt><dd>${p[1]}</dd>`).join(''); }
@@ -655,9 +716,25 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     if (rec.hasFbt && rec.pDays != null && !state.overrides.leaseEnd && rec.pDays !== c.daysHeld) {
       const from = rec.leaseStart && rec.leaseStart > s.fyStart ? rec.leaseStart : s.fyStart;
       const implied = addDays(from, rec.pDays - 1);
-      al.push(['warn', `FBT extract calculated ${rec.pDays} days, which implies the lease ended about ${au(implied)}. This tool uses ${au(c.leaseEnd)} (${c.daysHeld} days). If the lease was terminated early, set the lease end date below.`]);
+      al.push(['warn', `FBT extract calculated ${rec.pDays} days, which implies the lease ended about ${au(implied)}. This tool uses ${au(c.leaseEnd)} (${c.daysHeld} days). If the lease was terminated early, set the lease end date in step 4.`]);
     }
     $('alerts').innerHTML = al.map(a => `<div class="alert ${a[0]}">${a[1]}</div>`).join('');
+
+    // identity strip on every step
+    document.querySelectorAll('.who-id').forEach(el => el.innerHTML =
+      `<span class="rego">${rec.rego}</span><span class="name">${rec.firstName} ${rec.lastName}</span><span class="id">Payroll ID <b>${rec.payrollId}</b></span><span class="veh">${`${rec.brand || ''} ${rec.model || ''}`.trim()}</span>`);
+
+    // step 4: end date candidates
+    const cands = [['FBT extract', rec.leaseEndFbt], ['Vehicle extract', rec.leaseEndVeh]];
+    if (rec.hasFbt && rec.pDays != null && rec.leaseStart) {
+      const from = rec.leaseStart > s.fyStart ? rec.leaseStart : s.fyStart;
+      const implied = addDays(from, rec.pDays - 1);
+      if (rec.pDays > 0 && iso(implied) !== iso(rec.leaseEndFbt)) cands.push([`Implied by FBT extract days (${rec.pDays})`, implied]);
+    }
+    $('endDateTable').innerHTML = cands.filter(x => x[1]).map(x => {
+      const same = iso(x[1]) === iso(c.leaseEnd);
+      return `<tr><td>${x[0]}</td><td class="num">${au(x[1])}</td><td>${same ? '<span class="pill ok">In use</span>' : `<button class="secondary" data-use="${iso(x[1])}">Use</button>`}</td></tr>`;
+    }).join('');
 
     kv($('kvEmp'), [['Name', `${rec.firstName} ${rec.lastName}`], ['Payroll ID', rec.payrollId], ['Registration', `<span class="num">${rec.rego}</span>`]]);
     kv($('kvVeh'), [['Vehicle', `${rec.brand || ''} ${rec.model || ''}`.trim()], ['Description', rec.desc], ['Year', rec.year], ['Fuel', rec.fuel],
@@ -729,10 +806,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     const hasRefund = rf.gross > 0;
     $('refundTable').innerHTML = hasRefund ? `
       <tr><td>Funds received from supplier (GST inclusive)</td><td class="num">${money(rf.gross)}</td></tr>
-      <tr class="keep"><td>Less GST retained by Austin Health</td><td class="num">${money(rf.gst)}</td></tr>
+      <tr class="hl gst"><td>Less GST to retain (1/11)</td><td class="num">${money(rf.gst)}</td></tr>
       <tr><td>Net of GST</td><td class="num">${money(rf.net)}</td></tr>
-      <tr class="fbt"><td>Less FBT payable (${money(c.shortfall > 0 ? c.shortfall : 0)} × ${s.grossUp} × ${s.fbtRate * 100}%)</td><td class="num">${money(rf.fbt)}</td></tr>
-      <tr class="refund"><td>Refund to employee</td><td class="num">${money(rf.refund)}</td></tr>`
+      <tr class="${rf.fbt > 0.005 ? 'hl fbt' : ''}"><td>Less FBT payable (${money(c.shortfall > 0 ? c.shortfall : 0)} × ${s.grossUp} × ${s.fbtRate * 100}%)</td><td class="num">${money(rf.fbt)}</td></tr>
+      <tr><td>Available to refund</td><td class="num">${money(r2(rf.net - rf.fbt))}</td></tr>
+      <tr class="${rf.postRefund > 0.005 ? 'hl post' : ''}"><td>Post-tax refund${rf.surplus > 0 ? ` (over-collected ${money(rf.surplus)})` : ''}</td><td class="num">${money(rf.postRefund)}</td></tr>
+      <tr class="${rf.preRefund > 0.005 ? 'hl pre' : ''}"><td>Pre-tax refund (balance)</td><td class="num">${money(rf.preRefund)}</td></tr>
+      <tr class="refund"><td>Total refund to employee</td><td class="num">${money(rf.refund)}</td></tr>`
       : '<tr><td class="muted">Enter the amount received from the supplier to split it.</td></tr>';
     $('refundMsg').innerHTML = !hasRefund ? '' :
       rf.uncovered > 0.005 ? `<span class="diff">Refund does not cover the FBT. ${money(rf.uncovered)} still to be collected from the employee.</span>` :
@@ -740,7 +820,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       rf.owed === 0 ? 'No shortfall, so the full net amount is refunded.' : '';
 
     // callouts
-    $('receivedAmt').textContent = hasRefund ? money(rf.gross) : 'not entered';
     ['coGst', 'coFbt', 'coRef'].forEach(id => $(id).classList.toggle('off', !hasRefund));
     $('coGstBig').textContent = money(rf.gst);
     $('coGstSub').textContent = hasRefund ? `1/${Math.round(1 + 1 / gstRate)} of the amount received, kept by Austin Health` : 'Enter the amount received';
@@ -750,7 +829,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       !hasRefund ? `${money(c.shortfall)} shortfall × ${s.grossUp} × ${s.fbtRate * 100}%` :
       rf.uncovered > 0.005 ? `FBT is ${money(rf.owed)}. ${money(rf.uncovered)} still owed by employee` : `${money(c.shortfall)} shortfall × ${s.grossUp} × ${s.fbtRate * 100}%`;
     $('coRefBig').textContent = money(rf.refund);
-    $('coRefSub').textContent = hasRefund ? (rf.fbt > 0 ? 'Net of GST less FBT' : 'Full amount net of GST') : 'Enter the amount received';
+    $('coRefSub').innerHTML = hasRefund ? `<span class="split"><span>Post-tax <b>${money(rf.postRefund)}</b></span><span>Pre-tax <b>${money(rf.preRefund)}</b></span></span>` : 'Enter the amount received';
 
     document.title = docTitle(rec);
     state.lastCalc = c; state.lastRefund = rf;
@@ -809,7 +888,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         ${c.bills ? nrow('Paid bills', money(c.bills)) : ''}
         ${c.cap ? nrow('Contribution from CAP', money(c.cap)) : ''}
         ${c.cycles ? nrow(`Post-tax still payable (${c.cycles} pays × ${money(c.ongoing)})`, money(c.still)) : ''}
-        ${nrow('Total expected contribution', money(c.expected))}
         ${nrow(c.shortfall > 0.005 ? 'Post-tax shortfall' : 'Surplus', money(Math.abs(c.shortfall)), 'total')}
       </table>
 
@@ -819,13 +897,23 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="callouts">
         <div class="co gst"><div class="lead">GST to retain</div><div class="big">${money(rf.gst)}</div><div class="sub">Kept by Austin Health</div></div>
         <div class="co fbt"><div class="lead">FBT to be paid</div><div class="big">${money(rf.fbt)}</div><div class="sub">${c.evExempt ? 'EV FBT exempt' : rf.owed === 0 ? 'No post-tax shortfall' : `${money(c.shortfall)} shortfall × ${s.grossUp} × ${s.fbtRate * 100}%`}</div></div>
-        <div class="co refund"><div class="lead">Employee refund</div><div class="big">${money(rf.refund)}</div><div class="sub">${money(rf.gross)} less ${money(rf.gst)} GST less ${money(rf.fbt)} FBT</div></div>
+        <div class="co refund"><div class="lead">Employee refund</div><div class="big">${money(rf.refund)}</div><div class="split"><span>Post-tax <b>${money(rf.postRefund)}</b></span><span>Pre-tax <b>${money(rf.preRefund)}</b></span></div></div>
       </div>
+      <table style="margin-top:6pt">
+        ${nrow('Funds received from supplier (GST inclusive)', money(rf.gross))}
+        ${nrow('Less GST to retain (1/11)', `(${money(rf.gst)})`, 'hl gst')}
+        ${nrow('Net of GST', money(rf.net))}
+        ${nrow(`Less FBT payable (${money(c.shortfall > 0 ? c.shortfall : 0)} × ${s.grossUp} × ${s.fbtRate * 100}%)`, `(${money(rf.fbt)})`, rf.fbt > 0.005 ? 'hl fbt' : '')}
+        ${nrow('Available to refund', money(r2(rf.net - rf.fbt)))}
+        ${nrow('Post-tax refund' + (rf.surplus > 0 ? ` (over-collected ${money(rf.surplus)})` : ''), money(rf.postRefund), rf.postRefund > 0.005 ? 'hl post' : '')}
+        ${nrow('Pre-tax refund (balance)', money(rf.preRefund), rf.preRefund > 0.005 ? 'hl pre' : '')}
+        ${nrow('Total refund to employee', money(rf.refund), 'total')}
+      </table>
       ${rf.uncovered > 0.005 ? `<p class="flag">The refund does not cover the full FBT. ${money(rf.uncovered)} remains to be collected from the employee.</p>` : ''}` : '<p>No supplier funds entered.</p>'}
 
       <div class="note">
         Taxable value uses the statutory formula: base value × statutory rate × days held ÷ days in FBT year, assessed to the lease end date where the lease ends within the FBT year, otherwise to ${au(s.fyEnd)}.
-        Employee post-tax contributions reduce the taxable value dollar for dollar. GST retained is calculated at ${toNum($('gstRate').value)}% (1/${Math.round(1 + 1 / (toNum($('gstRate').value) / 100))} of the GST inclusive amount).
+        Employee post-tax contributions reduce the taxable value dollar for dollar. GST retained is calculated at ${toNum($('gstRate').value)}% (1/${Math.round(1 + 1 / (toNum($('gstRate').value) / 100))} of the GST inclusive amount). The net amount is applied in order: FBT payable first, then a post-tax refund of any over-collected contributions, then the balance as a pre-tax refund.
         ${overrides.length ? `Adjusted from the extract: ${overrides.map(k => labels[k] || k).join(', ')}.` : 'All inputs taken from the provider extracts.'}
         ${!c.evExempt && c.shortfall > 0.005 ? ` FBT payable is the post-tax shortfall grossed up (type 1, ${s.grossUp}) at the FBT rate of ${s.fbtRate * 100}%.` : ''}
       </div>
@@ -864,7 +952,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     const rf = state.lastRefund;
     if (rf && rf.gross > 0) lines.push(
       `Funds received from supplier: ${money(rf.gross)} incl GST; GST retained ${money(rf.gst)}; net ${money(rf.net)}`,
-      `FBT payable (${money(c.shortfall)} × ${s.grossUp} × ${s.fbtRate * 100}%): ${money(rf.fbt)}; refund to employee: ${money(rf.refund)}` + (rf.uncovered > 0.005 ? `; still to collect ${money(rf.uncovered)}` : ''));
+      `FBT payable (${money(c.shortfall)} × ${s.grossUp} × ${s.fbtRate * 100}%): ${money(rf.fbt)}; refund to employee: ${money(rf.refund)} (post-tax ${money(rf.postRefund)}, pre-tax ${money(rf.preRefund)})` + (rf.uncovered > 0.005 ? `; still to collect ${money(rf.uncovered)}` : ''));
     navigator.clipboard.writeText(lines.join('\n')).then(() => { $('btnCopy').textContent = 'Copied'; setTimeout(() => $('btnCopy').textContent = 'Copy summary', 1500); });
   });
 
