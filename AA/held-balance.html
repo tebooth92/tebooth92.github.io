@@ -26,6 +26,8 @@
   .fcard { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; }
   .fcard .fname { font-weight: 600; font-size: 13px; color: var(--ink); }
   .fcard .fmeta { color: var(--muted); font-size: 12px; }
+  .fcard .qlink { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 6px; border: 1px solid #c7d2fe; border-radius: 5px; color: var(--accent); background: #eef2ff; font-size: 11px; font-weight: 700; text-decoration: none; vertical-align: middle; line-height: 1; transition: .15s; }
+  .fcard .qlink:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: var(--muted); white-space: nowrap; }
   .chip.ok { background: #d1fae5; color: #047857; }
   .chip.missing { background: #fee2e2; color: #b91c1c; }
@@ -109,16 +111,16 @@
 "use strict";
 /* ================================================================
    Held Balance - standalone tool
-   Employer Package List: col B (idx 1) = Payroll ID, col G (idx 6) = Balance.
-   User Management: col B (idx 1) = PayRollID, col J (idx 9) = E-Mail.
+   Active Employee Report (Employer Package List): col B (idx 1) = Payroll ID, col G (idx 6) = Balance.
+   Total Employee Report (User Management): col B (idx 1) = PayRollID, col J (idx 9) = E-Mail.
    Package Benefit Details: cols U/V (idx 20/21) = Capped / EB Capped Amount
    Available (employee-level; blank = full entitlement).
    Employee Central deductions CSV (optional): terminations + email fallback.
    ================================================================ */
 const FILE_DEFS = [
-  { key: "emppkg",   label: "Employer Package List",        detect: h => h.includes("Capped Balance") || h.includes("NLFM") },
-  { key: "usermgmt", label: "User Management Employee List", detect: h => h.includes("PayRollID") },
-  { key: "details",  label: "Package Benefit Details",       detect: h => h.includes("Salary Package Item") },
+  { key: "emppkg",   label: "Active Employee Report",   link: "https://ah.eziway.net.au/ASPX/SalaryPackaging/EmployerPackageListPM.aspx?RGVzdGluYXRpb25QYWdlPUVtcGxveWVyUGFja2FnZUxpc3RQTSZQcmV2aW91c1BhZ2U9RW1wbG95ZXJBZG1pbk1haW4mUGFja2FnZVN0YXR1cz00JkVtcGxveWVlTmFtZT0mTmVlZENvbW1lbnQ9VHJ1ZQ==", detect: h => h.includes("Capped Balance") || h.includes("NLFM") },
+  { key: "usermgmt", label: "Total Employee Report",    link: "https://ah.eziway.net.au/ASPX/Users/UserListEmployee.aspx?RGVzdGluYXRpb25QYWdlPVVzZXJMaXN0RW1wbG95ZWUmUHJldmlvdXNQYWdlPUVtcGxveWVyQWRtaW5NYWluJkVtcGxveWVlU3VtbWFyeVN0YXR1cz0tMQ==", detect: h => h.includes("PayRollID") },
+  { key: "details",  label: "Package Benefit Details",  link: "https://ah.eziway.net.au/ASPX/Employers/SubstantiationReport.aspx", detect: h => h.includes("Salary Package Item") },
   { key: "ecdeduct", label: "Current Deductions (Employee Central)", optional: true, detect: h => h.includes("Austin Advantage SPack") }
 ];
 const DATA = {};
@@ -177,7 +179,8 @@ function renderFileGrid() {
     const d = DATA[def.key];
     const el = document.createElement("div");
     el.className = "fcard";
-    el.innerHTML = `<div><div class="fname">${def.label}</div>
+    const link = def.link ? `<a class="qlink" href="${def.link}" target="_blank" rel="noopener" title="Open report in Eziway" aria-label="Open ${def.label} in Eziway">&#8599;</a>` : "";
+    el.innerHTML = `<div><div class="fname">${def.label}${link}</div>
       <div class="fmeta">${d ? d.filename + " - " + d.rowCount.toLocaleString() + " rows" : (def.optional ? "optional - not loaded" : "not loaded")}</div></div>
       <span class="chip ${d ? "ok" : def.optional ? "opt" : "missing"}">${d ? "loaded" : def.optional ? "optional" : "missing"}</span>`;
     grid.appendChild(el);
