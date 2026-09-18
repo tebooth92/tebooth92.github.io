@@ -189,6 +189,7 @@
                                             Classification</span>
                                         <div id="selected-code-value"
                                             class="font-medium text-indigo-900 text-lg mt-0.5"></div>
+                                        <div id="selected-code-badges" class="flex flex-wrap gap-2 mt-2"></div>
                                     </div>
                                 </div>
                             </div>
@@ -239,99 +240,89 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Step 3: Higher Duties -->
+                    <!-- Step 3: Over Award & Higher Duties -->
                     <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold text-sm">
-                                    3</div>
-                                <h2 class="text-lg font-bold text-slate-800">Higher Duties / Over Award
-                                </h2>
-                            </div><label class="inline-flex items-center cursor-pointer"><input type="checkbox"
-                                    id="higher-duties-enable" class="sr-only peer">
-                                <div
-                                    class="relative w-12 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600 shadow-inner">
-                                </div>
-                            </label>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div
+                                class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold text-sm">
+                                3</div>
+                            <h2 class="text-lg font-bold text-slate-800">Over Award &amp; Higher Duties</h2>
                         </div>
-                        <div id="higher-duties-options-container"
-                            class="hidden ml-11 p-6 bg-slate-50 rounded-xl border border-slate-200 space-y-5">
-                            <div><label for="higher-duties-type"
-                                    class="block text-sm font-medium text-slate-700 mb-2">Calculation
-                                    Method</label>
-                                <div class="relative"><select id="higher-duties-type"
-                                        class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none">
-                                        <option value="">-- Select Method --</option>
-                                        <option value="classification">Match to Classification</option>
-                                        <option value="percentage">Percentage Increase</option>
-                                        <option value="totalRemuneration">Target Total Remuneration
-                                        </option>
-                                        <option value="fixedValue">Fixed Value</option>
-                                    </select>
+
+                        <!-- Existing Over Award -->
+                        <div class="ml-11 rounded-xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center justify-between gap-4 p-4 bg-white">
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-800">Existing Over Award</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">An over award the employee already receives on top of the award rate.</p>
+                                </div>
+                                <label class="inline-flex items-center cursor-pointer shrink-0"><input type="checkbox"
+                                        id="existing-over-award-enable" class="sr-only peer">
                                     <div
-                                        class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
-                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                        class="relative w-12 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600 shadow-inner">
                                     </div>
-                                </div>
+                                </label>
                             </div>
-                            <!-- HD: Classification -->
-                            <div id="classification-higher-duties-section"
-                                class="higher-duties-section hidden space-y-3"><label
-                                    class="block text-sm font-medium text-slate-700">Target
-                                    Classification</label>
-                                <div class="relative"><input type="text" id="higher-duties-target-code-search"
-                                        class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                                        placeholder="Search target code..." />
-                                    <div id="higher-duties-target-code-dropdown" class="dropdown hidden"></div>
-                                </div>
-                                <div id="higher-duties-selected-target-code-display"
-                                    class="p-3 bg-white border border-indigo-100 rounded-lg hidden flex items-center gap-2">
-                                    <span
-                                        class="text-xs font-bold text-indigo-600 uppercase bg-indigo-50 px-2 py-1 rounded">Target</span><span
-                                        id="higher-duties-selected-target-code-value"
-                                        class="font-medium text-slate-800"></span>
-                                </div>
-                            </div>
-                            <!-- HD: Percentage -->
-                            <div id="percentage-higher-duties-section" class="higher-duties-section hidden"><label
-                                    for="higher-duties-percentage"
-                                    class="block text-sm font-medium text-slate-700 mb-2">Increase
-                                    Percentage (%)</label>
-                                <div class="relative"><input type="number" id="higher-duties-percentage"
-                                        class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                                        placeholder="e.g. 10" min="0" step="0.1">
-                                    <div
-                                        class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-percent text-xs"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- HD: Total Remuneration -->
-                            <div id="total-remuneration-higher-duties-section"
-                                class="higher-duties-section hidden space-y-4">
-                                <div><label for="higher-duties-total-remuneration"
-                                        class="block text-sm font-medium text-slate-700 mb-2">Target
-                                        Annual Total Remuneration</label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                            <i class="fa-solid fa-dollar-sign"></i>
+                            <div id="existing-over-award-inputs" class="hidden p-5 bg-slate-50 border-t border-slate-200 space-y-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label for="over-award-amount"
+                                            class="block text-sm font-medium text-slate-700 mb-1">Amount</label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <i class="fa-solid fa-dollar-sign text-xs"></i>
+                                            </div><input type="number" id="over-award-amount"
+                                                class="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                                                placeholder="0.00" min="0" step="0.01">
                                         </div>
-                                        <input type="number" id="higher-duties-total-remuneration"
-                                            class="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                                            placeholder="e.g. 250000" min="0" step="100">
+                                    </div>
+                                    <div><label for="over-award-frequency"
+                                            class="block text-sm font-medium text-slate-700 mb-1">Frequency</label>
+                                        <div class="relative"><select id="over-award-frequency"
+                                                class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm appearance-none">
+                                                <option value="hourly">Hourly</option>
+                                                <option value="weekly">Weekly</option>
+                                                <option value="fortnightly">Fortnightly</option>
+                                                <option value="monthly">Monthly</option>
+                                                <option value="annual">Annual</option>
+                                            </select>
+                                            <div
+                                                class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div><label for="higher-duties-super-inclusion"
-                                        class="block text-sm font-medium text-slate-700 mb-2">Superannuation
-                                        Handling</label>
-                                    <div class="relative"><select id="higher-duties-super-inclusion"
-                                            class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none">
-                                            <option value="excluding">Target Figure EXCLUDES
-                                                Super</option>
-                                            <option value="including">Target Figure INCLUDES
-                                                Super</option>
+                                <p class="text-xs text-slate-500">Converted to hourly using the Hours per Week from step 2.</p>
+                            </div>
+                        </div>
+
+                        <!-- Higher Duties / Over Award Increase -->
+                        <div class="ml-11 rounded-xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center justify-between gap-4 p-4 bg-white">
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-800">Higher Duties / Over Award Increase</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Add a new over award, or increase the existing one, by classification, percentage, fixed amount or target package.</p>
+                                </div>
+                                <label class="inline-flex items-center cursor-pointer shrink-0"><input type="checkbox"
+                                        id="higher-duties-enable" class="sr-only peer">
+                                    <div
+                                        class="relative w-12 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600 shadow-inner">
+                                    </div>
+                                </label>
+                            </div>
+                            <div id="higher-duties-options-container"
+                                class="hidden p-5 bg-slate-50 border-t border-slate-200 space-y-5">
+                                <div><label for="higher-duties-type"
+                                        class="block text-sm font-medium text-slate-700 mb-2">Calculation
+                                        Method</label>
+                                    <div class="relative"><select id="higher-duties-type"
+                                            class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none">
+                                            <option value="">-- Select Method --</option>
+                                            <option value="classification">Match to Classification</option>
+                                            <option value="percentage">Percentage Increase</option>
+                                            <option value="fixedValue">Fixed Amount Increase</option>
+                                            <option value="totalRemuneration">Target Total Remuneration</option>
                                         </select>
                                         <div
                                             class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
@@ -339,49 +330,131 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <!-- HD: Fixed Value -->
-                            <div id="fixed-value-higher-duties-section"
-                                class="higher-duties-section hidden space-y-4">
-                                <div><label for="higher-duties-fixed-amount"
-                                        class="block text-sm font-medium text-slate-700 mb-2">Fixed
-                                        Over Award Amount</label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                            <i class="fa-solid fa-dollar-sign"></i>
+                                <!-- HD: Classification -->
+                                <div id="classification-higher-duties-section"
+                                    class="higher-duties-section hidden space-y-3"><label
+                                        class="block text-sm font-medium text-slate-700">Target
+                                        Classification</label>
+                                    <div class="relative"><input type="text" id="higher-duties-target-code-search"
+                                            class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                            placeholder="Search target code..." />
+                                        <div id="higher-duties-target-code-dropdown" class="dropdown hidden"></div>
+                                    </div>
+                                    <div id="higher-duties-selected-target-code-display"
+                                        class="p-3 bg-white border border-indigo-100 rounded-lg hidden">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="text-xs font-bold text-indigo-600 uppercase bg-indigo-50 px-2 py-1 rounded">Target</span><span
+                                                id="higher-duties-selected-target-code-value"
+                                                class="font-medium text-slate-800"></span>
                                         </div>
-                                        <input type="number" id="higher-duties-fixed-amount"
-                                            class="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                                            placeholder="e.g. 5" min="0" step="0.01">
+                                        <p id="higher-duties-target-rate-note" class="text-xs text-slate-500 mt-2"></p>
+                                    </div>
+                                    <p class="text-xs text-slate-500">The increase is the gap between the target base rate and the substantive base rate plus any existing over award, using the target rate in force for the selected date range.</p>
+                                </div>
+                                <!-- HD: Percentage -->
+                                <div id="percentage-higher-duties-section" class="higher-duties-section hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="higher-duties-percentage"
+                                                class="block text-sm font-medium text-slate-700 mb-2">Increase
+                                                Percentage (%)</label>
+                                            <div class="relative"><input type="number" id="higher-duties-percentage"
+                                                    class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    placeholder="e.g. 10" min="0" step="0.1">
+                                                <div
+                                                    class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                                    <i class="fa-solid fa-percent text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div><label for="higher-duties-percentage-base"
+                                                class="block text-sm font-medium text-slate-700 mb-2">Apply Percentage To</label>
+                                            <div class="relative"><select id="higher-duties-percentage-base"
+                                                    class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none">
+                                                    <option value="baseAndOverAward">Base pay rate + existing over award</option>
+                                                    <option value="baseOnly">Base pay rate only</option>
+                                                    <option value="allComponentsAndOverAward">All selected components + existing over award</option>
+                                                </select>
+                                                <div
+                                                    class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div><label for="higher-duties-fixed-frequency"
-                                        class="block text-sm font-medium text-slate-700 mb-2">Frequency</label>
-                                    <div class="relative"><select id="higher-duties-fixed-frequency"
-                                            class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none">
-                                            <option value="hourly">Hourly</option>
-                                            <option value="weekly">Weekly</option>
-                                            <option value="fortnightly">Fortnightly</option>
-                                            <option value="monthly">Monthly</option>
-                                            <option value="annually">Annually</option>
-                                        </select>
-                                        <div
-                                            class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
-                                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                                <!-- HD: Fixed Amount -->
+                                <div id="fixed-value-higher-duties-section"
+                                    class="higher-duties-section hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="higher-duties-fixed-amount"
+                                                class="block text-sm font-medium text-slate-700 mb-2">Increase
+                                                Amount</label>
+                                            <div class="relative">
+                                                <div
+                                                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                    <i class="fa-solid fa-dollar-sign"></i>
+                                                </div>
+                                                <input type="number" id="higher-duties-fixed-amount"
+                                                    class="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    placeholder="e.g. 10000" min="0" step="0.01">
+                                            </div>
+                                        </div>
+                                        <div><label for="higher-duties-fixed-frequency"
+                                                class="block text-sm font-medium text-slate-700 mb-2">Frequency</label>
+                                            <div class="relative"><select id="higher-duties-fixed-frequency"
+                                                    class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none">
+                                                    <option value="hourly">Hourly</option>
+                                                    <option value="weekly">Weekly</option>
+                                                    <option value="fortnightly">Fortnightly</option>
+                                                    <option value="monthly">Monthly</option>
+                                                    <option value="annual">Annual</option>
+                                                </select>
+                                                <div
+                                                    class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="text-xs text-slate-500 mt-1">Converted to hourly using the configured Hours Per Week (fortnight = hours x 2, month = hours x 52/12, annual = hours x 52).</p>
+                                    <p class="text-xs text-slate-500 mt-2">Converted to hourly using the Hours per Week from step 2 (fortnight = hours x 2, month = hours x 52 / 12, year = hours x 52).</p>
+                                </div>
+                                <!-- HD: Total Remuneration -->
+                                <div id="total-remuneration-higher-duties-section"
+                                    class="higher-duties-section hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="higher-duties-total-remuneration"
+                                                class="block text-sm font-medium text-slate-700 mb-2">Target
+                                                Annual Total Remuneration</label>
+                                            <div class="relative">
+                                                <div
+                                                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                    <i class="fa-solid fa-dollar-sign"></i>
+                                                </div>
+                                                <input type="number" id="higher-duties-total-remuneration"
+                                                    class="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    placeholder="e.g. 250000" min="0" step="100">
+                                            </div>
+                                        </div>
+                                        <div><label for="higher-duties-super-inclusion"
+                                                class="block text-sm font-medium text-slate-700 mb-2">Superannuation
+                                                Handling</label>
+                                            <div class="relative"><select id="higher-duties-super-inclusion"
+                                                    class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none">
+                                                    <option value="excluding">Target Figure EXCLUDES Super</option>
+                                                    <option value="including">Target Figure INCLUDES Super</option>
+                                                </select>
+                                                <div
+                                                    class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-2">The increase is whatever is needed to lift the current package (selected components plus existing over award) to the target.</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div id="hda-toggle-row" class="hidden mt-3 pl-11">
-                        <label class="inline-flex items-center text-xs text-slate-600 cursor-pointer">
-                            <input type="checkbox" id="hda-include-over-award" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 mr-2">
-                            Include Existing Over Award in HDA % base
-                            <span class="ml-2 text-slate-400">(default: base only)</span>
-                        </label>
                     </div>
 
                     <!-- Components List -->
@@ -389,43 +462,6 @@
                         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
                             Pay Components</h2>
                         <div id="components-list" class="grid grid-cols-1 gap-3"></div>
-                    </div>
-                    <!-- Existing Over Award Section -->
-                    
-                    <div id="qualification-allowances-section" class="hidden pl-11"></div>
-                    <div id="experience-payments-section" class="hidden pl-11"></div>
-<div id="existing-over-award-container" class="hidden pl-11 mt-6">
-                        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                            Existing Over Award </h2>
-                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <div class="flex items-center mb-3"><input type="checkbox" id="existing-over-award-enable"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label
-                                    for="existing-over-award-enable"
-                                    class="ml-2 block text-sm font-medium text-slate-700">Include
-                                    Existing Over Award </label></div>
-                            <div id="existing-over-award-inputs" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><label for="over-award-amount"
-                                        class="block text-sm font-medium text-slate-700 mb-1">Amount</label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                            <i class="fa-solid fa-dollar-sign text-xs"></i>
-                                        </div><input type="number" id="over-award-amount"
-                                            class="w-full pl-8 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
-                                            placeholder="0.00" min="0" step="0.01">
-                                    </div>
-                                </div>
-                                <div><label for="over-award-frequency"
-                                        class="block text-sm font-medium text-slate-700 mb-1">Frequency</label><select
-                                        id="over-award-frequency"
-                                        class="w-full p-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm">
-                                        <option value="hourly">Hourly</option>
-                                        <option value="weekly">Weekly</option>
-                                        <option value="fortnightly">Fortnightly</option>
-                                        <option value="annual">Annual</option>
-                                    </select></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <!-- Results Section -->
@@ -461,6 +497,29 @@
                             </table>
                         </div>
                     </div>
+                    <div id="over-award-summary" class="hidden mt-8">
+                        <h4 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-1"><i
+                                class="fa-solid fa-arrow-trend-up text-indigo-500"></i>Over Award Change Summary</h4>
+                        <p id="over-award-summary-description" class="text-sm text-slate-500 font-medium mb-4 ml-7"></p>
+                        <div class="overflow-hidden rounded-xl shadow-sm border border-slate-200 bg-white">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead
+                                        class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
+                                        <tr>
+                                            <th class="px-6 py-4 font-semibold tracking-wider"></th>
+                                            <th class="px-6 py-4 font-semibold tracking-wider text-right">Hourly</th>
+                                            <th class="px-6 py-4 font-semibold tracking-wider text-right">Weekly</th>
+                                            <th class="px-6 py-4 font-semibold tracking-wider text-right">Fortnightly</th>
+                                            <th class="px-6 py-4 font-semibold tracking-wider text-right">Annual</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="over-award-summary-body" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             <!-- Error Message -->
@@ -483,443 +542,260 @@
         <div class="mt-12 text-center">
             <p class="text-slate-400 text-sm font-medium">&copy;
 
-                2025 Pay Calculator v6.0</p>
+                2026 Pay Calculator v6.1</p>
         </div>
     </div>
     <!-- Data is fetched at runtime from pay-data.json -->
-    <script> // ===== EVENT HANDLERS =====
-
-        function handleDateRangeSelected(rangeIndex) {
-            if (rangeIndex === '' || rangeIndex === null) return;
-
-            const index = parseInt(rangeIndex);
-            state.selectedDateRange = state.availableDateRanges[index];
-
-            logDebug(`Selected date range: ${state.selectedDateRange.startDate
-                }
-
-                to ${state.selectedDateRange.endDate
-                }
-
-                `);
-
-            // Update date display
-            const startDisp = formatDateDisplay(state.selectedDateRange.startDate);
-            const endDisp = state.selectedDateRange.endDate === '9999-12-31' ? 'Current' : formatDateDisplay(state.selectedDateRange.endDate);
-
-            document.getElementById('date-range-period').textContent = `${startDisp
-                }
-
-            to ${endDisp
-                }
-
-            `;
-
-            // Update status badge
-            const status = getDateStatus(state.selectedDateRange.startDate, state.selectedDateRange.endDate);
-            state.dateStatus = status;
-            const badge = document.getElementById('date-status-badge');
-
-            if (status === 'current') {
-                badge.className = 'px-2 py-1 text-xs font-semibold rounded bg-green-500 text-white';
-                badge.textContent = 'Current';
-            }
-
-            else if (status === 'historical') {
-                badge.className = 'px-2 py-1 text-xs font-semibold rounded bg-amber-500 text-white';
-                badge.textContent = 'Historical';
-            }
-
-            else if (status === 'future') {
-                badge.className = 'px-2 py-1 text-xs font-semibold rounded bg-blue-500 text-white';
-                badge.textContent = 'Future';
-            }
-
-            document.getElementById('selected-date-display').classList.remove('hidden');
-
-            // Get components for this date range
-            state.codeComponents = state.selectedDateRange.components.map(comp => {
-                // Keep percentage strings as strings, parse numbers as numbers
-                let amount = comp.amount;
-
-                if (typeof amount === 'string' && !amount.includes('%')) {
-                    amount = parseFloat(amount);
-                }
-
-                return {
-                    'VHIA Code': state.selectedCode,
-                    'Pay Component Name': comp.name,
-                    'Hourly Amount': amount
-                }
-
-                    ;
-            });
-
-            logDebug(`Loaded ${state.codeComponents.length
-                }
-
-                components for selected date range`);
-
-            // Update the UI
-            renderComponents();
-            calculatePay();
-        }
-
-
-
-        // ===== DATE RANGE HELPER FUNCTIONS =====
-
-        // Parse ISO date string (YYYY-MM-DD) to Date object
-        function parseISODate(dateString) {
-            if (!dateString) return null;
-            const parts = dateString.split('-');
-            // Create date at noon UTC to avoid timezone issues
-            return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0));
-        }
-
-        // Format ISO date to DD/MM/YYYY for display
-        function formatDateDisplay(isoDate) {
-            if (!isoDate) return '';
-            const parts = isoDate.split('-');
-
-            return `${parts[2]
-                }
-
-            /${parts[1]
-                }
-
-            /${parts[0]
-                }
-
-            `;
-        }
-
-        // Get all available date ranges for a VHIA code
-        function getAvailableDateRanges(vhiaCode) {
-            const codeData = state.vhiaCodes.find(c => c.code === vhiaCode);
-            if (!codeData || !codeData.dateRanges) return [];
-
-            // Sort by start date, most recent first
-            return [...codeData.dateRanges].sort((a, b) => {
-                const dateA = parseISODate(a.startDate);
-                const dateB = parseISODate(b.startDate);
-                return dateB - dateA;
-            });
-        }
-
-        // Get components for a specific VHIA code and date range
-        function getComponentsForDateRange(vhiaCode, dateRangeIndex) {
-            const codeData = state.vhiaCodes.find(c => c.code === vhiaCode);
-
-            if (!codeData || !codeData.dateRanges || !codeData.dateRanges[dateRangeIndex]) {
-                return [];
-            }
-
-            return codeData.dateRanges[dateRangeIndex].components || [];
-        }
-
-        // Determine date status (current, historical, or future)
-        function getDateStatus(startDate, endDate) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const start = parseISODate(startDate);
-            const end = parseISODate(endDate);
-
-            if (start > today) {
-                return 'future';
-            }
-
-            else if (end < today) {
-                return 'historical';
-            }
-
-            else {
-                return 'current';
-            }
-        }
-
-        // Get date status badge HTML
-        function getDateStatusBadge(status) {
-            const badges = {
-                'current': '<span class="bg-green-500 text-white px-2 py-1 text-xs font-semibold rounded">Current</span>',
-                'historical': '<span class="bg-amber-500 text-white px-2 py-1 text-xs font-semibold rounded">Historical</span>',
-                'future': '<span class="bg-blue-500 text-white px-2 py-1 text-xs font-semibold rounded">Future</span>'
-            }
-
-                ;
-            return badges[status] || '';
-        }
-
-        // ===== END DATE RANGE FUNCTIONS =====
-
-        let state = {
-            csvData: [],
-            vhiaCodes: [],
-            includeOverAwardInHdaPercent: false, // HDA % method base: false = base only (default), true = base + over-award
-            payData: null,
-            qualificationAllowances: {},
-            selectedCode: '',
-            selectedDateRange: null,
-            availableDateRanges: [],
-            selectedEffectiveDate: null,
-            dateStatus: '',
-            codeComponents: [],
-            selectedComponents: [],
-            hoursPerWeek: 38,
-
-            higherDutiesEnabled: false,
-            higherDutiesType: '',
-            higherDutiesTargetCode: '',
-            higherDutiesTargetCodeBaseRate: 0,
-            higherDutiesPercentage: 0,
-            higherDutiesTotalRemuneration: 0,
-            higherDutiesSuperInclusion: 'excluding',
-            higherDutiesFixedAmount: 0,
-            higherDutiesFixedFrequency: 'hourly',
-            higherDutiesAllowanceHourly: 0,
-
-            existingOverAwardEnabled: false,
-            existingOverAwardAmount: 0,
-            existingOverAwardFrequency: 'hourly',
-            existingOverAwardHourlyAmount: 0,
-
-            // resultsPanelVisible: true, // No longer needed
-
-            calculatedPay: {
-                // Stores final pay figures including HDA and super
-                hourly: 0, // Total hourly rate including HDA
-                weekly: 0, // Total weekly pay including HDA
-                fortnightly: 0, // Total fortnightly pay including HDA
-                annualSalary: 0, // Total annual salary including HDA
-                weeklySuper: 0,
-                fortnightlySuper: 0,
-                annualSuper: 0 // Capped annual super
-            }
-
-            ,
-            debug: {
-                csvLength: 0,
-                csvPreview: '',
-                headerInfo: null
-            }
-        }
-
-            ;
-
-        // DOM elements
-        const elements = {
-            loadingMessage: document.getElementById('loading-message'),
-            calculatorContent: document.getElementById('calculator-content'),
-            errorMessage: document.getElementById('error-message'),
-            codeSearch: document.getElementById('code-search'),
-            codeDropdown: document.getElementById('code-dropdown'),
-            selectedCodeDisplay: document.getElementById('selected-code-display'),
-            selectedCodeValue: document.getElementById('selected-code-value'),
-            hoursInput: document.getElementById('hours-input'),
-            componentsContainer: document.getElementById('components-container'),
-            componentsList: document.getElementById('components-list'),
-
-            // toggleResultsButton: document.getElementById('toggle-results-button'), // Removed
-            // resultsPanel: document.getElementById('results-panel'), // Removed
-            // resultsContainer: document.getElementById('results-container'), // Removed
-
-            // Individual display elements from the old results table are also removed
-            // as they are now part of the breakdown or directly above it.
-
-            breakdownContainer: document.getElementById('breakdown-container'),
-            breakdownBody: document.getElementById('breakdown-body'),
-            payBreakdownDescription: document.getElementById('pay-breakdown-description'),
-
-            higherDutiesEnableCheckbox: document.getElementById('higher-duties-enable'),
-            higherDutiesOptionsContainer: document.getElementById('higher-duties-options-container'),
-            higherDutiesTypeSelect: document.getElementById('higher-duties-type'),
-
-            classificationHigherDutiesSection: document.getElementById('classification-higher-duties-section'),
-            higherDutiesTargetCodeSearch: document.getElementById('higher-duties-target-code-search'),
-            higherDutiesTargetCodeDropdown: document.getElementById('higher-duties-target-code-dropdown'),
-            higherDutiesSelectedTargetCodeDisplay: document.getElementById('higher-duties-selected-target-code-display'),
-            higherDutiesSelectedTargetCodeValue: document.getElementById('higher-duties-selected-target-code-value'),
-
-            percentageHigherDutiesSection: document.getElementById('percentage-higher-duties-section'),
-            higherDutiesPercentageInput: document.getElementById('higher-duties-percentage'),
-
-            totalRemunerationHigherDutiesSection: document.getElementById('total-remuneration-higher-duties-section'),
-            higherDutiesTotalRemunerationInput: document.getElementById('higher-duties-total-remuneration'),
-            higherDutiesSuperInclusionSelect: document.getElementById('higher-duties-super-inclusion'),
-            fixedValueHigherDutiesSection: document.getElementById('fixed-value-higher-duties-section'),
-            higherDutiesFixedAmountInput: document.getElementById('higher-duties-fixed-amount'),
-            higherDutiesFixedFrequencySelect: document.getElementById('higher-duties-fixed-frequency'),
-
-            higherDutiesSuperInclusionSelect: document.getElementById('higher-duties-super-inclusion'),
-
-            existingOverAwardContainer: document.getElementById('existing-over-award-container'),
-            existingOverAwardEnableCheckbox: document.getElementById('existing-over-award-enable'),
-            existingOverAwardInputs: document.getElementById('existing-over-award-inputs'),
-            overAwardAmountInput: document.getElementById('over-award-amount'),
-            overAwardFrequencySelect: document.getElementById('over-award-frequency'),
-
-            debugOutput: document.getElementById('debug-output'),
-            debugContent: document.getElementById('debug-content')
-        }
-
-            ;
-
+    <script>
+        // ===== CONSTANTS =====
         const SUPER_RATE = 0.12;
         // Maximum annual Super Guarantee payable = Maximum Contribution Base x SG rate.
         //   FY 2025-26: $250,000 x 12% = $30,000.00
-        //   FY 2026-27 (from 1 July 2026): $270,830 x 12% = $32,499.60
-        // The cap is selected based on the current financial year. From 1 July 2026
-        // the calculator automatically uses the 2026-27 figure.
+        //   FY 2026-27 (from 1 July 2026): $270,830 x 12% = $32,499.60 (verify against the ATO each July)
         function getAnnualSuperCap(date = new Date()) {
             const fy2627Start = new Date(2026, 6, 1); // 1 July 2026 (month is 0-indexed)
             return date >= fy2627Start ? 32499.60 : 30000.00;
         }
         const ANNUAL_SUPER_CAP = getAnnualSuperCap();
-        const BASE_PAY_RATE_COMPONENT_NAME = "Base Pay Rate";
+        const BASE_NAME = 'Base Pay Rate';
+        const CASUAL_NAME = 'Casual Rate';
+        const OPEN_END = '9999-12-31';
+        const MAX_DROPDOWN_RESULTS = 50;
 
+        // ===== STATE =====
+        const state = {
+            codes: [],
+            qualificationAllowances: {},
+            experiencePayments: {},
+
+            selectedCode: '',
+            selectedCodeData: null,
+            availableDateRanges: [],
+            selectedDateRange: null,
+
+            // Each component: { name, amount (number, or a '10%' string), group: 'award' | 'qualification' | 'experience' }
+            codeComponents: [],
+            selectedComponents: [],
+            hoursPerWeek: 38,
+
+            existingOverAward: {
+                enabled: false,
+                amount: 0,
+                frequency: 'hourly',
+                hourly: 0
+            },
+
+            higherDuties: {
+                enabled: false,
+                type: '',
+                targetCode: '',
+                percentage: 0,
+                percentageBase: 'baseAndOverAward', // baseAndOverAward | baseOnly | allComponentsAndOverAward
+                totalRemuneration: 0,
+                superInclusion: 'excluding',
+                fixedAmount: 0,
+                fixedFrequency: 'hourly',
+                hourly: 0
+            },
+
+            debugEnabled: false
+        };
+
+        // ===== DOM =====
+        const $ = id => document.getElementById(id);
+        // Bound on DOMContentLoaded: the help modal markup sits after this script.
+        let els = {};
+        function bindElements() {
+            els = {
+            loadingMessage: $('loading-message'),
+            calculatorContent: $('calculator-content'),
+            errorMessage: $('error-message'),
+
+            codeSearch: $('code-search'),
+            codeDropdown: $('code-dropdown'),
+            selectedCodeDisplay: $('selected-code-display'),
+            selectedCodeValue: $('selected-code-value'),
+            selectedCodeBadges: $('selected-code-badges'),
+
+            dateRangeContainer: $('date-range-container'),
+            dateRangeSelect: $('date-range-select'),
+            selectedDateDisplay: $('selected-date-display'),
+            dateRangePeriod: $('date-range-period'),
+            dateStatusBadge: $('date-status-badge'),
+            hoursInput: $('hours-input'),
+
+            componentsContainer: $('components-container'),
+            componentsList: $('components-list'),
+
+            existingOverAwardEnable: $('existing-over-award-enable'),
+            existingOverAwardInputs: $('existing-over-award-inputs'),
+            overAwardAmount: $('over-award-amount'),
+            overAwardFrequency: $('over-award-frequency'),
+
+            higherDutiesEnable: $('higher-duties-enable'),
+            higherDutiesOptions: $('higher-duties-options-container'),
+            higherDutiesType: $('higher-duties-type'),
+            classificationSection: $('classification-higher-duties-section'),
+            targetCodeSearch: $('higher-duties-target-code-search'),
+            targetCodeDropdown: $('higher-duties-target-code-dropdown'),
+            targetCodeDisplay: $('higher-duties-selected-target-code-display'),
+            targetCodeValue: $('higher-duties-selected-target-code-value'),
+            targetRateNote: $('higher-duties-target-rate-note'),
+            percentageSection: $('percentage-higher-duties-section'),
+            percentageInput: $('higher-duties-percentage'),
+            percentageBaseSelect: $('higher-duties-percentage-base'),
+            fixedValueSection: $('fixed-value-higher-duties-section'),
+            fixedAmountInput: $('higher-duties-fixed-amount'),
+            fixedFrequencySelect: $('higher-duties-fixed-frequency'),
+            totalRemunerationSection: $('total-remuneration-higher-duties-section'),
+            totalRemunerationInput: $('higher-duties-total-remuneration'),
+            superInclusionSelect: $('higher-duties-super-inclusion'),
+
+            breakdownContainer: $('breakdown-container'),
+            breakdownBody: $('breakdown-body'),
+            payBreakdownDescription: $('pay-breakdown-description'),
+            payBreakdownHours: $('pay-breakdown-hours'),
+            overAwardSummary: $('over-award-summary'),
+            overAwardSummaryDescription: $('over-award-summary-description'),
+            overAwardSummaryBody: $('over-award-summary-body'),
+
+            helpButton: $('help-button'),
+            helpModal: $('help-modal'),
+            modalBackdrop: $('modal-backdrop'),
+            modalPanel: $('modal-panel'),
+            closeModalButton: $('close-modal-button'),
+            lastUpdated: $('last-updated-date'),
+
+            debugOutput: $('debug-output'),
+            debugContent: $('debug-content')
+            };
+        }
+
+        const show = el => el && el.classList.remove('hidden');
+        const hide = el => el && el.classList.add('hidden');
+
+        // ===== GENERIC HELPERS =====
+        function toNumber(value) {
+            const n = parseFloat(value);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function isPercentage(amount) {
+            return typeof amount === 'string' && amount.trim().endsWith('%');
+        }
+
+        // Local calendar date as YYYY-MM-DD (avoids the UTC day rolling over at 10am AEST).
+        function todayISO() {
+            const d = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        }
+
+        function formatDateDisplay(iso) {
+            if (!iso) return '';
+            if (iso === OPEN_END) return 'Current';
+            const [y, m, d] = iso.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function getDateStatus(range, today = todayISO()) {
+            if (range.startDate > today) return 'future';
+            if (range.endDate < today) return 'historical';
+            return 'current';
+        }
+
+        // Number of paid hours in one period at the given weekly hours.
+        function hoursPerPeriod(frequency, hoursPerWeek) {
+            switch (frequency) {
+                case 'hourly': return 1;
+                case 'weekly': return hoursPerWeek;
+                case 'fortnightly': return hoursPerWeek * 2;
+                case 'monthly': return hoursPerWeek * 52 / 12;
+                case 'annual':
+                case 'annually': return hoursPerWeek * 52;
+                default: return 0;
+            }
+        }
+
+        function toHourly(amount, frequency, hoursPerWeek) {
+            const hours = hoursPerPeriod(frequency, hoursPerWeek);
+            return hours > 0 ? amount / hours : 0;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+        }
+
+        function formatRate(amount) {
+            return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 5 }).format(amount);
+        }
+
+        function stripCodePrefix(description) {
+            return (description || '').replace(/^[^-]*-\s*/, '');
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
+
+        // ===== DATE RANGE HELPERS =====
+        // The range in force on a date. If the data has overlapping ranges, prefer the one that started most recently.
+        function findRangeForDate(ranges, iso) {
+            const covering = ranges.filter(r => r.startDate <= iso && r.endDate >= iso);
+            if (!covering.length) return null;
+            return covering.reduce((best, r) => (r.startDate > best.startDate ? r : best));
+        }
+
+        // Range in force today, else the most recent past range, else the earliest range.
+        function pickDefaultRange(ranges) {
+            if (!ranges.length) return null;
+            const today = todayISO();
+            const current = findRangeForDate(ranges, today);
+            if (current) return current;
+            const past = ranges.filter(r => r.startDate <= today);
+            if (past.length) return past.reduce((best, r) => (r.startDate > best.startDate ? r : best));
+            return ranges[0];
+        }
+
+        // The date used when looking up another code's rate: today if the selected range is current,
+        // otherwise the start of the selected (historical or future) range.
+        function referenceDate() {
+            const r = state.selectedDateRange;
+            const today = todayISO();
+            if (!r) return today;
+            return (r.startDate <= today && r.endDate >= today) ? today : r.startDate;
+        }
+
+        // Latest published rate on or before the given date. If none, the earliest published rate.
+        function rateForDate(rates, iso) {
+            if (!rates || !rates.length) return null;
+            const sorted = [...rates].sort((a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0));
+            let active = null;
+            for (const r of sorted) {
+                if (r.startDate <= iso) active = r.amount;
+                else break;
+            }
+            if (active === null) active = sorted[0].amount;
+            return toNumber(active);
+        }
+
+        // ===== DATA LOADING =====
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         function initializeApp() {
-            enableDebugMode(false);
+            bindElements();
+            els.debugOutput.style.display = state.debugEnabled ? 'block' : 'none';
             loadJsonData();
             setupEventListeners();
-            // updateResultsPanelVisibility(); // Removed
         }
-
-        function enableDebugMode(enabled) {
-            elements.debugOutput.style.display = enabled ? 'block' : 'none';
-        }
-
-        function setupEventListeners() {
-            elements.codeSearch.addEventListener('input', (e) => handleCodeSearch(e, 'primary'));
-            elements.hoursInput.addEventListener('input', handleHoursChange);
-            // elements.toggleResultsButton.addEventListener('click', toggleResultsPanel); // Removed
-
-            // Date range selector
-            const dateRangeSelect = document.getElementById('date-range-select');
-
-            if (dateRangeSelect) {
-                dateRangeSelect.addEventListener('change', (e) => {
-                    const selectedIndex = parseInt(e.target.value);
-                    handleDateRangeSelected(selectedIndex);
-                    // Refresh the component list — different ranges may have different components
-                    if (state.selectedDateRange && state.selectedDateRange.components) {
-                        state.codeComponents = state.selectedDateRange.components.map(comp => {
-                            let amount = comp.amount;
-                            if (typeof amount === 'string' && !amount.includes('%')) amount = parseFloat(amount);
-                            return { 'VHIA Code': state.selectedCode, 'Pay Component Name': comp.name, 'Hourly Amount': amount };
-                        });
-                        // Preserve user's selections that still apply; re-tick Base Pay Rate by default if it was selected before.
-                        const preserved = state.selectedComponents.filter(name => state.codeComponents.some(c => c['Pay Component Name'] === name));
-                        const hasBase = state.codeComponents.some(c => c['Pay Component Name'] === 'Base Pay Rate');
-                        const hasCasual = state.codeComponents.some(c => c['Pay Component Name'] === 'Casual Rate');
-                        if (preserved.length === 0) {
-                            if (hasBase) preserved.push('Base Pay Rate');
-                            else if (hasCasual) preserved.push('Casual Rate');
-                        }
-                        state.selectedComponents = preserved;
-                        renderComponents();
-                        // Re-render qualification allowances against the new range
-                        const codeData = state.vhiaCodes.find(c => c.code === state.selectedCode);
-                        if (codeData) { renderQualificationAllowances(codeData); renderExperiencePayments(codeData); }
-                        calculatePay();
-                    }
-                });
-            }
-
-            elements.higherDutiesEnableCheckbox.addEventListener('change', handleHigherDutiesEnableChange);
-            elements.higherDutiesTypeSelect.addEventListener('change', handleHigherDutiesTypeChange);
-
-            elements.higherDutiesTargetCodeSearch.addEventListener('input', (e) => handleCodeSearch(e, 'target'));
-            elements.higherDutiesPercentageInput.addEventListener('input', handleHigherDutiesInputChange);
-            elements.higherDutiesTotalRemunerationInput.addEventListener('input', handleHigherDutiesInputChange);
-            elements.higherDutiesSuperInclusionSelect.addEventListener('change', handleHigherDutiesInputChange);
-            elements.higherDutiesFixedAmountInput.addEventListener('input', handleHigherDutiesInputChange);
-            elements.higherDutiesFixedFrequencySelect.addEventListener('change', handleHigherDutiesInputChange);
-
-            elements.existingOverAwardEnableCheckbox.addEventListener('change', handleExistingOverAwardEnableChange);
-            elements.overAwardAmountInput.addEventListener('input', handleExistingOverAwardInputChange);
-            elements.overAwardFrequencySelect.addEventListener('change', handleExistingOverAwardInputChange);
-
-            // Help Modal Event Listeners
-            document.getElementById('help-button').addEventListener('click', openModal);
-            document.getElementById('close-modal-button').addEventListener('click', closeModal);
-            document.getElementById('modal-backdrop').addEventListener('click', closeModal);
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeModal();
-            });
-
-            // HDA include-over-award toggle
-            const hdaInc = document.getElementById('hda-include-over-award');
-            if (hdaInc) hdaInc.addEventListener('change', e => {
-                state.includeOverAwardInHdaPercent = !!e.target.checked;
-                calculatePay();
-            });
-
-            // Show HDA toggle row only when percentage method is selected
-            elements.higherDutiesTypeSelect.addEventListener('change', e => {
-                const row = document.getElementById('hda-toggle-row');
-                if (row) row.classList.toggle('hidden', e.target.value !== 'percentage');
-            });
-
-        }
-
-        // Modal Functions
-        function openModal() {
-            const modal = document.getElementById('help-modal');
-            const backdrop = document.getElementById('modal-backdrop');
-            const panel = document.getElementById('modal-panel');
-
-            modal.classList.remove('hidden');
-
-            // Small timeout to allow display:block to apply before opacity transition
-            setTimeout(() => {
-                backdrop.classList.remove('opacity-0');
-                panel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-            }
-
-                , 10);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('help-modal');
-            const backdrop = document.getElementById('modal-backdrop');
-            const panel = document.getElementById('modal-panel');
-
-            backdrop.classList.add('opacity-0');
-            panel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }
-
-                , 300); // Match transition duration
-        }
-
-        // function toggleResultsPanel() { // Removed
-        //     state.resultsPanelVisible = !state.resultsPanelVisible;
-        //     updateResultsPanelVisibility();
-        // }
-
-        // function updateResultsPanelVisibility() { // Removed
-        //     if (state.resultsPanelVisible) {
-        //         elements.resultsPanel.classList.remove('hidden');
-        //         elements.toggleResultsButton.textContent = 'Hide Results';
-        //     } else {
-        //         elements.resultsPanel.classList.add('hidden');
-        //         elements.toggleResultsButton.textContent = 'Show Results';
-        //     }
-        // }
-
 
         function loadJsonData() {
-            // pay-data.json is the unified data file. Schema:
-            //   metadata: { agreements: [...], sources: {...} }
-            //   codes: { "VHIA:CODE": {code, agreement, description, level, dateRanges, rateBasis: 'hourly'},
-            //            "MH:CODE":   {code, agreement, description, category, group, hoursPerWeek, dateRanges, rateBasis: 'weekly', allowanceSubgroup} }
-            //   qualificationAllowances: { "<sheetSubgroup>": { sectionLabel, items: [{name, level, rates}] } }
+            // pay-data.json schema:
+            //   metadata: { version, generatedAt, agreements, sources, excludedCodes }
+            //   codes: { CODE: { code, description, level, category, group, rateBasis, hoursPerWeek,
+            //                    allowanceSubgroup, experienceSubgroup, hasCommuted, dateRanges: [{ startDate, endDate, components: [{ name, amount }] }] } }
+            //   qualificationAllowances: { subgroup: { sectionLabel, items: [{ name, level, rates: [{ startDate, amount (weekly) }] }] } }
+            //   experiencePayments:      { subgroup: { sectionLabel, items: [{ name, level, rates: [{ startDate, amount (weekly) }] }] } }
             fetch('pay-data.json', { cache: 'no-cache' })
                 .then(r => {
                     if (!r.ok) throw new Error('HTTP ' + r.status + ' loading pay-data.json');
@@ -930,36 +806,32 @@
                         showError('Error: pay-data.json is missing or invalid.');
                         return;
                     }
-                    state.payData = payData;
                     state.qualificationAllowances = payData.qualificationAllowances || {};
                     state.experiencePayments = payData.experiencePayments || {};
+                    state.codes = Object.entries(payData.codes).map(([key, c]) => ({
+                        code: c.code || key,
+                        description: c.description || '',
+                        level: c.level || '',
+                        category: c.category || '',
+                        group: c.group || '',
+                        rateBasis: c.rateBasis || 'hourly',
+                        hoursPerWeek: c.hoursPerWeek || 38,
+                        allowanceSubgroup: c.allowanceSubgroup || null,
+                        experienceSubgroup: c.experienceSubgroup || null,
+                        hasCommuted: !!c.hasCommuted,
+                        casualOnly: !!c.casualOnly,
+                        autoProgression: c.autoProgression || null,   // 'yes' | 'no' | 'top' | null
+                        nextCode: c.nextCode || null,
+                        nextDescription: c.nextDescription || '',
+                        dateRanges: [...(c.dateRanges || [])].sort((a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0))
+                    }));
+                    logDebug(`Loaded ${state.codes.length} codes`);
 
-                    const processed = [];
-                    for (const [code, codeData] of Object.entries(payData.codes)) {
-                        processed.push({
-                            code: codeData.code || code,
-                            description: codeData.description || '',
-                            level: codeData.level || '',
-                            category: codeData.category || '',
-                            group: codeData.group || '',
-                            rateBasis: codeData.rateBasis || 'hourly',
-                            hoursPerWeek: codeData.hoursPerWeek || 38,
-                            allowanceSubgroup: codeData.allowanceSubgroup || null,
-                            experienceSubgroup: codeData.experienceSubgroup || null,
-                            hasCommuted: codeData.hasCommuted || false,
-                            dateRanges: codeData.dateRanges || [],
-                        });
-                    }
-                    state.vhiaCodes = processed;
+                    hide(els.loadingMessage);
+                    show(els.calculatorContent);
 
-                    logDebug(`Loaded ${processed.length} codes`);
-
-                    document.getElementById('loading-message').classList.add('hidden');
-                    document.getElementById('calculator-content').classList.remove('hidden');
-
-                    if (payData.metadata && payData.metadata.generatedAt) {
-                        const lu = document.getElementById('last-updated-date');
-                        if (lu) lu.textContent = `Last Updated: ${payData.metadata.generatedAt}`;
+                    if (els.lastUpdated && payData.metadata && payData.metadata.generatedAt) {
+                        els.lastUpdated.textContent = `Last Updated: ${payData.metadata.generatedAt}`;
                     }
                 })
                 .catch(err => {
@@ -968,843 +840,618 @@
                 });
         }
 
-        function handleCodeSearch(event, type) {
-            const searchTerm = event.target.value.trim();
-            const dropdownElement = type === 'primary' ? elements.codeDropdown : elements.higherDutiesTargetCodeDropdown;
-
-            if (!searchTerm) { dropdownElement.classList.add('hidden'); return; }
-            const lc = searchTerm.toLowerCase();
-            const filteredCodes = state.vhiaCodes.filter(c =>
-                c.code.toLowerCase().includes(lc)
-                || c.description.toLowerCase().includes(lc)
-                || (c.group || '').toLowerCase().includes(lc)
-            );
-            if (filteredCodes.length > 0) renderCodeDropdown(filteredCodes, dropdownElement, type);
-            else dropdownElement.classList.add('hidden');
+        function showError(message) {
+            hide(els.loadingMessage);
+            els.errorMessage.textContent = message;
+            show(els.errorMessage);
         }
 
-        function renderCodeDropdown(codes, dropdownElement, type) {
-            dropdownElement.innerHTML = '';
-            const displayCodes = codes.slice(0, 50);
-            displayCodes.forEach(codeObj => {
-                const item = document.createElement('div');
-                item.className = 'dropdown-item';
-                const codeSpan = `<span class="font-mono font-semibold">${codeObj.code}</span>`;
-                const desc = codeObj.description.replace(/^[^-]*-\s*/, '');
-                item.innerHTML = `${codeSpan} <span class="text-slate-600 text-sm">${desc}</span>`;
-                item.addEventListener('click', () => selectCode(codeObj.code, type));
-                dropdownElement.appendChild(item);
+        // ===== EVENT WIRING =====
+        function setupEventListeners() {
+            els.codeSearch.addEventListener('input', e => handleCodeSearch(e, 'primary'));
+            els.targetCodeSearch.addEventListener('input', e => handleCodeSearch(e, 'target'));
+            document.addEventListener('click', e => {
+                if (!e.target.closest('#code-search, #code-dropdown')) hide(els.codeDropdown);
+                if (!e.target.closest('#higher-duties-target-code-search, #higher-duties-target-code-dropdown')) hide(els.targetCodeDropdown);
             });
-            if (codes.length > 50) {
-                const moreItem = document.createElement('div');
-                moreItem.className = 'dropdown-item text-gray-500';
-                moreItem.textContent = `...and ${codes.length - 50} more matches`;
-                dropdownElement.appendChild(moreItem);
-            }
-            dropdownElement.classList.remove('hidden');
-        }
 
-        function selectCode(codeArg, type) {
-            const codeData = state.vhiaCodes.find(c => c.code === codeArg);
-            if (!codeData) { logDebug('Error: code ' + codeArg + ' not found'); return; }
-            const code = codeData.code;
-            const displayLabel = `${code} — ${codeData.description.replace(/^[^-]*-\s*/, '')}`;
-
-            if (type === 'primary') {
-                state.selectedCode = code;
-                elements.codeSearch.value = code;
-                elements.selectedCodeValue.textContent = displayLabel;
-                elements.selectedCodeDisplay.classList.remove('hidden');
-                elements.codeDropdown.classList.add('hidden');
-
-                state.availableDateRanges = codeData.dateRanges || [];
-                if (state.availableDateRanges.length > 0) {
-                    // Default to the range active as at today's date.
-                    // If no range is currently active (all future-dated), fall back to the
-                    // most recent past range so the calculator never shows a future rate
-                    // unless the user explicitly picks one.
-                    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-                    let defaultIndex = state.availableDateRanges.findIndex(r =>
-                        r.startDate <= today && (r.endDate === '9999-12-31' || r.endDate >= today)
-                    );
-                    if (defaultIndex === -1) {
-                        // No range covers today — pick the latest range whose startDate is in the past, else the first.
-                        for (let i = state.availableDateRanges.length - 1; i >= 0; i--) {
-                            if (state.availableDateRanges[i].startDate <= today) { defaultIndex = i; break; }
-                        }
-                        if (defaultIndex === -1) defaultIndex = 0;
-                    }
-                    state.selectedDateRange = state.availableDateRanges[defaultIndex];
-
-                    const dateSelect = document.getElementById('date-range-select');
-                    dateSelect.innerHTML = '';
-                    state.availableDateRanges.forEach((range, idx) => {
-                        const opt = document.createElement('option');
-                        opt.value = idx;
-                        const sd = formatDateDisplay(range.startDate);
-                        const ed = range.endDate === '9999-12-31' ? 'Current' : formatDateDisplay(range.endDate);
-                        const tag = idx === defaultIndex ? ' (current)' : (range.startDate > today ? ' (future)' : '');
-                        opt.textContent = `${sd} to ${ed}${tag}`;
-                        if (idx === defaultIndex) opt.selected = true;
-                        dateSelect.appendChild(opt);
-                    });
-                    document.getElementById('date-range-container').classList.remove('hidden');
-                    handleDateRangeSelected(defaultIndex);
-
-                    state.codeComponents = state.selectedDateRange.components.map(comp => {
-                        let amount = comp.amount;
-                        if (typeof amount === 'string' && !amount.includes('%')) amount = parseFloat(amount);
-                        return { 'VHIA Code': code, 'Pay Component Name': comp.name, 'Hourly Amount': amount };
-                    });
-                    state.selectedComponents = [];
-                    const baseComp = state.codeComponents.find(c => c['Pay Component Name'] === 'Base Pay Rate');
-                    const casualComp = state.codeComponents.find(c => c['Pay Component Name'] === 'Casual Rate');
-                    if (baseComp) state.selectedComponents.push('Base Pay Rate');
-                    else if (casualComp) state.selectedComponents.push('Casual Rate');
-
-                    renderComponents();
-                    elements.componentsContainer.classList.remove('hidden');
-                    elements.existingOverAwardContainer.classList.remove('hidden');
-                    renderQualificationAllowances(codeData);
-                    renderExperiencePayments(codeData);
-                }
-            } else {
-                state.higherDutiesTargetCode = code;
-                elements.higherDutiesTargetCodeSearch.value = code;
-                elements.higherDutiesSelectedTargetCodeValue.textContent = displayLabel;
-                elements.higherDutiesSelectedTargetCodeDisplay.classList.remove('hidden');
-                elements.higherDutiesTargetCodeDropdown.classList.add('hidden');
-
-                const baseRateComponent = getBaseRateForCode(code);
-                state.higherDutiesTargetCodeBaseRate = baseRateComponent ? baseRateComponent['Hourly Amount'] : 0;
-                logDebug('Selected target ' + code + ' base=' + state.higherDutiesTargetCodeBaseRate);
-            }
-            calculatePay();
-        }
-
-        function renderQualificationAllowances(codeData) {
-            const host = document.getElementById('qualification-allowances-section');
-            if (!host) return;
-            host.innerHTML = '';
-            if (!codeData.allowanceSubgroup) { host.classList.add('hidden'); return; }
-            const sg = codeData.allowanceSubgroup;
-            // Find a matching qualification subgroup; the keys in qualificationAllowances may be sheet subgroups.
-            const qa = state.qualificationAllowances || {};
-            // Heuristic match by group prefix.
-            const matchKey = (qa[sg] ? sg : Object.keys(qa).find(k => {
-                const kl = k.toLowerCase();
-                const g = (codeData.group || '').toLowerCase();
-                if (g.includes('registered psychiatric') || g.includes('psychiatric enrolled') || g.includes('ruson') || g.includes('indigenous')) return kl.includes('registered psychiatric');
-                if (g.includes('mental health officer')) return kl.includes('mental health officer');
-                if (g.startsWith('ahp -') || g.includes('ahp')) return kl.includes('ahp1');
-                return false;
-            }));
-            if (!matchKey) { host.classList.add('hidden'); return; }
-            const data = qa[matchKey];
-            host.classList.remove('hidden');
-            const wrap = document.createElement('div');
-            wrap.className = 'p-4 bg-violet-50/30 border border-violet-100 rounded-xl';
-            wrap.innerHTML = `<div class="text-xs font-bold text-violet-700 uppercase tracking-wider mb-2">Qualification Allowances (${matchKey})</div>
-                <p class="text-xs text-slate-500 mb-3">Optional: tick a qualification to add it as an additional component. Weekly amounts are converted to hourly using ${codeData.hoursPerWeek || 38} hours/week.</p>`;
-            const list = document.createElement('div');
-            list.className = 'grid grid-cols-1 md:grid-cols-2 gap-2';
-            const startDate = (state.selectedDateRange && state.selectedDateRange.startDate) || '9999-12-31';
-            data.items.forEach((item, idx) => {
-                let active = null;
-                for (const r of item.rates) {
-                    if (r.startDate <= startDate) active = r.amount; else break;
-                }
-                if (active === null && item.rates.length) active = item.rates[item.rates.length - 1].amount;
-                const hourly = active ? (active / (codeData.hoursPerWeek || 38)) : 0;
-                const id = `qual-${idx}`;
-                const row = document.createElement('label');
-                row.className = 'flex items-center justify-between gap-2 p-2 bg-white rounded border border-violet-100 cursor-pointer hover:border-violet-300';
-                const label = item.level ? `${item.level} — ${item.name}` : item.name;
-                row.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="${id}" data-amount="${hourly}" data-name="${label}" class="qual-allowance-cb h-4 w-4 text-violet-600 rounded">
-                        <span class="text-sm text-slate-700">${label}</span>
-                    </div>
-                    <span class="text-xs text-slate-500 font-mono">$${active ? active.toFixed(2) : '0.00'}/wk → $${hourly.toFixed(5)}/hr</span>`;
-                list.appendChild(row);
+            els.dateRangeSelect.addEventListener('change', e => {
+                const range = state.availableDateRanges[parseInt(e.target.value, 10)];
+                if (range) applyDateRange(range, true);
             });
-            wrap.appendChild(list);
-            host.appendChild(wrap);
-            host.querySelectorAll('.qual-allowance-cb').forEach(cb => {
-                cb.addEventListener('change', e => {
-                    const name = 'Qualification: ' + e.target.dataset.name;
-                    const amount = parseFloat(e.target.dataset.amount) || 0;
-                    if (e.target.checked) {
-                        state.codeComponents.push({ 'VHIA Code': state.selectedCode, 'Pay Component Name': name, 'Hourly Amount': amount });
-                        state.selectedComponents.push(name);
-                    } else {
-                        state.codeComponents = state.codeComponents.filter(c => c['Pay Component Name'] !== name);
-                        state.selectedComponents = state.selectedComponents.filter(n => n !== name);
-                    }
-                    renderComponents();
-                    calculatePay();
-                });
+
+            els.hoursInput.addEventListener('input', () => {
+                state.hoursPerWeek = Math.max(0, toNumber(els.hoursInput.value));
+                calculatePay();
             });
-        }
 
-
-        function renderExperiencePayments(codeData) {
-            const host = document.getElementById('experience-payments-section');
-            if (!host) return;
-            host.innerHTML = '';
-            const sg = codeData.experienceSubgroup;
-            const ep = state.experiencePayments || {};
-            if (!sg || !ep[sg]) { host.classList.add('hidden'); return; }
-            const data = ep[sg];
-            host.classList.remove('hidden');
-            const wrap = document.createElement('div');
-            wrap.className = 'p-4 bg-amber-50/30 border border-amber-100 rounded-xl';
-            wrap.innerHTML = `<div class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Experience Payments (${sg})</div>
-                <p class="text-xs text-slate-500 mb-3">Optional: tick the experience level that applies. Weekly amounts are converted to hourly using ${codeData.hoursPerWeek || 38} hours/week.</p>`;
-            const list = document.createElement('div');
-            list.className = 'grid grid-cols-1 md:grid-cols-2 gap-2';
-            const startDate = (state.selectedDateRange && state.selectedDateRange.startDate) || '9999-12-31';
-            data.items.forEach((item, idx) => {
-                let active = null;
-                for (const r of item.rates) {
-                    if (r.startDate <= startDate) active = r.amount; else break;
-                }
-                if (active === null && item.rates.length) active = item.rates[item.rates.length - 1].amount;
-                const hourly = active ? (active / (codeData.hoursPerWeek || 38)) : 0;
-                const id = `exp-${idx}`;
-                const row = document.createElement('label');
-                row.className = 'flex items-center justify-between gap-2 p-2 bg-white rounded border border-amber-100 cursor-pointer hover:border-amber-300';
-                const label = item.level ? `${item.level} - ${item.name}` : item.name;
-                row.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="${id}" data-amount="${hourly}" data-name="${label}" class="exp-payment-cb h-4 w-4 text-amber-600 rounded">
-                        <span class="text-sm text-slate-700">${label}</span>
-                    </div>
-                    <span class="text-xs text-slate-500 font-mono">$${active ? active.toFixed(2) : '0.00'}/wk \u2192 $${hourly.toFixed(5)}/hr</span>`;
-                list.appendChild(row);
+            // Existing over award
+            els.existingOverAwardEnable.addEventListener('change', () => {
+                state.existingOverAward.enabled = els.existingOverAwardEnable.checked;
+                els.existingOverAwardInputs.classList.toggle('hidden', !state.existingOverAward.enabled);
+                calculatePay();
             });
-            wrap.appendChild(list);
-            host.appendChild(wrap);
-            host.querySelectorAll('.exp-payment-cb').forEach(cb => {
-                cb.addEventListener('change', e => {
-                    const name = 'Experience: ' + e.target.dataset.name;
-                    const amount = parseFloat(e.target.dataset.amount) || 0;
-                    if (e.target.checked) {
-                        state.codeComponents.push({ 'VHIA Code': state.selectedCode, 'Pay Component Name': name, 'Hourly Amount': amount });
-                        state.selectedComponents.push(name);
-                    } else {
-                        state.codeComponents = state.codeComponents.filter(c => c['Pay Component Name'] !== name);
-                        state.selectedComponents = state.selectedComponents.filter(n => n !== name);
-                    }
-                    renderComponents();
-                    calculatePay();
-                });
+            const readOverAward = () => {
+                state.existingOverAward.amount = Math.max(0, toNumber(els.overAwardAmount.value));
+                state.existingOverAward.frequency = els.overAwardFrequency.value;
+                calculatePay();
+            };
+            els.overAwardAmount.addEventListener('input', readOverAward);
+            els.overAwardFrequency.addEventListener('change', readOverAward);
+
+            // Higher duties / increase
+            els.higherDutiesEnable.addEventListener('change', handleHigherDutiesEnableChange);
+            els.higherDutiesType.addEventListener('change', () => {
+                state.higherDuties.type = els.higherDutiesType.value;
+                toggleHigherDutiesSections(state.higherDuties.type);
+                calculatePay();
             });
-        }
+            const readHigherDuties = () => {
+                const hd = state.higherDuties;
+                hd.percentage = Math.max(0, toNumber(els.percentageInput.value));
+                hd.percentageBase = els.percentageBaseSelect.value;
+                hd.fixedAmount = Math.max(0, toNumber(els.fixedAmountInput.value));
+                hd.fixedFrequency = els.fixedFrequencySelect.value;
+                hd.totalRemuneration = Math.max(0, toNumber(els.totalRemunerationInput.value));
+                hd.superInclusion = els.superInclusionSelect.value;
+                calculatePay();
+            };
+            [els.percentageInput, els.fixedAmountInput, els.totalRemunerationInput].forEach(el => el.addEventListener('input', readHigherDuties));
+            [els.percentageBaseSelect, els.fixedFrequencySelect, els.superInclusionSelect].forEach(el => el.addEventListener('change', readHigherDuties));
 
-        function getBaseRateForCode(idOrCode) {
-            // Accept compound id ("VHIA:RP70") or bare code ("RP70") for backwards compat.
-            let codeData = state.vhiaCodes.find(c => c.id === idOrCode);
-            if (!codeData) codeData = state.vhiaCodes.find(c => c.code === idOrCode);
-            if (!codeData || !codeData.dateRanges || !codeData.dateRanges.length) return null;
-            let target = codeData.dateRanges[codeData.dateRanges.length - 1];
-            if (state.selectedDateRange) {
-                const m = codeData.dateRanges.find(r => r.startDate === state.selectedDateRange.startDate && r.endDate === state.selectedDateRange.endDate);
-                if (m) target = m;
-            }
-            const baseComp = target.components.find(c => c.name === 'Base Pay Rate');
-            const casualComp = target.components.find(c => c.name === 'Casual Rate');
-            const sel = baseComp || casualComp;
-            if (!sel) return null;
-            return { 'VHIA Code': codeData.code, 'Pay Component Name': sel.name, 'Hourly Amount': sel.amount };
-        }
-
-        /**
-         * Calculate the actual hourly amount for a component, handling percentages
-         * @param {Object} component - Component with 'Hourly Amount' property
-         * @param {Number} baseRate - The base rate to apply percentage against
-         * @returns {Number} - The actual hourly amount
-         */
-        function getComponentHourlyValue(component, baseRate) {
-            if (!component) return 0;
-
-            const hourlyAmount = component['Hourly Amount'];
-
-            // Check if it's a percentage-based component
-            if (typeof hourlyAmount === 'string' && hourlyAmount.includes('%')) {
-                const percentage = parseFloat(hourlyAmount) / 100;
-                return baseRate * percentage;
-            }
-
-            else {
-                return parseFloat(hourlyAmount) || 0;
-            }
-        }
-
-        function renderComponents() {
-            elements.componentsList.innerHTML = '';
-
-            if (!state.selectedCode) {
-                elements.componentsContainer.classList.add('hidden');
-                return;
-            }
-
-            state.codeComponents.forEach((component, index) => {
-                const componentName = component['Pay Component Name'];
-                const hourlyAmount = component['Hourly Amount'];
-
-                const item = document.createElement('div');
-                item.className = 'component-item mb-2 flex items-center justify-between';
-
-                const mainCheckbox = document.createElement('input');
-                mainCheckbox.type = 'checkbox';
-
-                mainCheckbox.id = `component-${index
-                    }
-
-                    `;
-                mainCheckbox.className = 'mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
-                mainCheckbox.checked = state.selectedComponents.includes(componentName);
-                mainCheckbox.addEventListener('change', () => toggleComponent(componentName));
-
-                const label = document.createElement('label');
-
-                label.htmlFor = `component-${index
-                    }
-
-                    `;
-                label.className = 'flex-grow cursor-pointer flex justify-between items-center';
-
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = componentName;
-
-                const amountSpan = document.createElement('span');
-                amountSpan.className = 'font-mono text-sm ml-2';
-
-                // Handle both numeric and string values (like "10%")
-                if (typeof hourlyAmount === 'number') {
-                    amountSpan.textContent = `$${hourlyAmount.toFixed(5)
-                        }
-
-                        /hr`;
-                }
-
-                else if (typeof hourlyAmount === 'string' && hourlyAmount.includes('%')) {
-                    amountSpan.textContent = hourlyAmount;
-                }
-
-                else {
-                    const numValue = parseFloat(hourlyAmount);
-
-                    amountSpan.textContent = isNaN(numValue) ? hourlyAmount : `$${numValue.toFixed(5)
-                        }
-
-                        /hr`;
-                }
-
-                label.appendChild(nameSpan);
-                label.appendChild(amountSpan);
-
-                item.appendChild(mainCheckbox);
-                item.appendChild(label);
-
-                elements.componentsList.appendChild(item);
-            });
-            elements.componentsContainer.classList.remove('hidden');
-        }
-
-        function toggleComponent(componentName) {
-            const index = state.selectedComponents.indexOf(componentName);
-
-            if (index > -1) {
-                state.selectedComponents.splice(index, 1);
-            }
-
-            else {
-                state.selectedComponents.push(componentName);
-            }
-
-            logDebug(`Selected components: ${JSON.stringify(state.selectedComponents)
-                }
-
-                `);
-            calculatePay();
-        }
-
-
-        function handleHoursChange(event) {
-            state.hoursPerWeek = parseFloat(event.target.value) || 0;
-            calculatePay();
+            // Help modal
+            els.helpButton.addEventListener('click', openModal);
+            els.closeModalButton.addEventListener('click', closeModal);
+            els.modalBackdrop.addEventListener('click', closeModal);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
         }
 
         function handleHigherDutiesEnableChange() {
-            state.higherDutiesEnabled = elements.higherDutiesEnableCheckbox.checked;
-
-            if (state.higherDutiesEnabled) {
-                elements.higherDutiesOptionsContainer.classList.remove('hidden');
-            }
-
-            else {
-                elements.higherDutiesOptionsContainer.classList.add('hidden');
-            }
-
-            elements.higherDutiesOptionsContainer.style.display = ''; // Clear any inline style
-
-            if (!state.higherDutiesEnabled) {
-                state.higherDutiesType = '';
-                elements.higherDutiesTypeSelect.value = '';
+            const hd = state.higherDuties;
+            hd.enabled = els.higherDutiesEnable.checked;
+            els.higherDutiesOptions.classList.toggle('hidden', !hd.enabled);
+            if (!hd.enabled) {
+                hd.type = '';
+                hd.targetCode = '';
+                hd.percentage = 0;
+                hd.percentageBase = 'baseAndOverAward';
+                hd.totalRemuneration = 0;
+                hd.superInclusion = 'excluding';
+                hd.fixedAmount = 0;
+                hd.fixedFrequency = 'hourly';
+                els.higherDutiesType.value = '';
+                els.targetCodeSearch.value = '';
+                hide(els.targetCodeDisplay);
+                els.percentageInput.value = '';
+                els.percentageBaseSelect.value = 'baseAndOverAward';
+                els.totalRemunerationInput.value = '';
+                els.superInclusionSelect.value = 'excluding';
+                els.fixedAmountInput.value = '';
+                els.fixedFrequencySelect.value = 'hourly';
                 toggleHigherDutiesSections('');
-                state.higherDutiesAllowanceHourly = 0;
-                elements.higherDutiesTargetCodeSearch.value = '';
-                state.higherDutiesTargetCode = '';
-                state.higherDutiesTargetCodeBaseRate = 0;
-                elements.higherDutiesSelectedTargetCodeDisplay.classList.add('hidden');
-                elements.higherDutiesPercentageInput.value = '';
-                state.higherDutiesPercentage = 0;
-                elements.higherDutiesTotalRemunerationInput.value = '';
-                state.higherDutiesTotalRemuneration = 0;
-                elements.higherDutiesSuperInclusionSelect.value = 'excluding';
-                state.higherDutiesSuperInclusion = 'excluding';
-                elements.higherDutiesFixedAmountInput.value = '';
-                state.higherDutiesFixedAmount = 0;
-                elements.higherDutiesFixedFrequencySelect.value = 'hourly';
-                state.higherDutiesFixedFrequency = 'hourly';
             }
-
-            calculatePay();
-        }
-
-        function handleHigherDutiesTypeChange() {
-            state.higherDutiesType = elements.higherDutiesTypeSelect.value;
-            toggleHigherDutiesSections(state.higherDutiesType);
-            calculatePay();
-        }
-
-        function handleHigherDutiesInputChange() {
-            if (state.higherDutiesType === 'fixedValue') {
-                state.higherDutiesFixedAmount = parseFloat(elements.higherDutiesFixedAmountInput.value) || 0;
-                state.higherDutiesFixedFrequency = elements.higherDutiesFixedFrequencySelect.value;
-            }
-            else if (state.higherDutiesType === 'percentage') {
-                state.higherDutiesPercentage = parseFloat(elements.higherDutiesPercentageInput.value) || 0;
-            }
-
-            else if (state.higherDutiesType === 'totalRemuneration') {
-                state.higherDutiesTotalRemuneration = parseFloat(elements.higherDutiesTotalRemunerationInput.value) || 0;
-                state.higherDutiesSuperInclusion = elements.higherDutiesSuperInclusionSelect.value;
-            }
-
             calculatePay();
         }
 
         function toggleHigherDutiesSections(type) {
-            elements.classificationHigherDutiesSection.classList.add('hidden');
-            elements.percentageHigherDutiesSection.classList.add('hidden');
-            if (elements.fixedValueHigherDutiesSection) elements.fixedValueHigherDutiesSection.classList.add('hidden');
-            elements.totalRemunerationHigherDutiesSection.classList.add('hidden');
+            hide(els.classificationSection);
+            hide(els.percentageSection);
+            hide(els.fixedValueSection);
+            hide(els.totalRemunerationSection);
+            if (type === 'classification') show(els.classificationSection);
+            else if (type === 'percentage') show(els.percentageSection);
+            else if (type === 'fixedValue') show(els.fixedValueSection);
+            else if (type === 'totalRemuneration') show(els.totalRemunerationSection);
+        }
 
-            if (type === 'classification') {
-                elements.classificationHigherDutiesSection.classList.remove('hidden');
-            }
+        // ===== MODAL =====
+        function openModal() {
+            show(els.helpModal);
+            void els.helpModal.offsetWidth; // let display apply before the transition
+            els.modalBackdrop.classList.remove('opacity-0');
+            els.modalPanel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+        }
 
-            else if (type === 'percentage') {
-                elements.percentageHigherDutiesSection.classList.remove('hidden');
-            }
-            else if (type === 'fixedValue') {
-                if (elements.fixedValueHigherDutiesSection) elements.fixedValueHigherDutiesSection.classList.remove('hidden');
-            }
+        function closeModal() {
+            if (els.helpModal.classList.contains('hidden')) return;
+            els.modalBackdrop.classList.add('opacity-0');
+            els.modalPanel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            setTimeout(() => hide(els.helpModal), 300);
+        }
 
-            else if (type === 'totalRemuneration') {
-                elements.totalRemunerationHigherDutiesSection.classList.remove('hidden');
+        // ===== CODE SEARCH =====
+        function handleCodeSearch(event, type) {
+            const term = event.target.value.trim().toLowerCase();
+            const dropdown = type === 'primary' ? els.codeDropdown : els.targetCodeDropdown;
+            if (!term) { hide(dropdown); return; }
+            const matches = state.codes.filter(c =>
+                c.code.toLowerCase().includes(term)
+                || c.description.toLowerCase().includes(term)
+                || c.group.toLowerCase().includes(term)
+            );
+            if (matches.length) renderCodeDropdown(matches, dropdown, type);
+            else hide(dropdown);
+        }
+
+        function renderCodeDropdown(codes, dropdown, type) {
+            dropdown.innerHTML = '';
+            codes.slice(0, MAX_DROPDOWN_RESULTS).forEach(codeObj => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.innerHTML = `<span class="font-mono font-semibold">${escapeHtml(codeObj.code)}</span> <span class="text-slate-600 text-sm">${escapeHtml(stripCodePrefix(codeObj.description))}</span>`;
+                item.addEventListener('click', () => selectCode(codeObj.code, type));
+                dropdown.appendChild(item);
+            });
+            if (codes.length > MAX_DROPDOWN_RESULTS) {
+                const more = document.createElement('div');
+                more.className = 'dropdown-item text-gray-500';
+                more.textContent = `...and ${codes.length - MAX_DROPDOWN_RESULTS} more matches`;
+                dropdown.appendChild(more);
+            }
+            show(dropdown);
+        }
+
+        function selectCode(code, type) {
+            const codeData = state.codes.find(c => c.code === code);
+            if (!codeData) { logDebug('Code not found: ' + code); return; }
+            const label = `${codeData.code} — ${stripCodePrefix(codeData.description)}`;
+
+            if (type === 'primary') {
+                state.selectedCode = codeData.code;
+                state.selectedCodeData = codeData;
+                els.codeSearch.value = codeData.code;
+                els.selectedCodeValue.textContent = label;
+                renderCodeBadges(codeData);
+                show(els.selectedCodeDisplay);
+                hide(els.codeDropdown);
+
+                state.availableDateRanges = codeData.dateRanges;
+                state.selectedComponents = [];
+                if (!state.availableDateRanges.length) {
+                    hide(els.dateRangeContainer);
+                    state.selectedDateRange = null;
+                    state.codeComponents = [];
+                    renderComponents();
+                    calculatePay();
+                    return;
+                }
+                const defaultRange = pickDefaultRange(state.availableDateRanges);
+                populateDateRangeSelect(defaultRange);
+                show(els.dateRangeContainer);
+                applyDateRange(defaultRange, false);
+            } else {
+                state.higherDuties.targetCode = codeData.code;
+                els.targetCodeSearch.value = codeData.code;
+                els.targetCodeValue.textContent = label;
+                show(els.targetCodeDisplay);
+                hide(els.targetCodeDropdown);
+                calculatePay();
             }
         }
 
-        function handleExistingOverAwardEnableChange() {
-            state.existingOverAwardEnabled = elements.existingOverAwardEnableCheckbox.checked;
-
-            if (state.existingOverAwardEnabled) {
-                elements.existingOverAwardInputs.classList.remove('hidden');
+        // Progression and employment-basis badges from the payroll system export.
+        function renderCodeBadges(codeData) {
+            const host = els.selectedCodeBadges;
+            host.innerHTML = '';
+            const badge = (text, cls, title) => {
+                const span = document.createElement('span');
+                span.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ' + cls;
+                span.innerHTML = text;
+                if (title) span.title = title;
+                host.appendChild(span);
+                return span;
+            };
+            if (codeData.autoProgression === 'yes') {
+                badge('<i class="fa-solid fa-arrow-trend-up"></i>Auto progression: Yes', 'bg-green-100 text-green-800 border border-green-200', 'Employees progress automatically to the next pay scale level');
+            } else if (codeData.autoProgression === 'no') {
+                badge('<i class="fa-solid fa-hand"></i>Auto progression: No', 'bg-slate-100 text-slate-700 border border-slate-200', 'Progression is not automatic for this classification');
+            } else if (codeData.autoProgression === 'top') {
+                badge('<i class="fa-solid fa-flag-checkered"></i>Top of range', 'bg-amber-100 text-amber-800 border border-amber-200', 'No further pay scale level to progress to');
             }
-
-            else {
-                elements.existingOverAwardInputs.classList.add('hidden');
+            if (codeData.nextCode) {
+                const nextExists = state.codes.some(c => c.code === codeData.nextCode);
+                const nextLabel = escapeHtml(codeData.nextDescription || codeData.nextCode);
+                const b = badge('<i class="fa-solid fa-forward-step"></i>Progresses to ' + nextLabel + (nextExists ? ' <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-70"></i>' : ''),
+                    'bg-indigo-100 text-indigo-800 border border-indigo-200' + (nextExists ? ' cursor-pointer hover:bg-indigo-200' : ''),
+                    nextExists ? 'Click to load the next pay scale level' : 'Next pay scale level is not in the calculator data');
+                if (nextExists) b.addEventListener('click', () => selectCode(codeData.nextCode, 'primary'));
             }
+            if (codeData.casualOnly) {
+                badge('<i class="fa-solid fa-user-clock"></i>Casual classification', 'bg-violet-100 text-violet-800 border border-violet-200', 'This classification only employs casuals; the Casual Rate is its base rate');
+            }
+            host.classList.toggle('hidden', host.children.length === 0);
+        }
 
+        function populateDateRangeSelect(selectedRange) {
+            els.dateRangeSelect.innerHTML = '';
+            state.availableDateRanges.forEach((range, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                const status = getDateStatus(range);
+                opt.textContent = `${formatDateDisplay(range.startDate)} to ${formatDateDisplay(range.endDate)} (${status})`;
+                if (range === selectedRange) opt.selected = true;
+                els.dateRangeSelect.appendChild(opt);
+            });
+        }
+
+        // Switch the active date range. When preserveSelection is true, keep ticked components that still exist.
+        function applyDateRange(range, preserveSelection) {
+            state.selectedDateRange = range;
+
+            els.dateRangePeriod.textContent = `${formatDateDisplay(range.startDate)} to ${formatDateDisplay(range.endDate)}`;
+            const status = getDateStatus(range);
+            const badgeStyles = { current: 'bg-green-500', historical: 'bg-amber-500', future: 'bg-blue-500' };
+            els.dateStatusBadge.className = `px-2.5 py-0.5 text-xs font-bold rounded-full uppercase tracking-wide text-white ${badgeStyles[status]}`;
+            els.dateStatusBadge.textContent = status;
+            show(els.selectedDateDisplay);
+
+            state.codeComponents = buildComponentsForRange(state.selectedCodeData, range);
+            const names = new Set(state.codeComponents.map(c => c.name));
+            let selected = preserveSelection ? state.selectedComponents.filter(n => names.has(n)) : [];
+            if (!selected.includes(BASE_NAME) && !selected.includes(CASUAL_NAME)) {
+                if (names.has(BASE_NAME)) selected.push(BASE_NAME);
+                else if (names.has(CASUAL_NAME)) selected.push(CASUAL_NAME);
+            }
+            state.selectedComponents = selected;
+
+            logDebug(`Range ${range.startDate}..${range.endDate}: ${state.codeComponents.length} components`);
+            renderComponents();
             calculatePay();
         }
 
-        function handleExistingOverAwardInputChange() {
-            state.existingOverAwardAmount = parseFloat(elements.overAwardAmountInput.value) || 0;
-            state.existingOverAwardFrequency = elements.overAwardFrequencySelect.value;
+        // ===== COMPONENTS =====
+        // Award components come straight from the range. Qualification allowances and experience payments
+        // (published weekly in the Mental Health circular) are converted to hourly at the code's weekly hours
+        // and added as ordinary tickable components.
+        function buildComponentsForRange(codeData, range) {
+            const components = (range.components || []).map(c => ({
+                name: c.name,
+                amount: isPercentage(c.amount) ? c.amount.trim() : toNumber(c.amount),
+                group: 'award'
+            }));
+            const codeHours = codeData.hoursPerWeek || 38;
+
+            const appendWeeklyItems = (subgroup, table, group, prefix) => {
+                const data = subgroup && table[subgroup];
+                if (!data || !data.items) return;
+                data.items.forEach(item => {
+                    const weekly = rateForDate(item.rates, range.startDate);
+                    if (weekly === null) return;
+                    const label = item.level ? `${item.level} - ${item.name}` : item.name;
+                    components.push({ name: `${prefix}: ${label}`, amount: weekly / codeHours, group, weekly, codeHours });
+                });
+            };
+            appendWeeklyItems(codeData.allowanceSubgroup, state.qualificationAllowances, 'qualification', 'Qualification Allowance');
+            appendWeeklyItems(codeData.experienceSubgroup, state.experiencePayments, 'experience', 'Experience Payment');
+            return components;
+        }
+
+        // Which of Base Pay Rate / Casual Rate the user is working from.
+        function selectedBaseName() {
+            if (state.selectedComponents.includes(CASUAL_NAME) && !state.selectedComponents.includes(BASE_NAME)) return CASUAL_NAME;
+            return BASE_NAME;
+        }
+
+        // The substantive base hourly rate. Percentage allowances are always a percentage of this.
+        function getSubstantiveBaseRate() {
+            const comp = state.codeComponents.find(c => c.name === selectedBaseName())
+                || state.codeComponents.find(c => c.name === BASE_NAME)
+                || state.codeComponents.find(c => c.name === CASUAL_NAME);
+            return comp ? toNumber(comp.amount) : 0;
+        }
+
+        function componentHourly(component, baseRate) {
+            if (!component) return 0;
+            if (isPercentage(component.amount)) return baseRate * toNumber(component.amount) / 100;
+            return toNumber(component.amount);
+        }
+
+        function renderComponents() {
+            els.componentsList.innerHTML = '';
+            if (!state.selectedCode || !state.codeComponents.length) { hide(els.componentsContainer); return; }
+
+            const baseRate = getSubstantiveBaseRate();
+            const groups = [
+                { key: 'award', label: null },
+                { key: 'qualification', label: 'Qualification Allowances', note: 'Published weekly; shown hourly' },
+                { key: 'experience', label: 'Experience Payments', note: 'Published weekly; shown hourly' }
+            ];
+
+            groups.forEach(group => {
+                const comps = state.codeComponents.filter(c => c.group === group.key);
+                if (!comps.length) return;
+                if (group.label) {
+                    const heading = document.createElement('div');
+                    heading.className = 'flex items-baseline justify-between mt-4 mb-1';
+                    const codeHours = comps[0].codeHours || 38;
+                    heading.innerHTML = `<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">${escapeHtml(group.label)}</span><span class="text-xs text-slate-400">${escapeHtml(group.note)} (weekly &divide; ${codeHours} hrs)</span>`;
+                    els.componentsList.appendChild(heading);
+                }
+                comps.forEach(component => {
+                    const index = state.codeComponents.indexOf(component);
+                    const item = document.createElement('div');
+                    item.className = 'component-item mb-2 flex items-center justify-between';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `component-${index}`;
+                    checkbox.className = 'mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+                    checkbox.checked = state.selectedComponents.includes(component.name);
+                    checkbox.addEventListener('change', () => toggleComponent(component.name));
+
+                    const label = document.createElement('label');
+                    label.htmlFor = checkbox.id;
+                    label.className = 'flex-grow cursor-pointer flex justify-between items-center gap-3';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = component.name;
+
+                    const amountSpan = document.createElement('span');
+                    amountSpan.className = 'font-mono text-sm ml-2 text-right whitespace-nowrap';
+                    if (isPercentage(component.amount)) {
+                        amountSpan.textContent = `${component.amount} of base = ${formatRate(componentHourly(component, baseRate))}/hr`;
+                    } else {
+                        amountSpan.textContent = `${formatRate(toNumber(component.amount))}/hr`;
+                    }
+
+                    label.appendChild(nameSpan);
+                    label.appendChild(amountSpan);
+                    item.appendChild(checkbox);
+                    item.appendChild(label);
+                    els.componentsList.appendChild(item);
+                });
+            });
+            show(els.componentsContainer);
+        }
+
+        function toggleComponent(name) {
+            const idx = state.selectedComponents.indexOf(name);
+            if (idx > -1) {
+                state.selectedComponents.splice(idx, 1);
+            } else {
+                state.selectedComponents.push(name);
+                // Base and Casual are alternatives, never both.
+                if (name === BASE_NAME) state.selectedComponents = state.selectedComponents.filter(n => n !== CASUAL_NAME);
+                if (name === CASUAL_NAME) state.selectedComponents = state.selectedComponents.filter(n => n !== BASE_NAME);
+            }
+            logDebug(`Selected components: ${JSON.stringify(state.selectedComponents)}`);
+            renderComponents(); // percentage components and exclusivity may have changed
             calculatePay();
         }
 
-        function calculateExistingOverAwardHourly() {
-            if (!state.existingOverAwardEnabled || state.existingOverAwardAmount <= 0) {
-                return 0;
+        // ===== RATES FOR OTHER CODES =====
+        // Base hourly rate of any code, using the range in force on the reference date (today for a current
+        // selection, otherwise the start of the selected range). Falls back to the latest past range.
+        function getBaseRateForCode(code, preferredName = BASE_NAME) {
+            const codeData = state.codes.find(c => c.code === code);
+            if (!codeData || !codeData.dateRanges.length) return null;
+            const ranges = codeData.dateRanges;
+            const refDate = referenceDate();
+            let range = findRangeForDate(ranges, refDate);
+            if (!range) {
+                const past = ranges.filter(r => r.startDate <= refDate);
+                range = past.length ? past.reduce((best, r) => (r.startDate > best.startDate ? r : best)) : ranges[0];
             }
+            const comp = range.components.find(c => c.name === preferredName)
+                || range.components.find(c => c.name === BASE_NAME)
+                || range.components.find(c => c.name === CASUAL_NAME);
+            if (!comp) return null;
+            return { rate: toNumber(comp.amount), name: comp.name, range };
+        }
 
-            const amount = state.existingOverAwardAmount;
-            const frequency = state.existingOverAwardFrequency;
-            const hoursPerWeek = state.hoursPerWeek || 38;
+        // ===== OVER AWARD CALCULATIONS =====
+        // Existing over award as an hourly rate, converted with the configured Hours per Week.
+        function computeExistingOverAwardHourly() {
+            const oa = state.existingOverAward;
+            if (!oa.enabled || oa.amount <= 0) return 0;
+            return toHourly(oa.amount, oa.frequency, state.hoursPerWeek);
+        }
 
-            switch (frequency) {
-                case 'hourly':
-                    return amount;
-                case 'weekly':
-                    return amount / hoursPerWeek;
-                case 'fortnightly':
-                    return amount / (hoursPerWeek * 2);
-                case 'annual':
-                    return amount / (hoursPerWeek * 52);
+        // Hourly value of the increase. `award` is the hourly total of the ticked components, `baseRate`
+        // the substantive base/casual rate and `oaHourly` the existing over award.
+        function computeHigherDutiesHourly(baseRate, award, oaHourly) {
+            const hd = state.higherDuties;
+            if (!hd.enabled || !state.selectedCode) return 0;
+            const hpw = state.hoursPerWeek;
+
+            switch (hd.type) {
+                case 'classification': {
+                    if (!hd.targetCode) return 0;
+                    const target = getBaseRateForCode(hd.targetCode, selectedBaseName());
+                    if (!target || target.rate <= 0) {
+                        els.targetRateNote.textContent = 'No base rate found for this code in the selected period.';
+                        return 0;
+                    }
+                    els.targetRateNote.textContent = `${target.name} ${formatRate(target.rate)}/hr, rates from ${formatDateDisplay(target.range.startDate)}. Current base + over award ${formatRate(baseRate + oaHourly)}/hr.`;
+                    return Math.max(0, target.rate - (baseRate + oaHourly));
+                }
+                case 'percentage': {
+                    if (hd.percentage <= 0) return 0;
+                    let basis = baseRate + oaHourly;
+                    if (hd.percentageBase === 'baseOnly') basis = baseRate;
+                    else if (hd.percentageBase === 'allComponentsAndOverAward') basis = award + oaHourly;
+                    return Math.max(0, basis * hd.percentage / 100);
+                }
+                case 'fixedValue':
+                    return Math.max(0, toHourly(hd.fixedAmount, hd.fixedFrequency, hpw));
+                case 'totalRemuneration': {
+                    if (hd.totalRemuneration <= 0 || hpw <= 0) return 0;
+                    const currentAnnual = (award + oaHourly) * hpw * 52;
+                    let targetPreSuper = hd.totalRemuneration;
+                    if (hd.superInclusion === 'including') {
+                        const uncapped = hd.totalRemuneration / (1 + SUPER_RATE);
+                        targetPreSuper = (uncapped * SUPER_RATE <= ANNUAL_SUPER_CAP) ? uncapped : hd.totalRemuneration - ANNUAL_SUPER_CAP;
+                    }
+                    return Math.max(0, targetPreSuper - currentAnnual) / (hpw * 52);
+                }
                 default:
                     return 0;
             }
         }
 
-        function calculateHigherDutiesAllowance() {
-            state.higherDutiesAllowanceHourly = 0;
-            if (!state.higherDutiesEnabled || !state.selectedCode) return 0;
-
-            const substantiveBaseRateComponent = getBaseRateForCode(state.selectedCode);
-            let initialClassificationBaseHourlyRate = substantiveBaseRateComponent ? substantiveBaseRateComponent['Hourly Amount'] : 0;
-
-            // Add Existing Over Award to Base Rate for HDA calculation
-            if (state.existingOverAwardEnabled) {
-                initialClassificationBaseHourlyRate += state.existingOverAwardHourlyAmount;
-            }
-
-            if (initialClassificationBaseHourlyRate === 0 && (state.higherDutiesType === 'classification' || state.higherDutiesType === 'percentage')) {
-                logDebug(`Warning: Substantive classification (${state.selectedCode
-                    }) has no effective 'Base Pay Rate' . Cannot calculate HDA for classification/percentage methods accurately.`);
-            }
-
-            switch (state.higherDutiesType) {
-                case 'classification': if (state.higherDutiesTargetCode && initialClassificationBaseHourlyRate > 0) {
-                    const targetClassificationBaseComponent = getBaseRateForCode(state.higherDutiesTargetCode);
-                    const targetClassificationBaseHourlyRate = targetClassificationBaseComponent ? targetClassificationBaseComponent['Hourly Amount'] : 0;
-
-                    if (targetClassificationBaseHourlyRate > 0) {
-                        state.higherDutiesAllowanceHourly = Math.max(0, targetClassificationBaseHourlyRate - initialClassificationBaseHourlyRate);
-
-                        logDebug(`HDA Classification: Target $${targetClassificationBaseHourlyRate.toFixed(5)
-                            }
-
-                            - Current $${initialClassificationBaseHourlyRate.toFixed(5)
-                            }
-
-                            =$${state.higherDutiesAllowanceHourly.toFixed(5)
-                            }
-
-                            `);
-
-                        logDebug(`Warning: Target classification (${state.higherDutiesTargetCode
-                            }) has no effective 'Base Pay Rate' . HDA for classification method will be 0.`);
-                    }
-                }
-
-                    break;
-
-                case 'percentage': {
-                    // FIX: percentage applies to the OVERALL AWARD figure (sum of all selected
-                    // components: Base + qualification allowances + uniform/laundry etc),
-                    // not just Base Pay Rate. Mirrors the totalRemuneration method.
-                    const pctRefBaseComponent = state.codeComponents.find(comp =>
-                        comp['Pay Component Name'] === 'Base Pay Rate' || comp['Pay Component Name'] === 'Casual Rate'
-                    );
-                    const pctRefBaseRate = pctRefBaseComponent ? parseFloat(pctRefBaseComponent['Hourly Amount']) : 0;
-                    let pctBase = state.selectedComponents.reduce((sum, compName) => {
-                        const c = state.codeComponents.find(x => x['Pay Component Name'] === compName);
-                        return sum + getComponentHourlyValue(c, pctRefBaseRate);
-                    }, 0);
-                    // Toggle: by default HDA% excludes existing over-award unless user opts in.
-                    if (state.includeOverAwardInHdaPercent && state.existingOverAwardEnabled) {
-                        pctBase += state.existingOverAwardHourlyAmount;
-                    }
-                    if (pctBase > 0 && state.higherDutiesPercentage > 0) {
-                        state.higherDutiesAllowanceHourly = pctBase * (state.higherDutiesPercentage / 100);
-                        logDebug(`HDA Percentage: ${state.higherDutiesPercentage}% of $${pctBase.toFixed(5)} (award total) = $${state.higherDutiesAllowanceHourly.toFixed(5)}`);
-                    }
-                }
-                    break;
-                case 'fixedValue': {
-                    // Convert user-entered amount to hourly via configured hoursPerWeek.
-                    const amt = state.higherDutiesFixedAmount;
-                    const hpw = state.hoursPerWeek;
-                    const freq = state.higherDutiesFixedFrequency || 'hourly';
-                    let hourly = 0;
-                    if (freq === 'hourly') {
-                        hourly = amt;
-                    } else if (hpw > 0) {
-                        switch (freq) {
-                            case 'weekly':      hourly = amt / hpw; break;
-                            case 'fortnightly': hourly = amt / (hpw * 2); break;
-                            case 'monthly':     hourly = (amt * 12) / (hpw * 52); break;
-                            case 'annually':    hourly = amt / (hpw * 52); break;
-                            default:            hourly = 0;
-                        }
-                    }
-                    state.higherDutiesAllowanceHourly = Math.max(0, hourly);
-                    logDebug(`HDA Fixed Value: $${amt} ${freq} @ ${hpw}h/wk -> $${state.higherDutiesAllowanceHourly.toFixed(5)}/hr`);
-                }
-                    break;
-                case 'totalRemuneration': // Get base rate for percentage calculations
-                    const currentBaseRateComponent = state.codeComponents.find(comp => comp['Pay Component Name'] === 'Base Pay Rate' || comp['Pay Component Name'] === 'Casual Rate'
-                    );
-                    const currentBaseRate = currentBaseRateComponent ? parseFloat(currentBaseRateComponent['Hourly Amount']) : 0;
-
-                    // Calculate current hourly rate including percentage components
-                    const currentHourlyRateForHDABase = state.selectedComponents.reduce((sum, compName) => {
-                        const component = state.codeComponents.find(c => c['Pay Component Name'] === compName);
-                        return sum + getComponentHourlyValue(component, currentBaseRate);
-                    }
-
-                        , 0) + (state.existingOverAwardEnabled ? state.existingOverAwardHourlyAmount : 0);
-
-                    const currentAnnualSalaryForHDABase = currentHourlyRateForHDABase * state.hoursPerWeek * 52;
-
-                    logDebug(`Current Annual Salary for HDA Base (Total Remuneration): ${currentAnnualSalaryForHDABase.toFixed(2)
-                        }
-
-                    (based on ${currentHourlyRateForHDABase.toFixed(5)
-                        }
-
-                        /hr)`);
-
-                    const targetAnnualRemuneration = state.higherDutiesTotalRemuneration;
-                    if (targetAnnualRemuneration <= 0) break;
-
-                    let targetAnnualSalaryBeforeSuper;
-
-                    if (state.higherDutiesSuperInclusion === 'excluding') {
-                        targetAnnualSalaryBeforeSuper = targetAnnualRemuneration;
-                    }
-
-                    else {
-                        let estimatedSalaryIfSuperNotCapped = targetAnnualRemuneration / (1 + SUPER_RATE);
-
-                        if (estimatedSalaryIfSuperNotCapped * SUPER_RATE <= ANNUAL_SUPER_CAP) {
-                            targetAnnualSalaryBeforeSuper = estimatedSalaryIfSuperNotCapped;
-                        }
-
-                        else {
-                            targetAnnualSalaryBeforeSuper = targetAnnualRemuneration - ANNUAL_SUPER_CAP;
-                        }
-                    }
-
-                    const overAwardAnnualSalary = Math.max(0, targetAnnualSalaryBeforeSuper - currentAnnualSalaryForHDABase);
-
-                    if (state.hoursPerWeek > 0) {
-                        state.higherDutiesAllowanceHourly = overAwardAnnualSalary / (state.hoursPerWeek * 52);
-                    }
-
-                    else {
-                        state.higherDutiesAllowanceHourly = 0;
-                    }
-
-                    logDebug(`Target Annual Salary (pre-super for package): ${targetAnnualSalaryBeforeSuper.toFixed(2)
-                        }
-
-                    . Over Award Annual: ${overAwardAnnualSalary.toFixed(2)
-                        }
-
-                    `);
-                    break;
-            }
-
-            logDebug(`Calculated HDA Hourly: ${state.higherDutiesAllowanceHourly.toFixed(5)}`);
-            return state.higherDutiesAllowanceHourly;
+        function methodLabel(type) {
+            return {
+                classification: 'Match to Classification',
+                percentage: 'Percentage Increase',
+                fixedValue: 'Fixed Amount Increase',
+                totalRemuneration: 'Target Total Remuneration'
+            }[type] || '';
         }
 
-
-        function formatCurrency(amount) {
-            // Money totals: 2dp.
-            return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-        }
-
-        function formatRate(amount) {
-            // Hourly rates: up to 5dp for fidelity, but trim trailing zeros beyond 2dp.
-            const fixed = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 5 }).format(amount);
-            return fixed;
-        }
-
+        // ===== RESULTS =====
         function calculatePay() {
             if (!state.selectedCode) {
-                // Clear all displayed values if no substantive code is selected
-
-                elements.breakdownBody.innerHTML = '';
-                if (elements.payBreakdownDescription) elements.payBreakdownDescription.textContent = '';
-                elements.breakdownContainer.classList.add('hidden');
+                els.breakdownBody.innerHTML = '';
+                hide(els.breakdownContainer);
+                hide(els.overAwardSummary);
                 return;
             }
 
-            // Calculate Existing Over Award Hourly
-            state.existingOverAwardHourlyAmount = calculateExistingOverAwardHourly();
+            const hpw = state.hoursPerWeek;
+            const baseRate = getSubstantiveBaseRate();
 
-            // First, find the base rate (Base Pay Rate or Casual Rate)
-            let baseRate = 0;
-            const basePayComponent = state.codeComponents.find(comp => comp['Pay Component Name'] === 'Base Pay Rate' && state.selectedComponents.includes('Base Pay Rate'));
-            const casualRateComponent = state.codeComponents.find(comp => comp['Pay Component Name'] === 'Casual Rate' && state.selectedComponents.includes('Casual Rate'));
+            state.existingOverAward.hourly = computeExistingOverAwardHourly();
+            const oaHourly = state.existingOverAward.hourly;
 
-            if (basePayComponent) {
-                baseRate = parseFloat(basePayComponent['Hourly Amount']) || 0;
-            } else if (casualRateComponent) {
-                baseRate = parseFloat(casualRateComponent['Hourly Amount']) || 0;
-            }
+            els.payBreakdownDescription.textContent = state.selectedCodeData ? state.selectedCodeData.description : '';
+            els.payBreakdownHours.textContent = `Hours per week: ${hpw}`;
+            els.breakdownBody.innerHTML = '';
 
-            // Clear table
-            elements.breakdownBody.innerHTML = '';
-
-            // Update Description
-            if (elements.payBreakdownDescription && state.vhiaCodes) {
-                const selectedCodeObj = state.vhiaCodes.find(c => c.code === state.selectedCode);
-                elements.payBreakdownDescription.textContent = selectedCodeObj ? selectedCodeObj.description : '';
-            }
-            const hoursEl = document.getElementById('pay-breakdown-hours');
-            if (hoursEl) hoursEl.textContent = `Hours per week: ${state.hoursPerWeek || 38}`;
-
-
-            let substantiveTotalHourlyRate = 0;
-
-            // Render Component Rows and Calculate Total
-            state.selectedComponents.forEach(componentName => {
-                const component = state.codeComponents.find(comp => comp['Pay Component Name'] === componentName);
-                if (!component) return;
-
-                let hourlyAmount = component['Hourly Amount'];
-                let calculatedHourly = 0;
-
-                if (typeof hourlyAmount === 'string' && hourlyAmount.includes('%')) {
-                    const percentage = parseFloat(hourlyAmount) / 100;
-                    calculatedHourly = baseRate * percentage;
-                } else {
-                    calculatedHourly = parseFloat(hourlyAmount) || 0;
-                }
-
-                substantiveTotalHourlyRate += calculatedHourly;
-
-                const weekly = calculatedHourly * state.hoursPerWeek;
-                const fortnightly = weekly * 2;
-                const annual = weekly * 52;
-
+            const money = hourly => ({ hourly, weekly: hourly * hpw, fortnightly: hourly * hpw * 2, annual: hourly * hpw * 52 });
+            const addRow = (body, label, hourly, opts = {}) => {
+                const m = money(hourly);
                 const row = document.createElement('tr');
-                row.className = 'hover:bg-slate-50 transition-colors';
+                row.className = opts.rowClass || 'hover:bg-slate-50 transition-colors';
+                const cell = opts.cellClass || 'text-slate-600';
                 row.innerHTML = `
-                    <td class="p-4 text-slate-700">${componentName}</td>
-                    <td class="p-4 text-right font-mono text-slate-600">${formatRate(calculatedHourly)}/hr</td>
-                    <td class="p-4 text-right font-mono text-slate-600">${formatCurrency(weekly)}</td>
-                    <td class="p-4 text-right font-mono text-slate-600">${formatCurrency(fortnightly)}</td>
-                    <td class="p-4 text-right font-mono text-slate-600">${formatCurrency(annual)}</td>
-                `;
-                elements.breakdownBody.appendChild(row);
+                    <td class="p-4 ${opts.labelClass || 'text-slate-700'}">${label}</td>
+                    <td class="p-4 text-right font-mono ${cell}">${opts.hideHourly ? '-' : formatRate(m.hourly) + '/hr'}</td>
+                    <td class="p-4 text-right font-mono ${cell}">${formatCurrency(m.weekly)}</td>
+                    <td class="p-4 text-right font-mono ${cell}">${formatCurrency(m.fortnightly)}</td>
+                    <td class="p-4 text-right font-mono ${cell}">${formatCurrency(m.annual)}</td>`;
+                body.appendChild(row);
+            };
+
+            // Selected award components
+            let awardHourly = 0;
+            state.codeComponents.forEach(component => {
+                if (!state.selectedComponents.includes(component.name)) return;
+                const hourly = componentHourly(component, baseRate);
+                awardHourly += hourly;
+                addRow(els.breakdownBody, escapeHtml(component.name), hourly);
             });
 
-            // Existing Over Award Row
-            if (state.existingOverAwardEnabled && state.existingOverAwardHourlyAmount > 0) {
-                substantiveTotalHourlyRate += state.existingOverAwardHourlyAmount;
-                const weekly = state.existingOverAwardHourlyAmount * state.hoursPerWeek;
-                const fortnightly = weekly * 2;
-                const annual = weekly * 52;
-
-                const row = document.createElement('tr');
-                row.className = 'bg-amber-50/50 hover:bg-amber-50 transition-colors';
-                row.innerHTML = `
-                    <td class="p-4 text-amber-900 font-medium">Existing Over Award</td>
-                    <td class="p-4 text-right font-mono text-amber-700">${formatRate(state.existingOverAwardHourlyAmount)}/hr</td>
-                    <td class="p-4 text-right font-mono text-amber-700">${formatCurrency(weekly)}</td>
-                    <td class="p-4 text-right font-mono text-amber-700">${formatCurrency(fortnightly)}</td>
-                    <td class="p-4 text-right font-mono text-amber-700">${formatCurrency(annual)}</td>
-                `;
-                elements.breakdownBody.appendChild(row);
+            // Existing over award
+            if (oaHourly > 0) {
+                addRow(els.breakdownBody, 'Existing Over Award', oaHourly,
+                    { rowClass: 'bg-amber-50/50 hover:bg-amber-50 transition-colors', labelClass: 'text-amber-900 font-medium', cellClass: 'text-amber-700' });
             }
 
-            // Higher Duties Row
-            const hdaHourly = calculateHigherDutiesAllowance();
-            if (state.higherDutiesEnabled && hdaHourly > 0) {
-                const weekly = hdaHourly * state.hoursPerWeek;
-                const fortnightly = weekly * 2;
-                const annual = weekly * 52;
-
-                const row = document.createElement('tr');
-                row.className = 'bg-indigo-50/50 hover:bg-indigo-50 transition-colors';
-                row.innerHTML = `
-                    <td class="p-4 text-indigo-900 font-medium">Over Award</td>
-                    <td class="p-4 text-right font-mono text-indigo-700">${formatRate(hdaHourly)}/hr</td>
-                    <td class="p-4 text-right font-mono text-indigo-700">${formatCurrency(weekly)}</td>
-                    <td class="p-4 text-right font-mono text-indigo-700">${formatCurrency(fortnightly)}</td>
-                    <td class="p-4 text-right font-mono text-indigo-700">${formatCurrency(annual)}</td>
-                `;
-                elements.breakdownBody.appendChild(row);
+            // Increase / higher duties
+            const hdHourly = computeHigherDutiesHourly(baseRate, awardHourly, oaHourly);
+            state.higherDuties.hourly = hdHourly;
+            if (hdHourly > 0) {
+                const label = oaHourly > 0 ? 'Over Award Increase' : 'Higher Duties / Over Award';
+                addRow(els.breakdownBody, `${label} <span class="text-xs font-normal text-indigo-600">(${methodLabel(state.higherDuties.type)})</span>`, hdHourly,
+                    { rowClass: 'bg-indigo-50/50 hover:bg-indigo-50 transition-colors', labelClass: 'text-indigo-900 font-medium', cellClass: 'text-indigo-700' });
             }
 
-            const finalTotalHourlyRate = substantiveTotalHourlyRate + hdaHourly;
-            const finalWeeklyPay = finalTotalHourlyRate * state.hoursPerWeek;
-            const finalFortnightlyPay = finalWeeklyPay * 2;
-            const finalAnnualSalary = finalWeeklyPay * 52;
+            // Totals and super (super applies to everything, capped annually)
+            const totalHourly = awardHourly + oaHourly + hdHourly;
+            const totals = money(totalHourly);
+            const superFigures = superFor(totals.annual);
 
-            // Subtotal Row
-            const subtotalRow = document.createElement('tr');
-            subtotalRow.className = 'bg-slate-100 font-bold text-slate-900';
-            subtotalRow.innerHTML = `
-                <td class="p-4">Total Remuneration (Excl. Super)</td>
-                <td class="p-4 text-right font-mono">${formatRate(finalTotalHourlyRate)}/hr</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(finalWeeklyPay)}</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(finalFortnightlyPay)}</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(finalAnnualSalary)}</td>
-            `;
-            elements.breakdownBody.appendChild(subtotalRow);
-
-            // Superannuation
-            const superRate = (typeof SUPER_RATE !== 'undefined') ? SUPER_RATE : 0.12;
-            const superCap = (typeof ANNUAL_SUPER_CAP !== 'undefined') ? ANNUAL_SUPER_CAP : 30000;
-
-            let finalWeeklySuper = finalWeeklyPay * superRate;
-            let finalAnnualSuperPreCap = finalWeeklySuper * 52;
-            let finalAnnualSuper = Math.min(finalAnnualSuperPreCap, superCap);
-
-            if (finalAnnualSuperPreCap > superCap) {
-                finalWeeklySuper = finalAnnualSuper / 52;
-            }
-
-            let finalFortnightlySuper = finalWeeklySuper * 2;
+            addRow(els.breakdownBody, 'Total Remuneration (Excl. Super)', totalHourly,
+                { rowClass: 'bg-slate-100 font-bold text-slate-900', labelClass: '', cellClass: '' });
 
             const superRow = document.createElement('tr');
             superRow.className = 'text-slate-600';
             superRow.innerHTML = `
-                <td class="p-4">Superannuation (12%)</td>
+                <td class="p-4">Superannuation (${Math.round(SUPER_RATE * 100)}%)${superFigures.capped ? ' <span class="text-xs text-amber-700">capped at ' + formatCurrency(ANNUAL_SUPER_CAP) + '/yr</span>' : ''}</td>
                 <td class="p-4 text-right font-mono">-</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(finalWeeklySuper)}</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(finalFortnightlySuper)}</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(finalAnnualSuper)}</td>
-            `;
-            elements.breakdownBody.appendChild(superRow);
+                <td class="p-4 text-right font-mono">${formatCurrency(superFigures.weekly)}</td>
+                <td class="p-4 text-right font-mono">${formatCurrency(superFigures.fortnightly)}</td>
+                <td class="p-4 text-right font-mono">${formatCurrency(superFigures.annual)}</td>`;
+            els.breakdownBody.appendChild(superRow);
 
-            // Total Inc Super
-            const totalWeeklyIncSuper = finalWeeklyPay + finalWeeklySuper;
-            const totalFortnightlyIncSuper = finalFortnightlyPay + finalFortnightlySuper;
-            const totalAnnualIncSuper = finalAnnualSalary + finalAnnualSuper;
-
-            const totalIncSuperRow = document.createElement('tr');
-            totalIncSuperRow.className = 'bg-indigo-50/50 font-bold text-indigo-900 border-t-2 border-indigo-100';
-            totalIncSuperRow.innerHTML = `
+            const incRow = document.createElement('tr');
+            incRow.className = 'bg-indigo-50/50 font-bold text-indigo-900 border-t-2 border-indigo-100';
+            incRow.innerHTML = `
                 <td class="p-4">Total Remuneration (inc. Super)</td>
                 <td class="p-4 text-right font-mono">-</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(totalWeeklyIncSuper)}</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(totalFortnightlyIncSuper)}</td>
-                <td class="p-4 text-right font-mono">${formatCurrency(totalAnnualIncSuper)}</td>
-            `;
-            elements.breakdownBody.appendChild(totalIncSuperRow);
+                <td class="p-4 text-right font-mono">${formatCurrency(totals.weekly + superFigures.weekly)}</td>
+                <td class="p-4 text-right font-mono">${formatCurrency(totals.fortnightly + superFigures.fortnightly)}</td>
+                <td class="p-4 text-right font-mono">${formatCurrency(totals.annual + superFigures.annual)}</td>`;
+            els.breakdownBody.appendChild(incRow);
 
-            elements.breakdownContainer.classList.remove('hidden');
+            show(els.breakdownContainer);
+            renderOverAwardSummary(awardHourly, oaHourly, hdHourly, addRow, money);
         }
 
+        function superFor(annualPay) {
+            const uncapped = annualPay * SUPER_RATE;
+            const annual = Math.min(uncapped, ANNUAL_SUPER_CAP);
+            return { annual, weekly: annual / 52, fortnightly: annual / 26, capped: uncapped > ANNUAL_SUPER_CAP };
+        }
+
+        // Old vs new over award and package, shown whenever an increase is in play.
+        function renderOverAwardSummary(awardHourly, oaHourly, hdHourly, addRow, money) {
+            els.overAwardSummaryBody.innerHTML = '';
+            if (!state.higherDuties.enabled || hdHourly <= 0) { hide(els.overAwardSummary); return; }
+
+            const hd = state.higherDuties;
+            const parts = [methodLabel(hd.type)];
+            if (hd.type === 'percentage') {
+                const basisText = { baseAndOverAward: 'base pay rate + existing over award', baseOnly: 'base pay rate only', allComponentsAndOverAward: 'all selected components + existing over award' }[hd.percentageBase];
+                parts.push(`${hd.percentage}% applied to ${basisText}`);
+            } else if (hd.type === 'fixedValue') {
+                parts.push(`${formatCurrency(hd.fixedAmount)} per ${hd.fixedFrequency === 'annual' ? 'year' : hd.fixedFrequency.replace('ly', '')}`);
+            } else if (hd.type === 'classification' && hd.targetCode) {
+                parts.push(`target ${hd.targetCode}`);
+            } else if (hd.type === 'totalRemuneration') {
+                parts.push(`target ${formatCurrency(hd.totalRemuneration)} ${hd.superInclusion === 'including' ? 'inc.' : 'excl.'} super`);
+            }
+            if (oaHourly > 0) parts.push(`increase is ${(hdHourly / oaHourly * 100).toFixed(1)}% of the existing over award`);
+            els.overAwardSummaryDescription.textContent = parts.join(' · ');
+
+            const body = els.overAwardSummaryBody;
+            const bold = { rowClass: 'bg-slate-100 font-bold text-slate-900', labelClass: '', cellClass: '' };
+            addRow(body, 'Current over award', oaHourly, { rowClass: 'bg-amber-50/40', labelClass: 'text-amber-900 font-medium', cellClass: 'text-amber-700' });
+            addRow(body, 'Increase (variance)', hdHourly, { rowClass: 'bg-indigo-50/40', labelClass: 'text-indigo-900 font-medium', cellClass: 'text-indigo-700' });
+            addRow(body, 'New over award', oaHourly + hdHourly, bold);
+
+            const oldTotal = awardHourly + oaHourly;
+            const newTotal = oldTotal + hdHourly;
+            const oldSuper = superFor(money(oldTotal).annual);
+            const newSuper = superFor(money(newTotal).annual);
+            addRow(body, 'Current total remuneration (excl. super)', oldTotal);
+            addRow(body, 'New total remuneration (excl. super)', newTotal, bold);
+
+            const incRow = (label, totals, sup, cls) => {
+                const row = document.createElement('tr');
+                row.className = cls;
+                row.innerHTML = `
+                    <td class="p-4">${label}</td>
+                    <td class="p-4 text-right font-mono">-</td>
+                    <td class="p-4 text-right font-mono">${formatCurrency(totals.weekly + sup.weekly)}</td>
+                    <td class="p-4 text-right font-mono">${formatCurrency(totals.fortnightly + sup.fortnightly)}</td>
+                    <td class="p-4 text-right font-mono">${formatCurrency(totals.annual + sup.annual)}</td>`;
+                body.appendChild(row);
+            };
+            incRow('Current total remuneration (inc. super)', money(oldTotal), oldSuper, 'text-slate-600');
+            incRow('New total remuneration (inc. super)', money(newTotal), newSuper, 'bg-indigo-50/50 font-bold text-indigo-900 border-t-2 border-indigo-100');
+
+            show(els.overAwardSummary);
+        }
+
+        // ===== DEBUG =====
         function logDebug(message) {
-            if (elements.debugOutput.style.display === 'none') return;
+            if (!state.debugEnabled) return;
             console.log(message);
             const line = document.createElement('div');
             line.textContent = new Date().toLocaleTimeString() + ': ' + message;
-            elements.debugContent.appendChild(line);
-            elements.debugContent.scrollTop = elements.debugContent.scrollHeight;
+            els.debugContent.appendChild(line);
+            els.debugContent.scrollTop = els.debugContent.scrollHeight;
         }
     </script>
     <!-- Help Modal -->
@@ -1830,25 +1477,39 @@
                                 <div class="mt-4 space-y-4 text-sm text-slate-600">
                                     <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
                                         <h4 class="font-medium text-slate-900 mb-1">Calculation Logic</h4>
-                                        <p>Pay is calculated by combining the <strong>Base Pay Rate</strong> (or Casual
-                                            Rate) with any selected allowances. All components are summed to determine
-                                            the total hourly rate.</p>
+                                        <p>Pay is calculated by combining the <strong>Base Pay Rate</strong> or <strong>Casual
+                                            Rate</strong> (one or the other) with any selected allowances. Percentage
+                                            allowances are a percentage of the base rate. All components are summed to
+                                            determine the total hourly rate.</p>
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-slate-900 mb-1">Higher Duties / Over Awards</h4>
-                                        <p>Percentage increases are applied to the <strong>Base Pay Rate</strong> only.
-                                            They typically do not include other allowances unless specifically
-                                            configured.</p>
+                                        <p>An <strong>existing over award</strong> is entered as an amount and frequency and
+                                            converted to hourly using the configured Hours per Week. An increase can be calculated by matching a target classification, by a
+                                            percentage (of base pay + existing over award by default, or base only, or all
+                                            selected components), by a fixed amount, or by targeting a total package. The
+                                            summary shows the old and new over award and the variance.</p>
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-slate-900 mb-1">Superannuation</h4>
-                                        <p>Calculated at <strong>12%</strong> of ordinary time earnings, capped at the
-                                            employer obligation maximum of <strong>$29,932.20</strong> per year. This is the maximum amount the employer is required to contribute on the employee's behalf.</p>
+                                        <p>Calculated at <strong>12%</strong> of the full total (all selected components, existing
+                                            over award and any increase), capped at the maximum contribution base for the
+                                            current financial year (<strong>$30,000.00</strong> for 2025-26,
+                                            <strong>$32,499.60</strong> from 1 July 2026).</p>
                                     </div>
                                     
+                                    <div>
+                                        <h4 class="font-medium text-slate-900 mb-1">Progression Badges</h4>
+                                        <p>Badges under the selected classification come from the payroll system:
+                                            whether the pay grade <strong>auto-progresses</strong>, is at the
+                                            <strong>top of its range</strong>, and the <strong>next pay scale level</strong>
+                                            (click it to load that classification). A <strong>casual classification</strong>
+                                            badge marks bank and casual-only codes, which carry a Casual Rate instead of a
+                                            Base Pay Rate.</p>
+                                    </div>
                                     <div class="bg-violet-50 p-3 rounded-lg border border-violet-100">
                                         <h4 class="font-medium text-slate-900 mb-1">Date Ranges</h4>
-                                        <p>Each classification can have multiple effective date ranges as EBAs roll over. The most recent range is selected by default; pick an older range to calculate against historical rates. Mental Health rates from Salary Circular 880 are converted to hourly using 38 hours/week (casual = base + 25%); verify against the underlying EBA. Only Laundry, Uniform, and Qualification allowances from the MH circular are surfaced.</p>
+                                        <p>Each classification can have multiple effective date ranges as EBAs roll over. The most recent range is selected by default; pick an older range to calculate against historical rates. Mental Health rates from Salary Circular 880 are converted to hourly using 38 hours/week. Current rates were reconciled against the payroll system export in September 2026; future-dated ranges remain as published in the salary circulars. Qualification allowances and experience payments are published weekly and are shown as hourly components (weekly divided by 38).</p>
                                     </div>
 
                                     <div
@@ -1869,51 +1530,6 @@
             </div>
         </div>
     </div>
-    <script>
-        // Modal Logic
-        const modal = document.getElementById('help-modal');
-        const helpButton = document.getElementById('help-button');
-        const closeButton = document.getElementById('close-modal-button');
-        const backdrop = document.getElementById('modal-backdrop');
-        const panel = document.getElementById('modal-panel');
-
-        if (modal && helpButton && closeButton && backdrop && panel) {
-            function openModal() {
-                modal.classList.remove('hidden');
-                // Trigger reflow
-                void modal.offsetWidth;
-                backdrop.classList.remove('opacity-0');
-                panel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-                panel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-            }
-
-            function closeModal() {
-                backdrop.classList.remove('opacity-100');
-                panel.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
-                panel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300);
-            }
-
-            helpButton.addEventListener('click', openModal);
-            closeButton.addEventListener('click', closeModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal || e.target === backdrop) {
-                    closeModal();
-                }
-            });
-        }
-
-        // Update Last Updated Date
-        if (typeof vhiaData !== 'undefined' && vhiaData.meta && vhiaData.meta.lastUpdated) {
-            const date = new Date(vhiaData.meta.lastUpdated);
-            const dateElement = document.getElementById('last-updated-date');
-            if (dateElement) {
-                dateElement.textContent = 'Last Updated: ' + date.toLocaleDateString();
-            }
-        }
-    </script>
 
     <!-- TSP Calculator Modal (Wizard) -->
     <style>
@@ -2168,4 +1784,16 @@
                                         <input type="number" id="tsp-golden-handshake"
                                             class="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
                                             value="0" min="0" step="100" placeholder="0.00" />
-                               
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Remaining wizard steps and the TSP script are not present in this copy of the file. -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
