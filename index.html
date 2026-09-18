@@ -470,6 +470,18 @@
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i
                                     class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>Pay Breakdown </h3>
+                            <div id="fortnightly-callout"
+                                class="md:ml-auto flex items-center gap-3 bg-white border border-indigo-200 rounded-xl px-4 py-2.5 shadow-sm">
+                                <div>
+                                    <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Fortnightly (excl. super)</div>
+                                    <div id="fortnightly-value" class="font-mono text-lg font-bold text-slate-900 leading-tight">$0.00000</div>
+                                </div>
+                                <button type="button" id="fortnightly-copy"
+                                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                                    title="Copy the fortnightly amount">
+                                    <i class="fa-regular fa-copy"></i><span>Copy</span>
+                                </button>
+                            </div>
                             <div id="pay-breakdown-hours" class="text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg whitespace-nowrap"></div>
                         </div>
                         <div id="pay-breakdown-description" class="text-sm text-slate-500 font-medium mt-1 ml-8"></div>
@@ -655,6 +667,8 @@
             breakdownBody: $('breakdown-body'),
             payBreakdownDescription: $('pay-breakdown-description'),
             payBreakdownHours: $('pay-breakdown-hours'),
+            fortnightlyValue: $('fortnightly-value'),
+            fortnightlyCopy: $('fortnightly-copy'),
             overAwardSummary: $('over-award-summary'),
             overAwardSummaryDescription: $('over-award-summary-description'),
             overAwardSummaryBody: $('over-award-summary-body'),
@@ -899,11 +913,37 @@
             [els.percentageInput, els.fixedAmountInput, els.totalRemunerationInput].forEach(el => el.addEventListener('input', readHigherDuties));
             [els.percentageBaseSelect, els.fixedFrequencySelect, els.superInclusionSelect].forEach(el => el.addEventListener('change', readHigherDuties));
 
+            // Copy the fortnightly total (plain number, 5 dp) to the clipboard
+            els.fortnightlyCopy.addEventListener('click', () => {
+                const raw = els.fortnightlyValue.dataset.raw || '';
+                const done = () => {
+                    els.fortnightlyCopy.innerHTML = '<i class="fa-solid fa-check"></i><span>Copied</span>';
+                    setTimeout(() => { els.fortnightlyCopy.innerHTML = '<i class="fa-regular fa-copy"></i><span>Copy</span>'; }, 1500);
+                };
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(raw).then(done).catch(() => fallbackCopy(raw, done));
+                } else {
+                    fallbackCopy(raw, done);
+                }
+            });
+
             // Help modal
             els.helpButton.addEventListener('click', openModal);
             els.closeModalButton.addEventListener('click', closeModal);
             els.modalBackdrop.addEventListener('click', closeModal);
             document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+        }
+
+        function fallbackCopy(text, done) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { logDebug('copy failed: ' + e.message); }
+            document.body.removeChild(ta);
         }
 
         function handleHigherDutiesEnableChange() {
@@ -1363,6 +1403,11 @@
 
             addRow(els.breakdownBody, 'Total Remuneration (Excl. Super)', totalHourly,
                 { rowClass: 'bg-slate-100 font-bold text-slate-900', labelClass: '', cellClass: '' });
+
+            // Fortnightly callout: 5 dp, copies as a plain number
+            const fortnightlyRaw = totals.fortnightly.toFixed(5);
+            els.fortnightlyValue.textContent = '$' + Number(fortnightlyRaw).toLocaleString('en-AU', { minimumFractionDigits: 5, maximumFractionDigits: 5 });
+            els.fortnightlyValue.dataset.raw = fortnightlyRaw;
 
             const superRow = document.createElement('tr');
             superRow.className = 'text-slate-600';
