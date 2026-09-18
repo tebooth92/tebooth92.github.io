@@ -470,17 +470,29 @@
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i
                                     class="fa-solid fa-file-invoice-dollar text-indigo-500"></i>Pay Breakdown </h3>
-                            <div id="fortnightly-callout"
-                                class="md:ml-auto flex items-center gap-3 bg-white border border-indigo-200 rounded-xl px-4 py-2.5 shadow-sm">
+                            <div class="md:ml-auto flex flex-wrap items-center gap-3">
+                            <div id="fortnightly-base-callout" class=" flex items-center gap-3 bg-white border border-indigo-200 rounded-xl px-4 py-2.5 shadow-sm">
                                 <div>
-                                    <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Fortnightly (excl. super)</div>
-                                    <div id="fortnightly-value" class="font-mono text-lg font-bold text-slate-900 leading-tight">$0.00000</div>
+                                    <div id="fortnightly-base-label" class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Fortnightly base pay (excl. super)</div>
+                                    <div id="fortnightly-base-value" class="font-mono text-lg font-bold text-slate-900 leading-tight" data-raw="0.00000">$0.00000</div>
                                 </div>
-                                <button type="button" id="fortnightly-copy"
-                                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-lg transition-colors"
-                                    title="Copy the fortnightly amount">
+                                <button type="button" data-copy-target="fortnightly-base-value" id="fortnightly-base-copy"
+                                    class="copy-button inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                                    title="Copy this fortnightly amount">
                                     <i class="fa-regular fa-copy"></i><span>Copy</span>
                                 </button>
+                            </div>
+                            <div id="fortnightly-oa-callout" class="hidden flex items-center gap-3 bg-white border border-indigo-200 rounded-xl px-4 py-2.5 shadow-sm">
+                                <div>
+                                    <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Fortnightly over award</div>
+                                    <div id="fortnightly-oa-value" class="font-mono text-lg font-bold text-slate-900 leading-tight" data-raw="0.00000">$0.00000</div>
+                                </div>
+                                <button type="button" data-copy-target="fortnightly-oa-value" id="fortnightly-oa-copy"
+                                    class="copy-button inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                                    title="Copy this fortnightly amount">
+                                    <i class="fa-regular fa-copy"></i><span>Copy</span>
+                                </button>
+                            </div>
                             </div>
                             <div id="pay-breakdown-hours" class="text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg whitespace-nowrap"></div>
                         </div>
@@ -667,8 +679,10 @@
             breakdownBody: $('breakdown-body'),
             payBreakdownDescription: $('pay-breakdown-description'),
             payBreakdownHours: $('pay-breakdown-hours'),
-            fortnightlyValue: $('fortnightly-value'),
-            fortnightlyCopy: $('fortnightly-copy'),
+            fortnightlyBaseValue: $('fortnightly-base-value'),
+            fortnightlyBaseLabel: $('fortnightly-base-label'),
+            fortnightlyOaCallout: $('fortnightly-oa-callout'),
+            fortnightlyOaValue: $('fortnightly-oa-value'),
             overAwardSummary: $('over-award-summary'),
             overAwardSummaryDescription: $('over-award-summary-description'),
             overAwardSummaryBody: $('over-award-summary-body'),
@@ -913,18 +927,20 @@
             [els.percentageInput, els.fixedAmountInput, els.totalRemunerationInput].forEach(el => el.addEventListener('input', readHigherDuties));
             [els.percentageBaseSelect, els.fixedFrequencySelect, els.superInclusionSelect].forEach(el => el.addEventListener('change', readHigherDuties));
 
-            // Copy the fortnightly total (plain number, 5 dp) to the clipboard
-            els.fortnightlyCopy.addEventListener('click', () => {
-                const raw = els.fortnightlyValue.dataset.raw || '';
-                const done = () => {
-                    els.fortnightlyCopy.innerHTML = '<i class="fa-solid fa-check"></i><span>Copied</span>';
-                    setTimeout(() => { els.fortnightlyCopy.innerHTML = '<i class="fa-regular fa-copy"></i><span>Copy</span>'; }, 1500);
-                };
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(raw).then(done).catch(() => fallbackCopy(raw, done));
-                } else {
-                    fallbackCopy(raw, done);
-                }
+            // Copy buttons: put the plain 5 dp number on the clipboard
+            document.querySelectorAll('.copy-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const raw = $(button.dataset.copyTarget).dataset.raw || '';
+                    const done = () => {
+                        button.innerHTML = '<i class="fa-solid fa-check"></i><span>Copied</span>';
+                        setTimeout(() => { button.innerHTML = '<i class="fa-regular fa-copy"></i><span>Copy</span>'; }, 1500);
+                    };
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(raw).then(done).catch(() => fallbackCopy(raw, done));
+                    } else {
+                        fallbackCopy(raw, done);
+                    }
+                });
             });
 
             // Help modal
@@ -1404,10 +1420,19 @@
             addRow(els.breakdownBody, 'Total Remuneration (Excl. Super)', totalHourly,
                 { rowClass: 'bg-slate-100 font-bold text-slate-900', labelClass: '', cellClass: '' });
 
-            // Fortnightly callout: 5 dp, copies as a plain number
-            const fortnightlyRaw = totals.fortnightly.toFixed(5);
-            els.fortnightlyValue.textContent = '$' + Number(fortnightlyRaw).toLocaleString('en-AU', { minimumFractionDigits: 5, maximumFractionDigits: 5 });
-            els.fortnightlyValue.dataset.raw = fortnightlyRaw;
+            // Fortnightly callouts (5 dp, copy as plain numbers): base/casual pay only, and total over award only.
+            const setCallout = (el, hourly) => {
+                const raw = (hourly * hpw * 2).toFixed(5);
+                el.textContent = '$' + Number(raw).toLocaleString('en-AU', { minimumFractionDigits: 5, maximumFractionDigits: 5 });
+                el.dataset.raw = raw;
+            };
+            const baseName = selectedBaseName();
+            const baseSelected = state.selectedComponents.includes(baseName);
+            setCallout(els.fortnightlyBaseValue, baseSelected ? baseRate : 0);
+            els.fortnightlyBaseLabel.textContent = `Fortnightly ${baseName === CASUAL_NAME ? 'casual' : 'base'} pay (excl. super)`;
+            const overAwardHourly = oaHourly + hdHourly;
+            setCallout(els.fortnightlyOaValue, overAwardHourly);
+            els.fortnightlyOaCallout.classList.toggle('hidden', overAwardHourly <= 0);
 
             const superRow = document.createElement('tr');
             superRow.className = 'text-slate-600';
