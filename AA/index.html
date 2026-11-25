@@ -10,6 +10,24 @@
         html, body { height: 100%; margin: 0; font-family: 'Inter', sans-serif; }
         #tool-frame { flex: 1 1 auto; width: 100%; border: 0; min-height: 0; }
 
+        /* ===== Side nav: expanded / slim (icons only) ===== */
+        #side-nav { width: 16rem; transition: width .18s ease; overflow: hidden; }
+        #side-nav .nav-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 1.5rem 1rem 1.5rem 1.5rem; }
+        #nav-collapse { flex: none; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; color: #94a3b8; background: transparent; border: none; cursor: pointer; transition: background .15s, color .15s; }
+        #nav-collapse:hover { background: #1e293b; color: #fff; }
+        #nav-collapse svg { width: 18px; height: 18px; transition: transform .18s ease; }
+        #side-nav .nav-label, #side-nav .nav-logo, #side-nav .nav-ver { white-space: nowrap; }
+        #pt-toggle .nav-label { margin-right: 8px; }
+        #side-nav.slim { width: 4.25rem; }
+        #side-nav.slim .nav-head { justify-content: center; padding: 1.25rem 0; }
+        #side-nav.slim .nav-logo, #side-nav.slim .nav-label, #side-nav.slim .pt-switch, #side-nav.slim .nav-ver { display: none; }
+        #side-nav.slim #nav-collapse svg { transform: rotate(180deg); }
+        #side-nav.slim #tool-nav, #side-nav.slim .nav-tracker { padding-left: .5rem; padding-right: .5rem; }
+        #side-nav.slim #tool-nav a, #side-nav.slim #pt-toggle { justify-content: center; padding-left: 0; padding-right: 0; }
+        #side-nav.slim #tool-nav svg, #side-nav.slim #pt-toggle svg { margin-right: 0; }
+        #side-nav.slim .nav-heading { font-size: 0; height: 1px; padding: 0; margin: 14px 10px 8px; background: #334155; }
+        #side-nav.slim #pt-toggle.on svg { color: #10b981; }
+
         /* ===== Pay Run Tracker ===== */
         #pt-toggle .pt-switch{margin-left:auto;width:36px;height:21px;border-radius:999px;background:#475569;position:relative;transition:.2s;flex:none}
         #pt-toggle .pt-switch::after{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.2s}
@@ -59,21 +77,24 @@
 <body class="bg-slate-50 text-slate-800">
     <div class="flex h-screen overflow-hidden">
         <!-- LEFT SIDEBAR (persistent on every page) -->
-        <nav class="w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col">
-            <div class="p-6">
-                <a href="#home" class="block">
+        <nav id="side-nav" class="bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col">
+            <div class="nav-head">
+                <a href="#home" class="block nav-logo">
                     <h1 class="text-xl font-bold text-white tracking-wide">Payroll<br><span class="text-indigo-400">Tools</span></h1>
                 </a>
+                <button id="nav-collapse" type="button" aria-expanded="true" title="Shrink menu">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+                </button>
             </div>
-            <div id="tool-nav" class="flex-1 px-4 space-y-1 mt-2 overflow-y-auto"></div>
-            <div class="px-4 pb-2 flex-none">
+            <div id="tool-nav" class="flex-1 px-4 space-y-1 mt-2 overflow-y-auto overflow-x-hidden"></div>
+            <div class="nav-tracker px-4 pb-2 flex-none">
                 <button id="pt-toggle" class="flex items-center w-full px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
                     <svg class="w-5 h-5 mr-3 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                    <span class="font-medium">Pay Run Tracker</span>
+                    <span class="font-medium nav-label">Pay Run Tracker</span>
                     <span class="pt-switch"></span>
                 </button>
             </div>
-            <div class="p-4 text-xs text-slate-600 text-center">v2.3.0 | FBT Reconciliation</div>
+            <div class="nav-ver p-4 text-xs text-slate-600 text-center">v2.3.0 | FBT Reconciliation</div>
         </nav>
 
         <!-- TOOL CONTENT + tracker drawer -->
@@ -151,17 +172,35 @@
         GROUPS.forEach(g => {
             if (g.heading) {
                 const h = document.createElement('p');
-                h.className = 'px-4 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500';
+                h.className = 'nav-heading px-4 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap';
                 h.textContent = g.heading; nav.appendChild(h);
             }
             g.keys.forEach(key => {
                 const r = ROUTES[key];
                 const a = document.createElement('a');
                 a.href = '#' + key; a.id = 'nav-' + key; a.className = inactiveCls;
-                a.innerHTML = svg(r.icon, iconInactive) + '<span class="font-medium">'+r.label+'</span>';
+                a.innerHTML = svg(r.icon, iconInactive) + '<span class="font-medium nav-label">'+r.label+'</span>';
                 nav.appendChild(a);
             });
         });
+
+        /* Shrink the side nav to icons only (remembered between visits) */
+        const sideNav = document.getElementById('side-nav');
+        const navBtn = document.getElementById('nav-collapse');
+        function setNavSlim(slim){
+            sideNav.classList.toggle('slim', slim);
+            navBtn.setAttribute('aria-expanded', String(!slim));
+            navBtn.title = slim ? 'Expand menu' : 'Shrink menu';
+            // Names as hover tooltips while only the icons show
+            sideNav.querySelectorAll('#tool-nav a, #pt-toggle').forEach(el => {
+                const lbl = el.querySelector('.nav-label');
+                if (slim && lbl) el.title = lbl.textContent; else el.removeAttribute('title');
+            });
+            try { localStorage.setItem('navSlim', slim ? '1' : '0'); } catch (e) {}
+        }
+        navBtn.addEventListener('click', () => setNavSlim(!sideNav.classList.contains('slim')));
+        let _slim = false; try { _slim = localStorage.getItem('navSlim') === '1'; } catch (e) {}
+        setNavSlim(_slim);
 
         function selectRoute(key){
             if (!ROUTES[key]) key = 'home';
