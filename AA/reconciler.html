@@ -40,7 +40,21 @@
   .stat.excess .num { color: var(--warn); }
   .stat.terminating { border-color: var(--neg-weak); }
   .stat.terminating .num { color: var(--neg); }
-  .search-box { flex: 1; min-width: 220px; max-width: 360px; }
+  .search-box { flex: 1; min-width: 260px; max-width: 520px; position: relative; }
+  .search-dd { position:absolute; top:calc(100% + 4px); left:0; right:0; min-width:420px; max-height:60vh; overflow-y:auto; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-lg); z-index:60; padding:4px; }
+  .search-dd[hidden] { display:none; }
+  .dd-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 10px; border-radius:var(--r-md); cursor:pointer; }
+  .dd-item:hover, .dd-item.hl { background:var(--accent-weak); }
+  .dd-item.sel { box-shadow:inset 3px 0 0 var(--accent); }
+  .dd-main { min-width:0; }
+  .dd-name { font-weight:600; font-size:13px; color:var(--text); }
+  .dd-pid { font-family:var(--font-num); font-size:11px; color:var(--text-muted); margin-left:6px; }
+  .dd-badges { display:inline; }
+  .dd-badges .badge { display:inline-block; padding:1px 7px; border-radius:var(--r-sm); font-size:10px; font-weight:600; margin-left:4px; }
+  .dd-var { font-family:var(--font-num); font-size:12px; white-space:nowrap; }
+  .dd-var.pos { color:var(--pos); } .dd-var.neg { color:var(--neg); }
+  .dd-foot { padding:8px 10px 6px; font-size:11px; color:var(--text-muted); border-top:1px solid var(--border); margin-top:4px; }
+  .dd-empty { padding:12px 10px; font-size:12px; color:var(--text-muted); }
   .search-box input { width: 100%; padding: 8px 12px; border: 1px solid var(--border-strong); border-radius: var(--r-md); font-size: 13px; background: var(--surface); color: var(--text); font-family: var(--font-ui); }
   .search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
   .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -60,7 +74,6 @@
 
   #main-app { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   main { display: flex; flex: 1 1 auto; min-height: 0; }
-  .list-panel { width: 320px; flex: none; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
   .list-item { padding: 11px 16px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; gap: 3px; transition: background .1s; }
   .list-item:hover { background: var(--surface-2); }
   .list-item.active { background: var(--accent-weak); border-left: 3px solid var(--accent); padding-left: 13px; }
@@ -78,8 +91,21 @@
   .badge.nopost { background: var(--neg-weak); color: var(--neg); }
 
   .detail-panel { flex: 1; min-width: 0; overflow-y: auto; padding: 24px; }
+  .detail-panel > * { max-width: 1280px; margin-left: auto; margin-right: auto; }
   .empty-state { text-align: center; color: var(--text-faint); margin-top: 80px; font-size: 14px; }
   .emp-header { background: var(--surface); padding: 18px 22px; border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); margin-bottom: var(--s-4); }
+  .eh-row { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+  .eh-main { min-width:0; }
+  .eh-chips { margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .fee-stack { display:flex; flex-direction:column; gap:3px; min-width:300px; }
+  .fs-row { display:grid; grid-template-columns:1fr auto 92px; align-items:baseline; gap:10px; padding:3px 10px; border-radius:var(--r-sm); background:var(--surface-2); border:1px solid var(--border); }
+  .fs-row.over { background:var(--neg-weak); border-color:var(--neg); }
+  .fs-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); white-space:nowrap; }
+  .fs-val { font-family:var(--font-num); font-weight:700; font-size:13px; color:var(--text); text-align:right; }
+  .fs-sub { font-family:var(--font-num); font-size:10.5px; color:var(--text-faint); text-align:right; white-space:nowrap; }
+  .fs-off { color:var(--cat-nl); }
+  .fs-row.over .fs-label, .fs-row.over .fs-val, .fs-row.over .fs-sub { color:var(--neg); }
+  .fs-none { font-size:10.5px; color:var(--text-faint); text-align:right; }
   .emp-header h2 { font-size: 20px; font-weight: 650; margin-bottom: 4px; letter-spacing: -0.01em; }
   .emp-header .pid { color: var(--text-muted); font-size: 12px; font-family: var(--font-num); }
   .chip-neg { display: inline-block; padding: 2px 9px; border-radius: var(--r-sm); font-size: 11px; font-weight: 600; background: var(--neg-weak); color: var(--neg); }
@@ -93,8 +119,18 @@
   .sum-card.variance .value.pos { color: var(--pos); }
   .sum-card.variance .value.neg { color: var(--neg); }
 
-  .caps-box { background: var(--surface); padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); margin-bottom: var(--s-4); display: flex; gap: var(--s-6); flex-wrap: wrap; }
+  .caps-box { align-items: center; justify-content: space-between; background: var(--surface); padding: 12px 18px; border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); margin-bottom: var(--s-4); display: flex; gap: var(--s-6); flex-wrap: wrap; }
   .cap-item { font-size: 13px; }
+  .caps-items { display:flex; gap:var(--s-6); flex-wrap:wrap; }
+  .card-chips { display:flex; flex-direction:column; gap:5px; margin-left:auto; }
+  .card-chip { display:flex; align-items:center; gap:8px; padding:4px 6px 4px 10px; border-radius:var(--r-md); border:1px solid var(--border); border-left-width:4px; font-size:12px; }
+  .card-chip.cc-le { border-left-color:var(--cat-le); background:var(--pos-weak); }
+  .card-chip.cc-me { border-left-color:var(--cat-me); background:var(--accent-weak); }
+  .cc-code { font-size:10px; font-weight:700; letter-spacing:0.05em; color:var(--text-muted); width:48px; }
+  .cc-le .cc-code { color:var(--cat-le); } .cc-me .cc-code { color:var(--cat-me); }
+  .cc-eaid { font-family:var(--font-num); font-weight:700; color:var(--text); letter-spacing:0.03em; }
+  .copy-btn.cc-copy { margin-left:0; padding:2px 7px; font-size:10px; }
+  .cc-bal { font-family:var(--font-num); font-weight:700; color:var(--text); margin-left:auto; padding-left:10px; min-width:84px; text-align:right; }
   .cap-item .label { color: var(--text-muted); }
   .cap-item .value { font-weight: 600; font-family: var(--font-num); color: var(--text); }
 
@@ -257,9 +293,44 @@
   .emp-status.ft { background:var(--accent-weak); color:var(--accent); border-color:var(--accent-ring); }
   .emp-status.pt { background:#efeafa; color:var(--cat-nl); border-color:#d9cff3; }
   .emp-status.cas { background:var(--warn-weak); color:var(--warn); border-color:#f3d39a; }
+  .am-backdrop { position:fixed; inset:0; background:rgba(15,23,42,0.45); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; }
+  .am-dialog { background:var(--surface); border-radius:14px; box-shadow:var(--shadow-lg); width:100%; max-width:640px; max-height:100%; display:flex; flex-direction:column; overflow:hidden; }
+  .am-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:18px 20px 10px; }
+  .am-title { font-size:17px; font-weight:650; }
+  .am-sub { font-size:12px; color:var(--text-muted); margin-top:3px; }
+  .am-x { border:none; background:none; font-size:16px; color:var(--text-muted); cursor:pointer; padding:4px 8px; border-radius:var(--r-sm); }
+  .am-x:hover { background:var(--surface-2); }
+  .am-body { padding:4px 20px 8px; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
+  .am-group.am-full { grid-column:1 / -1; }
+  .am-group { margin-bottom:14px; }
+  .am-gtitle { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; }
+  .am-gtitle.am-le { color:var(--cat-le); } .am-gtitle.am-me { color:var(--cat-me); } .am-gtitle.am-fees { color:var(--cat-fees); }
+  .am-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
+  .am-full .am-grid { grid-template-columns:repeat(4, 1fr); }
+  @media (max-width:620px) { .am-body { grid-template-columns:1fr; } .am-full .am-grid { grid-template-columns:repeat(2, 1fr); } }
+  .am-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:104px; padding:14px 8px 12px; border:1.5px solid var(--border); border-radius:12px; background:var(--surface); cursor:pointer; font-family:var(--font-ui); transition:transform .08s, border-color .12s, background .12s, box-shadow .12s; }
+  .am-tile:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .am-tile:active { transform:scale(0.97); }
+  .am-icon { font-size:28px; line-height:1; }
+  .am-name { font-size:12.5px; font-weight:600; color:var(--text); text-align:center; line-height:1.25; }
+  .am-tsub { font-size:10px; color:var(--text-faint); }
+  .am-tile.am-le.picked { border-color:var(--cat-le); background:var(--pos-weak); }
+  .am-tile.am-me.picked { border-color:var(--cat-me); background:var(--accent-weak); }
+  .am-tile.am-fees.picked { border-color:var(--cat-fees); background:var(--warn-weak); }
+  .am-count { position:absolute; top:6px; right:6px; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:var(--accent); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .am-minus { position:absolute; top:6px; left:6px; width:22px; height:22px; border-radius:999px; background:var(--surface); border:1px solid var(--border-strong); color:var(--text-muted); font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .am-minus:hover { background:var(--neg-weak); color:var(--neg); border-color:var(--neg); }
+  .am-count[hidden], .am-minus[hidden] { display:none; }
+  .am-exists { font-size:10px; font-weight:600; color:var(--warn); background:var(--warn-weak); border-radius:999px; padding:1px 8px; margin-top:2px; }
+  .am-note { min-height:18px; padding:0 20px; font-size:12px; color:var(--warn); }
+  .am-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 20px 18px; }
+  .am-foot button { padding:8px 16px; border-radius:var(--r-md); font-size:13px; font-weight:600; font-family:var(--font-ui); cursor:pointer; }
+  .am-cancel { background:var(--surface); border:1px solid var(--border-strong); color:var(--text-muted); }
+  .am-add { background:var(--accent); border:1px solid var(--accent); color:#fff; }
+  .am-add:disabled { background:var(--accent-ring); border-color:var(--accent-ring); cursor:not-allowed; }
   .badge.feecap { background: var(--neg-weak); color: var(--neg); }
-  .fp-toggle { margin-left:auto; align-self:center; padding:5px 12px; border:1px solid var(--border-strong); background:var(--surface); border-radius:var(--r-md); cursor:pointer; font-size:12px; color:var(--text-muted); font-family:var(--font-ui); }
-  .fp-toggle:hover { background:var(--surface-2); color:var(--text); }
+  .fp-toggle { padding:3px 10px; border:1px solid var(--accent-ring); background:var(--accent-weak); border-radius:var(--r-md); cursor:pointer; font-size:12px; font-weight:600; color:var(--accent); font-family:var(--font-ui); transition:background .12s, color .12s; }
+  .fp-toggle:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
   .pay-breakdown { display:none; margin-top:12px; }
   .pay-breakdown.open { display:block; }
   table.paybd { width:100%; max-width:560px; border-collapse:collapse; font-size:13px; }
@@ -342,36 +413,13 @@
 <div id="main-app" style="display: none;">
   <div class="toolbar">
     <div class="search-box">
-      <input id="search" type="text" placeholder="Search by Payroll ID or name..." />
+      <input id="search" type="text" placeholder="Search by Payroll ID or name..." autocomplete="off" spellcheck="false" />
+      <div class="search-dd" id="search-dd" hidden></div>
     </div>
-    <div class="filter-btns">
-      <button data-filter="all" class="active">All</button>
-      <button data-filter="pending">Pending</button>
-      <button data-filter="reviewed">Reviewed</button>
-      <button data-filter="excess">Excess Only</button>
-      <button data-filter="future">Has Future</button>
-      <button data-filter="terminating">Terminating</button>
-    </div>
-    <div class="paytype-filter" id="paytype-filter" style="display:none;">
-      <span class="ptf-label">Pay</span>
-      <button data-pay="ALL" class="active">All</button>
-      <button data-pay="H">H</button>
-      <button data-pay="M">M</button>
-    </div>
-    <div class="stats">
-      <div class="stat"><span class="num" id="total-count">0</span> total</div>
-      <div class="stat reviewed"><span class="num" id="reviewed-count">0</span> reviewed</div>
-      <div class="stat pending"><span class="num" id="pending-count">0</span> pending</div>
-      <div class="stat terminating"><span class="num" id="terminating-count">0</span> terminating</div>
-      <div class="stat excess"><span class="num" id="excess-count">0</span> excess</div>
-    </div>
-    <button class="export-btn" id="export-btn">Export CSV</button>
-    <button class="export-btn ghost" id="reset-btn">Reset All</button>
   </div>
   <main>
-    <div class="list-panel" id="list-panel"></div>
     <div class="detail-panel" id="detail-panel">
-      <div class="empty-state">Select an employee from the list to begin reconciliation.</div>
+      <div class="empty-state">Search for an employee by Payroll ID or name to begin.</div>
     </div>
   </main>
 </div>
@@ -424,9 +472,7 @@ let STORAGE_KEY = null;
 let state = {};
 let activePid = null;
 let activeFilter = 'all';
-let searchQuery = '';
 let payTypeFilter = 'ALL';
-let addFormOpen = {};
 
 // Default as-of date = today
 (function() {
@@ -817,43 +863,45 @@ function empStatusChip(v) {
   const cls = label === 'Full time' ? 'ft' : (label === 'Part time' ? 'pt' : (label === 'Casual' ? 'cas' : ''));
   return `<span class="emp-status ${cls}" title="Employment status (Package Benefit Details)">${escHtml(label)}</span>`;
 }
-function feesPaidHtml(pid) {
+// Compact fee stack shown beside the employee name.
+// Big figure = owing (max less paid YTD and any Special offset); small = paid YTD / max.
+const shortAmt = n => (Math.round(n * 100) % 100 === 0 ? String(Math.round(n)) : (Math.round(n * 100) / 100).toFixed(2));
+function feeStackHtml(pid) {
   if (!FEES_PAID) return '';
   const p = feePosition(pid);
   const f = p.f;
-  const capTile = (label, paid, cp, offset) => {
-    if (!cp) return `<div class="fee-tile"><div class="ft-label">${label}</div><div class="ft-val">${fmt(paid)}</div></div>`;
+  const capRow = (label, paid, cp, offset) => {
+    if (!cp) return `<div class="fs-row"><span class="fs-label">${label}</span><span class="fs-val">No max</span><span class="fs-sub">${shortAmt(paid)} paid</span></div>`;
     const over = cp.room <= 0.005;
-    const offLine = offset > 0.005 ? `<div class="ft-cap">+ ${fmt(offset)} Special offset</div>` : '';
-    const status = over
-      ? (cp.room < -0.005 ? 'Over max by ' + fmt(-cp.room) : 'Max reached')
-      : 'Payable ' + fmt(cp.room) + ' of ' + fmt(cp.cap);
-    return `<div class="fee-tile${over ? ' over' : ''}"><div class="ft-label">${label}</div><div class="ft-val">${fmt(paid)}</div>${offLine}<div class="ft-cap">${status}</div></div>`;
+    const tip = `Paid YTD ${fmt(paid)} of ${fmt(cp.cap)} max` + (offset > 0.005 ? `, plus ${fmt(offset)} Admin Fee Special offset` : '')
+              + (over ? (cp.room < -0.005 ? `. Over max by ${fmt(-cp.room)}` : '. Max reached') : '');
+    const sub = `${shortAmt(paid)}/${shortAmt(cp.cap)}` + (offset > 0.005 ? ` <span class="fs-off">+${shortAmt(offset)} sp</span>` : '');
+    return `<div class="fs-row${over ? ' over' : ''}" title="${tip}"><span class="fs-label">${label}</span><span class="fs-val">${fmt(Math.max(0, cp.room))}</span><span class="fs-sub">${sub}</span></div>`;
   };
   const spOver = p.specialLeft > 0.005;
   const spBits = [];
-  if (p.offAdmin > 0.005) spBits.push(fmt(p.offAdmin) + ' to Admin');
-  if (p.offEb > 0.005) spBits.push(fmt(p.offEb) + ' to Ent.');
+  if (p.offAdmin > 0.005) spBits.push(fmt(p.offAdmin) + ' offset to Admin fee');
+  if (p.offEb > 0.005) spBits.push(fmt(p.offEb) + ' offset to Meals fee');
   if (spOver) spBits.push(fmt(p.specialLeft) + ' over both maxes');
-  const spTile = `<div class="fee-tile${spOver ? ' over' : ''}"><div class="ft-label">Admin Fee Special</div><div class="ft-val">${fmt(f.adminsp || 0)}</div>${spBits.length ? `<div class="ft-cap">Offset: ${spBits.join(', ')}</div>` : ''}</div>`;
-  const tiles = capTile('Admin Fee (LE)', f.admin || 0, p.admin, p.offAdmin)
-              + capTile('Entertainment Benefit Fee', f.ebfee || 0, p.ebfee, p.offEb)
-              + spTile;
-  const none = FEES_PAID[pid] ? '' : '<div class="ft-cap" style="align-self:center;">Not in Finance Batch Report</div>';
-  // Full payment breakdown (hidden until expanded). Only benefits with a paid amount are listed.
+  const spRow = `<div class="fs-row${spOver ? ' over' : ''}" title="${spBits.length ? spBits.join('; ') : 'No max of its own; offsets Admin fee first, then Meals fee'}"><span class="fs-label">Admin fee special</span><span class="fs-val">${fmt(f.adminsp || 0)}</span><span class="fs-sub">paid</span></div>`;
+  const none = FEES_PAID[pid] ? '' : '<div class="fs-none">Not in Finance Batch Report</div>';
+  return `<div class="fee-stack">${capRow('Admin fee owing', f.admin || 0, p.admin, p.offAdmin)}${capRow('Meals fee owing', f.ebfee || 0, p.ebfee, p.offEb)}${spRow}${none}</div>`;
+}
+// "Show all payments" button + hidden breakdown table. Only benefits with a paid amount are listed.
+function payBreakdownParts(pid) {
+  if (!FEES_PAID) return { toggle: '', table: '' };
   const all = (FEES_PAID[pid] && FEES_PAID[pid].all) || {};
   const rows = Object.keys(all).filter(n => Math.abs(all[n]) >= 0.005).sort((a, b) => all[b] - all[a]);
-  let toggle = '', table = '';
-  if (rows.length) {
-    const total = rows.reduce((sum, n) => sum + all[n], 0);
-    toggle = `<button class="fp-toggle" onclick="togglePayBreakdown(this)">${payBreakdownOpen ? 'Hide all payments' : 'Show all payments (' + rows.length + ')'}</button>`;
-    table = `<div class="pay-breakdown${payBreakdownOpen ? ' open' : ''}" data-count="${rows.length}"><table class="paybd">
+  if (!rows.length) return { toggle: '', table: '' };
+  const total = rows.reduce((sum, n) => sum + all[n], 0);
+  return {
+    toggle: `<button class="fp-toggle" onclick="togglePayBreakdown(this)">${payBreakdownOpen ? 'Hide all payments' : 'Show all payments (' + rows.length + ')'}</button>`,
+    table: `<div class="pay-breakdown${payBreakdownOpen ? ' open' : ''}" data-count="${rows.length}"><table class="paybd">
         <thead><tr><th>Benefit</th><th class="num">Total paid</th></tr></thead>
-        <tbody>${rows.map(n => `<tr><td>${n}</td><td class="num">${fmt(all[n])}</td></tr>`).join('')}</tbody>
+        <tbody>${rows.map(n => `<tr><td>${escHtml(n)}</td><td class="num">${fmt(all[n])}</td></tr>`).join('')}</tbody>
         <tfoot><tr><td>Total</td><td class="num">${fmt(total)}</td></tr></tfoot>
-      </table></div>`;
-  }
-  return `<div class="fees-paid"><span class="fp-title">Fees paid</span>${tiles}${none}${toggle}</div>${table}`;
+      </table></div>`
+  };
 }
 window.togglePayBreakdown = function(btn) {
   payBreakdownOpen = !payBreakdownOpen;
@@ -1036,6 +1084,7 @@ async function processFiles() {
     status.textContent = `Done. ${result.employees.length} variance employees found. ${result.skippedFuture} future-dated rows excluded.`;
 
     DATA.hmDetected = !!result.hmDetected;
+    activePid = null;
     showMainApp('Loaded from your files');
   } catch (err) {
     console.error(err);
@@ -1054,9 +1103,10 @@ function showMainApp(infoText) {
   document.getElementById('pc').textContent = DATA.payCycle === 'ALL' ? 'All cycles' : DATA.payCycle;
   document.getElementById('gen').textContent = DATA.generated;
   payTypeFilter = 'ALL';
-  const _ptf = document.getElementById('paytype-filter');
-  _ptf.style.display = DATA.hmDetected ? 'flex' : 'none';
-  _ptf.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.pay === 'ALL'));
+  activeFilter = 'all';
+  const _cur = activePid && DATA.employees.find(e => e.payrollId === activePid);
+  document.getElementById('search').value = _cur ? empLabel(_cur) : '';
+  ddOpen = false;
   renderList(); renderDetail();
 }
 
@@ -1096,7 +1146,6 @@ function restoreSession(session, fileName) {
   STORAGE_KEY = `payrollReconciler_${DATA.payCycle}_${DATA.generated}`;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
   activePid = session.activePid && DATA.employees.some(e => e.payrollId === session.activePid) ? session.activePid : null;
-  addFormOpen = {};
   const when = session.savedAt ? new Date(session.savedAt).toLocaleString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   showMainApp('Session restored' + (when ? ' (saved ' + when + ')' : ''));
 }
@@ -1148,6 +1197,81 @@ function effectiveItems(emp) {
   }));
   return (emp.items || []).concat(added);
 }
+// ========================
+// FEE RULES (Admin Fee / Entertainment Benefits Fee)
+// ========================
+const FEE_ADMIN_ITEM = 'Admin Fee', FEE_EB_ITEM = 'Entertainment Benefits Fee';
+const FEE_RATE = 0.05, CASUAL_FEE_MAX = 45.10;
+const round2 = n => Math.round(n * 100) / 100;
+function isCasual(emp) { return String(emp.empStatus || '').toUpperCase().replace(/[^A-Z]/g, '') === 'CASUAL'; }
+// Amount still owing per fee type. Infinity = no limit known (no Finance Batch Report, or no max set).
+function feeOwing(emp) {
+  if (!FEES_PAID) return { admin: Infinity, eb: Infinity, known: false };
+  const p = feePosition(emp.payrollId);
+  return { admin: p.admin ? Math.max(0, p.admin.room) : Infinity, eb: p.ebfee ? Math.max(0, p.ebfee.room) : Infinity, known: true };
+}
+// Fee lines of one type: all pre-tax lines, the unlocked ones, and the line extra funds go to.
+function feeGroup(items, locked, name) {
+  const all = items.filter(i => i.item === name && !i.isPostTax);
+  const unl = all.filter(i => !locked[itemKey(i)]);
+  const primary = unl.find(i => !i.isFuture && !i.isAdded) || unl.find(i => i.isAdded) || unl.find(i => i.isFuture) || null;
+  return { all, unl, primary };
+}
+const sumLines = (lines, alloc) => lines.reduce((t, i) => t + (alloc[itemKey(i)] || 0), 0);
+// Set a fee type's total. Locked lines keep their value; the rest is carried on the primary line.
+function setFeeTotal(g, amount, alloc, locked) {
+  if (!g.primary) return sumLines(g.all, alloc);
+  const lockedSum = g.all.filter(i => locked[itemKey(i)]).reduce((t, i) => t + (alloc[itemKey(i)] || 0), 0);
+  g.unl.forEach(i => { alloc[itemKey(i)] = 0; });
+  alloc[itemKey(g.primary)] = round2(Math.max(0, amount - lockedSum));
+  return lockedSum + alloc[itemKey(g.primary)];
+}
+// Add up to `amount` to a fee type without passing `cap` (total). Returns what was added.
+function topUpFee(g, amount, cap, alloc) {
+  if (!g.primary || amount <= 0.005) return 0;
+  const room = (isFinite(cap) ? cap : Infinity) - sumLines(g.all, alloc);
+  const add = round2(Math.min(amount, room));
+  if (add <= 0.005) return 0;
+  alloc[itemKey(g.primary)] = round2((alloc[itemKey(g.primary)] || 0) + add);
+  return add;
+}
+// Runs before LE / ME allocation. mode: 'normal' or 'terminating'.
+//  - All: fee lines are trimmed so they never exceed what is owing.
+//  - Terminating (not casual): fees = 5% of pre-tax received, Admin Fee first then Ent. Benefits Fee, capped at owing.
+//  - Casual (any mode): fees raised to 5% of pre-tax received up to $45.10, never lowered below expected
+//    (only trimmed when the max is reached; a funds shortfall is handled later by the reduce step).
+function applyFeeRules(emp, items, alloc, locked, mode) {
+  const ga = feeGroup(items, locked, FEE_ADMIN_ITEM), ge = feeGroup(items, locked, FEE_EB_ITEM);
+  if (!ga.all.length && !ge.all.length) return;
+  const owing = feeOwing(emp);
+  const received = emp.preTax ? emp.preTax.received : 0;
+  const casual = isCasual(emp);
+  if (mode === 'terminating' && !casual) {
+    let left = round2(received * FEE_RATE);
+    if (ga.all.length) left = Math.max(0, left - setFeeTotal(ga, Math.min(left, owing.admin), alloc, locked));
+    if (ge.all.length) setFeeTotal(ge, Math.min(left, owing.eb), alloc, locked);
+    return;
+  }
+  // Trim to owing
+  if (sumLines(ga.all, alloc) > owing.admin + 0.005) setFeeTotal(ga, owing.admin, alloc, locked);
+  if (sumLines(ge.all, alloc) > owing.eb + 0.005) setFeeTotal(ge, owing.eb, alloc, locked);
+  if (casual) {
+    const want = round2(Math.min(received * FEE_RATE, CASUAL_FEE_MAX));
+    let extra = round2(want - (sumLines(ga.all, alloc) + sumLines(ge.all, alloc)));
+    if (extra > 0.005) { extra -= topUpFee(ga, extra, owing.admin, alloc); topUpFee(ge, extra, owing.eb, alloc); }
+  }
+}
+// Runs after LE / ME allocation: funds that would go to Return to Payroll top up fees still owing
+// (Admin Fee first, then Ent. Benefits Fee). Only when fee data is loaded and a max is set.
+function overflowToFees(emp, items, alloc, locked, excess) {
+  if (!FEES_PAID || excess <= 0.005) return excess;
+  const owing = feeOwing(emp);
+  const ga = feeGroup(items, locked, FEE_ADMIN_ITEM), ge = feeGroup(items, locked, FEE_EB_ITEM);
+  if (isFinite(owing.admin)) excess = round2(excess - topUpFee(ga, excess, owing.admin, alloc));
+  if (isFinite(owing.eb)) excess = round2(excess - topUpFee(ge, excess, owing.eb, alloc));
+  return excess;
+}
+
 function autoAllocate(emp, side) {
   const sideData = emp[side];
   if (!sideData) return null;
@@ -1192,6 +1316,7 @@ function autoAllocate(emp, side) {
     }
   });
 
+  applyFeeRules(emp, items, alloc, locked, 'normal');
   let currentTotal = Object.values(alloc).reduce((sum, v) => sum + v, 0);
   let gap = received - currentTotal;
   let excess = 0;
@@ -1252,6 +1377,7 @@ function autoAllocate(emp, side) {
     if (remaining > 0.005) remaining -= allocateToCategory(remaining, false);
     excess = remaining;
     if (!hasLE && !hasME) excess = gap;
+    excess = overflowToFees(emp, items, alloc, locked, excess);
   } else if (gap < -0.005) {
     let toReduce = -gap;
     const reduceFrom = (preferred, amount) => {
@@ -1282,6 +1408,7 @@ function autoAllocate(emp, side) {
     if (toReduce > 0.005) toReduce = reduceFrom(PED, toReduce);
     if (toReduce > 0.005) toReduce = reduceFrom(NL, toReduce);
     if (toReduce > 0.005) toReduce = reduceFrom(ADMIN, toReduce);
+    if (toReduce > 0.005) toReduce = reduceFrom([FEE_EB_ITEM], toReduce);
     if (toReduce > 0.005) toReduce = reduceFrom(FEES, toReduce);
     if (toReduce > 0.005) excess = -toReduce;
   }
@@ -1337,7 +1464,6 @@ function terminatingAllocate(emp) {
   if (!items.length) return { allocations: {}, excess: received };
 
   const alloc = {};
-  const adminAmount = Math.round(received * 0.05 * 100) / 100;
   items.forEach(i => {
     const k = itemKey(i);
     const baseline = (i.isFuture || i.isAdded) ? 0 : i.expected;
@@ -1349,10 +1475,7 @@ function terminatingAllocate(emp) {
       alloc[k] = baseline;
     }
   });
-  const adminItem = items.find(i => ADMIN.includes(i.item) && !locked[itemKey(i)] && !i.isFuture && !i.isAdded)
-    || items.find(i => ADMIN.includes(i.item) && !locked[itemKey(i)] && i.isAdded)
-    || items.find(i => ADMIN.includes(i.item) && !locked[itemKey(i)]);
-  if (adminItem) alloc[itemKey(adminItem)] = adminAmount;
+  applyFeeRules(emp, items, alloc, locked, 'terminating');
 
   let currentSum = Object.values(alloc).reduce((sum, v) => sum + v, 0);
   let gap = received - currentSum;
@@ -1416,6 +1539,7 @@ function terminatingAllocate(emp) {
     if (remaining > 0.005) remaining -= allocateToCategory(remaining, false);
     excess = remaining;
     if (!hasLE && !hasME) excess = gap;
+    excess = overflowToFees(emp, items, alloc, locked, excess);
   } else if (gap < -0.005) {
     let toReduce = -gap;
     const reduceFrom = (preferred, amount) => {
@@ -1494,9 +1618,9 @@ function terminatingAllocate(emp) {
 function getEmpState(pid) { return state[pid] || { allocations: {}, excess: 0, reviewed: false, addedItems: [], terminating: false, lockedItems: {} }; }
 function setEmpState(pid, partial) { state[pid] = { ...getEmpState(pid), ...partial }; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function payTypeOk(emp) { return payTypeFilter === 'ALL' || !emp.payType || emp.payType === payTypeFilter; }
-function listMatches(emp) {
+// Filter buttons + pay type (everything except the typed search)
+function filterMatches(emp) {
   if (!payTypeOk(emp)) return false;
-  if (searchQuery) { const q = searchQuery.toLowerCase(); const hay = (emp.payrollId + ' ' + (emp.first||'') + ' ' + (emp.last||'')).toLowerCase(); if (!hay.includes(q)) return false; }
   const s = getEmpState(emp.payrollId);
   if (activeFilter === 'reviewed') return s.reviewed;
   if (activeFilter === 'pending') return !s.reviewed;
@@ -1505,52 +1629,90 @@ function listMatches(emp) {
   if (activeFilter === 'terminating') return s.terminating;
   return true;
 }
-function renderList() {
-  const panel = document.getElementById('list-panel');
-  panel.innerHTML = '';
-  const visible = DATA.employees.filter(listMatches);
-  visible.forEach(emp => {
-    const div = document.createElement('div');
-    div.className = 'list-item' + (emp.payrollId === activePid ? ' active' : '');
-    div.onclick = () => { activePid = emp.payrollId; renderList(); renderDetail(); };
+function empBadges(emp) {
+  const s = getEmpState(emp.payrollId);
+  return (s.reviewed ? '<span class="badge reviewed">REVIEWED</span>' : '')
+    + (s.terminating ? '<span class="badge terminating">TERM</span>' : '')
+    + (feeCapReached(emp.payrollId) ? '<span class="badge feecap">FEE MAX</span>' : '')
+    + ((emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005) ? '<span class="badge nopost">NO POST-TAX</span>' : '')
+    + (!emp.inPackage ? '<span class="badge excess-only">EXCESS</span>' : '')
+    + (emp.hasFuture ? '<span class="badge future-avail">FUTURE</span>' : '')
+    + ((s.addedItems || []).length ? '<span class="badge added">+' + s.addedItems.length + '</span>' : '');
+}
+// ========================
+// SEARCH DROPDOWN (replaces the side list)
+// ========================
+const SEARCH_LIMIT = 50;
+let ddResults = [], ddIndex = -1, ddOpen = false;
+const empLabel = emp => `${emp.first || ''} ${emp.last || ''} (${emp.payrollId})`.trim();
+function searchEmployees(q) {
+  const terms = String(q || '').toLowerCase().split(/\s+/).map(t => t.replace(/[^a-z0-9'\-]/g, '')).filter(Boolean);
+  const pidFirst = [], rest = [];
+  for (const emp of DATA.employees) {
+    if (!filterMatches(emp)) continue;
+    if (terms.length) {
+      const hay = (emp.payrollId + ' ' + (emp.first || '') + ' ' + (emp.last || '')).toLowerCase();
+      if (!terms.every(t => hay.includes(t))) continue;
+      if (emp.payrollId.startsWith(terms[0])) { pidFirst.push(emp); continue; }
+    }
+    rest.push(emp);
+  }
+  return pidFirst.concat(rest);   // within each group, keeps the largest-variance-first order
+}
+function renderSearchDropdown() {
+  const dd = document.getElementById('search-dd');
+  const input = document.getElementById('search');
+  if (!DATA) { dd.hidden = true; return; }
+  const q = input.value;
+  const cur = activePid ? DATA.employees.find(x => x.payrollId === activePid) : null;
+  const hasQuery = q.trim() !== '' && !(cur && q === empLabel(cur));
+  if (!ddOpen || (!hasQuery && activeFilter === 'all')) { dd.hidden = true; ddResults = []; return; }
+  const all = searchEmployees(hasQuery ? q : '');
+  ddResults = all.slice(0, SEARCH_LIMIT);
+  if (ddIndex >= ddResults.length) ddIndex = ddResults.length - 1;
+  if (!ddResults.length) { dd.innerHTML = '<div class="dd-empty">No matching employees.</div>'; dd.hidden = false; return; }
+  dd.innerHTML = ddResults.map((emp, i) => {
     const v = (emp.preTax?.variance || 0) + (emp.postTax?.variance || 0);
-    const varClass = v >= 0 ? 'pos' : 'neg';
-    const s = getEmpState(emp.payrollId);
-    const reviewedBadge = s.reviewed ? '<span class="badge reviewed">REVIEWED</span>' : '';
-    const excessBadge = !emp.inPackage ? '<span class="badge excess-only">EXCESS</span>' : '';
-    const futureBadge = emp.hasFuture ? '<span class="badge future-avail">FUTURE</span>' : '';
-    const addedBadge = (s.addedItems || []).length ? '<span class="badge added">+'+s.addedItems.length+'</span>' : '';
-    const termBadge = s.terminating ? '<span class="badge terminating">TERM</span>' : '';
-    const noPostBadge = (emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005) ? '<span class="badge nopost">NO POST-TAX</span>' : '';
-    const feeCapBadge = feeCapReached(emp.payrollId) ? '<span class="badge feecap">FEE MAX</span>' : '';
-    div.innerHTML = `<div class="pid">${emp.payrollId}${reviewedBadge}${termBadge}${feeCapBadge}${noPostBadge}${excessBadge}${futureBadge}${addedBadge}</div>
-      <div class="name">${emp.first || ''} ${emp.last || ''}</div>
-      <div class="var ${varClass}">Variance: ${fmt(v)}</div>`;
-    panel.appendChild(div);
-  });
-  updateStats();
+    return `<div class="dd-item${i === ddIndex ? ' hl' : ''}${emp.payrollId === activePid ? ' sel' : ''}" data-pid="${emp.payrollId}">
+        <div class="dd-main"><span class="dd-name">${escHtml(emp.first)} ${escHtml(emp.last)}</span><span class="dd-pid">${emp.payrollId}</span><span class="dd-badges">${empBadges(emp)}</span></div>
+        <span class="dd-var ${v >= 0 ? 'pos' : 'neg'}">${fmt(v)}</span></div>`;
+  }).join('') + (all.length > SEARCH_LIMIT
+      ? `<div class="dd-foot">Showing ${SEARCH_LIMIT} of ${all.length.toLocaleString('en-AU')}. Keep typing to narrow it down.</div>`
+      : `<div class="dd-foot">${all.length} match${all.length === 1 ? '' : 'es'}${activeFilter !== 'all' ? ' in this filter' : ''}</div>`);
+  dd.hidden = false;
+  const hl = dd.querySelector('.dd-item.hl'); if (hl) hl.scrollIntoView({ block: 'nearest' });
 }
-function updateStats() {
-  const all = DATA.employees.filter(payTypeOk);
-  const reviewed = all.filter(e => getEmpState(e.payrollId).reviewed).length;
-  document.getElementById('total-count').textContent = all.length;
-  document.getElementById('reviewed-count').textContent = reviewed;
-  document.getElementById('pending-count').textContent = all.length - reviewed;
-  document.getElementById('excess-count').textContent = all.filter(e => !e.inPackage || e.items.length === 0).length;
-  document.getElementById('terminating-count').textContent = all.filter(e => getEmpState(e.payrollId).terminating).length;
+function selectEmployee(pid) {
+  const emp = DATA.employees.find(e => e.payrollId === pid); if (!emp) return;
+  activePid = pid;
+  const input = document.getElementById('search');
+  input.value = empLabel(emp);
+  ddOpen = false; ddIndex = -1; renderSearchDropdown();
+  input.blur();
+  renderDetail();
+  document.getElementById('detail-panel').scrollTop = 0;
 }
+// Kept under its old name: refreshes the counts and any open dropdown.
+function renderList() { updateStats(); if (ddOpen) renderSearchDropdown(); }
+function updateStats() { /* toolbar counts removed */ }
 function renderDetail() {
   const panel = document.getElementById('detail-panel');
-  if (!activePid) { panel.innerHTML = '<div class="empty-state">Select an employee from the list to begin reconciliation.</div>'; return; }
+  if (!activePid) { panel.innerHTML = '<div class="empty-state">Search for an employee by Payroll ID or name to begin.</div>'; return; }
   const emp = DATA.employees.find(e => e.payrollId === activePid);
   if (!emp) return;
   const s = getEmpState(emp.payrollId);
   const terminating = s.terminating;
   const postTaxMissing = !!(emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005);
+  const _pb = payBreakdownParts(emp.payrollId);
   let html = `<div class="emp-header">
-      <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span>${empStatusChip(emp.empStatus)} ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
-      <div style="margin-top: 8px;">${emp.inPackage ? '<span class="chip-ok">In Package Benefit Details</span>' : '<span class="chip-neg">NOT IN PACKAGE - funds received but no record</span>'}</div>
-      ${feesPaidHtml(emp.payrollId)}
+      <div class="eh-row">
+        <div class="eh-main">
+          <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span>${empStatusChip(emp.empStatus)} ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
+          <div class="eh-chips">${emp.inPackage ? '<span class="chip-ok">In Package Benefit Details</span>' : '<span class="chip-neg">NOT IN PACKAGE - funds received but no record</span>'}${_pb.toggle}</div>
+        </div>
+        ${feeStackHtml(emp.payrollId)}
+      </div>
+      ${_pb.table}
     </div>`;
   ['preTax','postTax'].forEach(side => {
     const d = emp[side]; if (!d) return;
@@ -1563,20 +1725,21 @@ function renderDetail() {
         <div class="sum-card variance"><div class="label">Variance</div><div class="value ${vClass}">${fmt(d.variance)}</div></div>
       </div>`;
   });
-  html += `<div class="caps-box">
-      <div class="cap-item"><span class="label">Living Expenses cap:</span> <span class="value">${fmt(emp.leCap)}</span></div>
-      <div class="cap-item"><span class="label">Meal Entertainment cap:</span> <span class="value">${fmt(emp.meCap)}</span></div>
-    </div>`;
   const meCard = CARDS.emlmec[emp.payrollId];
   const leCard = CARDS.emlebc[emp.payrollId];
-  if (meCard || leCard) {
-    html += '<div class="card-panels">' + (leCard ? cardPanelHtml('EMLEBC', 'Living Expenses card', leCard) : '') + (meCard ? cardPanelHtml('EMLMEC', 'Meal Entertainment card', meCard) : '') + '</div>';
-  }
+  const cardChips = (leCard ? cardChipHtml('EMLEBC', 'Living Expenses card', leCard) : '') + (meCard ? cardChipHtml('EMLMEC', 'Meal Entertainment card', meCard) : '');
+  html += `<div class="caps-box">
+      <div class="caps-items">
+        <div class="cap-item"><span class="label">Living Expenses cap:</span> <span class="value">${fmt(emp.leCap)}</span></div>
+        <div class="cap-item"><span class="label">Meal Entertainment cap:</span> <span class="value">${fmt(emp.meCap)}</span></div>
+      </div>
+      ${cardChips ? `<div class="card-chips">${cardChips}</div>` : ''}
+    </div>`;
   if (postTaxMissing) {
     html += `<div class="excess-warning error"><strong>Post-tax not received.</strong> ${fmt(emp.postTax.expected)} of post-tax was expected but the post-tax file shows $0 for this employee. Post-tax lines are excluded from the balance below; confirm the deduction was missed.</div>`;
   }
   if (terminating) {
-    html += `<div class="terminating-banner"><strong>TERMINATING employee</strong> - EMLMEC and EMLEBC benefits will not be paid (fees still apply). Admin Fee receives 5% of received. Remainder distributes to LE / Entertainment Benefits (75/25) up to caps; leftover lands in Excess.</div>`;
+    html += `<div class="terminating-banner"><strong>TERMINATING employee</strong> - EMLMEC and EMLEBC benefits will not be paid (fees still apply). Fees receive 5% of pre-tax received (Admin Fee first, capped at owing). Remainder distributes to LE / Entertainment Benefits (75/25) up to caps; leftover lands in Excess.</div>`;
   }
   if (emp.hasFuture) {
     const futureItems = emp.items.filter(i => i.isFuture);
@@ -1588,32 +1751,10 @@ function renderDetail() {
       <button class="primary" onclick="doAuto('${emp.payrollId}')">Auto-Allocate</button>
       <button class="danger ${terminating ? 'active' : ''}" onclick="doTerminating('${emp.payrollId}')">${terminating ? 'Re-run Terminating' : 'Terminating'}</button>
       ${terminating ? `<button onclick="unmarkTerminating('${emp.payrollId}')">Unmark Terminating</button>` : ''}
-      <button class="warn" onclick="toggleAddForm('${emp.payrollId}')">+ Add Benefit</button>
+      <button class="warn" onclick="openAddModal('${emp.payrollId}')">+ Add Benefit</button>
       <button onclick="resetAlloc('${emp.payrollId}')" title="Resets unlocked rows to their expected value. Locked rows keep their current allocation.">Reset to Expected</button>
       <button class="success" onclick="toggleReviewed('${emp.payrollId}')">${s.reviewed ? 'Mark as Pending' : 'Mark as Reviewed'}</button>
     </div>`;
-  if (addFormOpen[emp.payrollId]) {
-    html += `<div class="add-form">
-        <label>Add benefit:</label>
-        <select id="add-select-${emp.payrollId}">
-          <optgroup label="Living Expenses">
-            <option value="Mortgage">Mortgage</option>
-            <option value="Rent">Rent</option>
-            <option value="Credit Card">Credit Card</option>
-            <option value="Personal Loan">Personal Loan</option>
-            <option value="EMLEBC">EMLEBC</option>
-            <option value="Living Expenses">Living Expenses (GST-inclusive)</option>
-          </optgroup>
-          <optgroup label="Meal Entertainment">
-            <option value="Entertainment Benefits">Entertainment Benefits</option>
-            <option value="EMLMEC">EMLMEC</option>
-          </optgroup>
-          <optgroup label="Other"><option value="Admin Fee">Admin Fee</option></optgroup>
-        </select>
-        <button onclick="confirmAdd('${emp.payrollId}')">Add</button>
-        <button class="cancel" onclick="toggleAddForm('${emp.payrollId}')">Cancel</button>
-      </div>`;
-  }
   const items = effectiveItems(emp);
   if (!items.length) {
     const received = (emp.preTax?.received || 0) + (emp.postTax?.received || 0);
@@ -1646,7 +1787,7 @@ function renderDetail() {
         ? `<div class="benefit-eaid">EAID <span class="be-val">${_eaidCard.eaid}</span><button class="copy-btn" data-eaid="${_eaidCard.eaid}" onclick="copyEaid(this)" title="Copy EAID reference">Copy</button></div>`
         : '';
       const futureDetail = it.isFuture ? `<div class="future-detail">Scheduled: ${fmt(it.scheduledExpected)} (NPD ${it.futureDates.join(', ')})</div>` : '';
-      const addedDetail = it.isAdded ? `<div class="future-detail" style="color:#9d174d;">Added manually for allocation</div>` : '';
+      const addedDetail = '';
       const isLocked = (s.lockedItems || {})[key];
       const rowClass = cat + (it.isFuture ? ' future-row' : (it.isAdded ? ' added-row' : '')) + (isTermBlocked ? ' term-locked' : '') + (isLocked ? ' locked-row' : '');
       const lockBtn = `<button class="lock-btn ${isLocked ? 'locked' : ''}" onclick="toggleLock('${emp.payrollId}', '${key.replace(/'/g, "\\'")}')" title="${isLocked ? 'Locked. Click to unlock. This row stays put through Auto-Allocate and Reset.' : 'Click to lock this row. Locked rows are preserved by Auto-Allocate and Reset.'}">${isLocked ? '🔒' : '🔓'}</button>`;
@@ -1676,10 +1817,12 @@ function renderDetail() {
     <div style="font-size:12px;color:#1e40af;line-height:1.5;padding:6px 0 12px 0;">
       <ul style="margin-left:20px;">${terminating ? `
         <li>EMLMEC and EMLEBC benefit allocations are forced to <strong>$0</strong> (their fees remain payable).</li>
-        <li>Admin Fee receives exactly <strong>5% of received</strong>.</li>
+        <li>Fees receive <strong>5% of pre-tax received</strong> (casuals: up to $45.10), Admin Fee first then Entertainment Benefits Fee, capped at what is owing.</li>
         <li>Remainder distributes to Living Expenses (75%) and Entertainment Benefits (25%) up to caps. Leftover goes to Excess.</li>
       ` : `
-        <li>Fees (EMLEBC / EMLMEC) and Novated Lease items are held at their expected value.</li>
+        <li>Card fees (EMLEBC / EMLMEC) and Novated Lease items are held at their expected value.</li>
+        <li>With the Finance Batch Report loaded: Admin Fee and Entertainment Benefits Fee lines are trimmed to the amount owing, and funds that would go to Return to Payroll top up Admin Fee first, then Entertainment Benefits Fee, up to what is owing. Only fee lines in the table (or added) receive funds.</li>
+        <li>Casuals: fees are raised to 5% of pre-tax received, up to $45.10, and never reduced unless the max is reached or there are not enough funds.</li>
         <li>Variances split 75% to Living Expenses, 25% to Meal Entertainment when both exist (otherwise 100% to whichever). Future and user-added items count as the benefit being available.</li>
         <li>Living Expenses total cannot exceed the LE cap. Meal Entertainment cannot exceed the ME cap.</li>
         <li>Portable Electronic Devices can only be decreased, never increased.</li>
@@ -1702,7 +1845,7 @@ window.doTerminating = function(pid) {
   if (!emp.preTax) { alert('Termination allocation requires Pre-Tax data.'); return; }
   const s = getEmpState(pid);
   const allItems = effectiveItems(emp);
-  if (!allItems.some(i => ADMIN.includes(i.item))) {
+  if (!allItems.some(i => i.item === FEE_ADMIN_ITEM && !i.isPostTax)) {
     const addedItems = (s.addedItems || []).slice();
     addedItems.push({ item: 'Admin Fee' });
     setEmpState(pid, { addedItems });
@@ -1835,15 +1978,72 @@ function refreshTotals(pid, changedKey) {
   const vehEl = document.getElementById('veh-alloc'); if (vehEl) vehEl.textContent = fmt(vehAlloc);
   const nvEl = document.getElementById('nonveh-alloc'); if (nvEl) nvEl.textContent = fmt(nonVehAlloc);
 }
-window.toggleAddForm = function(pid) { addFormOpen[pid] = !addFormOpen[pid]; renderDetail(); };
-window.confirmAdd = function(pid) {
-  const sel = document.getElementById('add-select-' + pid);
-  const item = sel.value; if (!item) return;
+// ========================
+// ADD BENEFIT POPUP (multi-select grid)
+// ========================
+const ADD_BENEFIT_GROUPS = [
+  { title: 'Living Expenses', cls: 'le', items: [
+    { item: 'Mortgage', icon: '\u{1F3E1}' }, { item: 'Rent', icon: '\u{1F511}' },
+    { item: 'Credit Card', icon: '\u{1F4B3}' }, { item: 'Personal Loan', icon: '\u{1F3E6}' },
+    { item: 'EMLEBC', icon: '\u{1F6D2}', sub: 'LE card' }, { item: 'Living Expenses', icon: '\u{1F9FE}', sub: 'GST-inclusive' } ] },
+  { title: 'Meal Entertainment', cls: 'me', items: [
+    { item: 'Entertainment Benefits', icon: '\u{1F37D}️' }, { item: 'EMLMEC', icon: '\u{1F942}', sub: 'ME card' } ] },
+  { title: 'Fees', cls: 'fees', items: [
+    { item: 'Admin Fee', icon: '\u{1F4CB}' }, { item: 'Entertainment Benefits Fee', icon: '\u{1F39F}️' } ] }
+];
+let addModal = null;   // { pid, counts: { item: n } }
+window.openAddModal = function(pid) {
+  const emp = DATA.employees.find(e => e.payrollId === pid); if (!emp) return;
+  addModal = { pid, counts: {} };
+  const existing = {};
+  effectiveItems(emp).forEach(i => { existing[i.item] = (existing[i.item] || 0) + 1; });
+  addModal.existing = existing;
+  let el = document.getElementById('add-modal');
+  if (!el) { el = document.createElement('div'); el.id = 'add-modal'; el.className = 'am-backdrop'; document.body.appendChild(el); }
+  el.innerHTML = `<div class="am-dialog" role="dialog" aria-modal="true" aria-label="Add benefits">
+      <div class="am-head"><div><div class="am-title">Add benefits</div><div class="am-sub">${escHtml(emp.first)} ${escHtml(emp.last)} (${emp.payrollId}). Click a tile to add it; click again to add another.</div></div>
+        <button class="am-x" onclick="closeAddModal()" title="Close">✕</button></div>
+      <div class="am-body">${ADD_BENEFIT_GROUPS.map(g => `<div class="am-group${g.cls === 'le' ? ' am-full' : ''}"><div class="am-gtitle am-${g.cls}">${g.title}</div><div class="am-grid">${g.items.map(b => {
+        const n = existing[b.item] || 0;
+        return `<button class="am-tile am-${g.cls}" data-item="${escHtml(b.item)}" onclick="addModalPick(this)">
+          <span class="am-count" hidden></span>
+          <span class="am-minus" hidden onclick="event.stopPropagation(); addModalUnpick(this.parentElement)" title="Remove one">−</span>
+          <span class="am-icon">${b.icon}</span><span class="am-name">${b.item}</span>${b.sub ? `<span class="am-tsub">${b.sub}</span>` : ''}
+          ${n ? `<span class="am-exists">In table${n > 1 ? ' ×' + n : ''}</span>` : ''}</button>`; }).join('')}</div></div>`).join('')}</div>
+      <div class="am-note" id="am-note"></div>
+      <div class="am-foot"><button class="am-cancel" onclick="closeAddModal()">Cancel</button><button class="am-add" id="am-add" onclick="confirmAddModal()" disabled>Add benefits</button></div>
+    </div>`;
+  el.onclick = e => { if (e.target === el) closeAddModal(); };
+  el.style.display = 'flex';
+  document.addEventListener('keydown', addModalKeys);
+};
+function addModalKeys(e) { if (e.key === 'Escape') closeAddModal(); else if (e.key === 'Enter' && addModal && !document.getElementById('am-add').disabled) confirmAddModal(); }
+window.closeAddModal = function() {
+  const el = document.getElementById('add-modal'); if (el) el.style.display = 'none';
+  addModal = null; document.removeEventListener('keydown', addModalKeys);
+};
+function paintAddTile(tile) {
+  const n = addModal.counts[tile.dataset.item] || 0;
+  tile.classList.toggle('picked', n > 0);
+  const c = tile.querySelector('.am-count'); c.hidden = !n; c.textContent = n > 1 ? '×' + n : '✓';
+  tile.querySelector('.am-minus').hidden = !n;
+  const total = Object.values(addModal.counts).reduce((a, b) => a + b, 0);
+  const btn = document.getElementById('am-add');
+  btn.disabled = !total; btn.textContent = total ? `Add ${total} benefit${total > 1 ? 's' : ''}` : 'Add benefits';
+  const dupes = Object.keys(addModal.counts).filter(k => addModal.counts[k] && addModal.existing[k]);
+  document.getElementById('am-note').innerHTML = dupes.length
+    ? `⚠ Already in the table: <strong>${dupes.map(escHtml).join(', ')}</strong>. Another line will be added.` : '';
+}
+window.addModalPick = function(tile) { if (!addModal) return; const k = tile.dataset.item; addModal.counts[k] = (addModal.counts[k] || 0) + 1; paintAddTile(tile); };
+window.addModalUnpick = function(tile) { if (!addModal) return; const k = tile.dataset.item; addModal.counts[k] = Math.max(0, (addModal.counts[k] || 0) - 1); paintAddTile(tile); };
+window.confirmAddModal = function() {
+  if (!addModal) return;
+  const pid = addModal.pid;
   const s = getEmpState(pid);
   const addedItems = (s.addedItems || []).slice();
-  addedItems.push({ item });
+  ADD_BENEFIT_GROUPS.forEach(g => g.items.forEach(b => { for (let i = 0; i < (addModal.counts[b.item] || 0); i++) addedItems.push({ item: b.item }); }));
   setEmpState(pid, { addedItems });
-  addFormOpen[pid] = false; renderDetail(); renderList();
+  closeAddModal(); renderDetail(); renderList();
 };
 window.removeAdded = function(pid, idx) {
   const s = getEmpState(pid);
@@ -1899,6 +2099,17 @@ window.copyAlloc = function(btn, keyStr) {
   }).catch(() => { btn.textContent = 'Fail'; setTimeout(() => { btn.textContent = 'Copy'; }, 900); });
 };
 
+// Compact EML card chip for the caps banner: code, EAID (copy) and balance.
+function cardChipHtml(code, label, c) {
+  const eaid = c.eaid || '';
+  const cls = code === 'EMLMEC' ? 'me' : 'le';
+  const copyBtn = eaid ? `<button class="copy-btn cc-copy" data-eaid="${escHtml(eaid)}" onclick="copyEaid(this)" title="Copy EAID reference">Copy</button>` : '';
+  return `<div class="card-chip cc-${cls}" title="${label}">
+      <span class="cc-code">${code}</span>
+      <span class="cc-eaid">${escHtml(eaid) || '-'}</span>${copyBtn}
+      <span class="cc-bal">${c.balance != null ? fmt(c.balance) : '-'}</span>
+    </div>`;
+}
 function cardPanelHtml(code, label, c) {
   const eaid = c.eaid || '';
   const cls = code === 'EMLMEC' ? 'me' : 'le';
@@ -1919,54 +2130,32 @@ window.copyEaid = function(btn) {
   copyText().then(() => { const o = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = o; btn.classList.remove('copied'); }, 900); }).catch(() => { btn.textContent = 'Fail'; setTimeout(() => { btn.textContent = 'Copy'; }, 900); });
 };
 
-document.getElementById('search').addEventListener('input', e => { searchQuery = e.target.value; renderList(); });
-document.querySelectorAll('.filter-btns button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btns button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); activeFilter = btn.dataset.filter; renderList();
+(function initSearch() {
+  const input = document.getElementById('search');
+  const dd = document.getElementById('search-dd');
+  input.addEventListener('input', () => { ddOpen = true; ddIndex = 0; renderSearchDropdown(); });
+  input.addEventListener('focus', () => { input.select(); ddOpen = true; ddIndex = -1; renderSearchDropdown(); });
+  input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement === input) return; ddOpen = false; renderSearchDropdown(); }, 150));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); ddOpen = true;
+      if (!ddResults.length) renderSearchDropdown();
+      if (!ddResults.length) return;
+      ddIndex = e.key === 'ArrowDown' ? Math.min(ddResults.length - 1, ddIndex + 1) : Math.max(0, ddIndex - 1);
+      renderSearchDropdown();
+    } else if (e.key === 'Enter') {
+      const pick = ddResults[ddIndex >= 0 ? ddIndex : 0];
+      if (pick) { e.preventDefault(); selectEmployee(pick.payrollId); }
+    } else if (e.key === 'Escape') { ddOpen = false; renderSearchDropdown(); input.blur(); }
   });
-});
-document.querySelectorAll('#paytype-filter button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#paytype-filter button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); payTypeFilter = btn.dataset.pay; activePid = null; renderList(); renderDetail();
+  // mousedown (not click) so the pick lands before the input loses focus
+  dd.addEventListener('mousedown', e => {
+    e.preventDefault();
+    const item = e.target.closest('.dd-item');
+    if (item) selectEmployee(item.dataset.pid);
   });
-});
-document.getElementById('export-btn').addEventListener('click', () => {
-  const rows = [['Payroll ID','First Name','Last Name','Side','Benefit','Type','Terminating','Expected','Allocated','Diff','Excess','Reviewed']];
-  DATA.employees.filter(payTypeOk).forEach(emp => {
-    const s = getEmpState(emp.payrollId);
-    const allocs = s.allocations || {};
-    const items = effectiveItems(emp);
-    items.forEach(it => {
-      const side = it.isPostTax ? 'Post-Tax' : 'Pre-Tax';
-      const key = itemKey(it);
-      const baseline = (it.isFuture || it.isAdded) ? 0 : it.expected;
-      const allocated = allocs[key] !== undefined ? allocs[key] : baseline;
-      const diff = allocated - baseline;
-      const type = it.isFuture ? 'Future' : (it.isAdded ? 'Added' : 'Current');
-      rows.push([emp.payrollId, emp.first, emp.last, side, it.item, type, s.terminating ? 'Yes' : '', baseline.toFixed(2), allocated.toFixed(2), diff.toFixed(2), '', s.reviewed ? 'Yes' : '']);
-    });
-    if (s.excess && s.excess !== 0) {
-      rows.push([emp.payrollId, emp.first, emp.last, '', 'EXCESS (manual)', '', s.terminating ? 'Yes' : '', '0.00', '0.00', '0.00', s.excess.toFixed(2), s.reviewed ? 'Yes' : '']);
-    }
-    if (!items.length) {
-      const received = (emp.preTax?.received || 0) + (emp.postTax?.received || 0);
-      rows.push([emp.payrollId, emp.first, emp.last, emp.preTax ? 'Pre-Tax' : 'Post-Tax', 'NO PACKAGE BENEFITS - EXCESS', '', s.terminating ? 'Yes' : '', '0.00', '0.00', '0.00', received.toFixed(2), s.reviewed ? 'Yes' : '']);
-    }
-  });
-  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const _cycleTag = (DATA.payCycle && DATA.payCycle !== 'ALL') ? (DATA.payCycle + '_') : ''; a.href = url; a.download = `variance_allocations_${_cycleTag}${DATA.generated}.csv`; a.click();
-  URL.revokeObjectURL(url);
-});
-document.getElementById('reset-btn').addEventListener('click', () => {
-  if (confirm('Reset all allocations, added benefits, terminating flags, and review status for this pay run? This cannot be undone.')) {
-    state = {}; localStorage.removeItem(STORAGE_KEY); renderList(); renderDetail();
-  }
-});
+})();
+
 </script>
 </body>
 </html>
