@@ -253,6 +253,10 @@
   .fee-caps > div { flex:1; }
   .fee-caps label { display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px; font-weight:600; }
   .fee-caps input { width:100%; padding:6px 10px; border:1px solid var(--border-strong); border-radius:var(--r-md); font-size:13px; font-family:var(--font-ui); }
+  .emp-status { display:inline-block; vertical-align:middle; margin-left:8px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; letter-spacing:0.01em; background:var(--surface-2); color:var(--text-muted); border:1px solid var(--border); }
+  .emp-status.ft { background:var(--accent-weak); color:var(--accent); border-color:var(--accent-ring); }
+  .emp-status.pt { background:#efeafa; color:var(--cat-nl); border-color:#d9cff3; }
+  .emp-status.cas { background:var(--warn-weak); color:var(--warn); border-color:#f3d39a; }
   .badge.feecap { background: var(--neg-weak); color: var(--neg); }
   .fp-toggle { margin-left:auto; align-self:center; padding:5px 12px; border:1px solid var(--border-strong); background:var(--surface); border-radius:var(--r-md); cursor:pointer; font-size:12px; color:var(--text-muted); font-family:var(--font-ui); }
   .fp-toggle:hover { background:var(--surface-2); color:var(--text); }
@@ -499,7 +503,7 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
   // 1=PayCycle, 2=PayrollID, 5=First, 6=Last, 7=Item, 8=Fortnightly, 9=Deposit,
   // 18=NextPaymentDate, 21=Capped (LE cap), 22=EBCapped (ME cap), 24=Status
   const C_CYCLE = 0, C_PID = 1, C_FN = 4, C_LN = 5, C_ITEM = 6;
-  const C_FORT = 7, C_DEP = 8, C_NPD = 17, C_LECAP = 20, C_MECAP = 21, C_STATUS = 23;
+  const C_EMPST = 2, C_FORT = 7, C_DEP = 8, C_NPD = 17, C_LECAP = 20, C_MECAP = 21, C_STATUS = 23;
 
   // Verify headers look right
   const hdr = pkgRows[0] || [];
@@ -549,12 +553,13 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
     if (isFuture) skippedFuture++;
     const pid = normalizeKey(row[C_PID]);
     if (!pkg[pid]) {
-      pkg[pid] = { first: row[C_FN]||'', last: row[C_LN]||'', leCap: null, meCap: null, items: [], payType: null };
+      pkg[pid] = { first: row[C_FN]||'', last: row[C_LN]||'', leCap: null, meCap: null, items: [], payType: null, empStatus: '' };
     }
     if (hmCol >= 0) {
       const _pv = row[hmCol];
       if (_pv !== null && _pv !== undefined && String(_pv).trim() !== '') pkg[pid].payType = String(_pv).trim().toUpperCase();
     }
+    if (row[C_EMPST] !== null && row[C_EMPST] !== undefined && String(row[C_EMPST]).trim() !== '') pkg[pid].empStatus = String(row[C_EMPST]).trim();
     if (row[C_LECAP] !== null && row[C_LECAP] !== undefined) pkg[pid].leCap = Number(row[C_LECAP]);
     if (row[C_MECAP] !== null && row[C_MECAP] !== undefined) pkg[pid].meCap = Number(row[C_MECAP]);
 
@@ -592,11 +597,11 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
   const employees = {};
   function ensureEmp(pid, ahFirst, ahLast, inPkg) {
     if (employees[pid]) return employees[pid];
-    let items = [], first = ahFirst, last = ahLast, leCap = null, meCap = null, payType = null;
+    let items = [], first = ahFirst, last = ahLast, leCap = null, meCap = null, payType = null, empStatus = '';
     if (inPkg && pkg[pid]) {
       const p = pkg[pid];
       first = p.first || first; last = p.last || last;
-      leCap = p.leCap; meCap = p.meCap; payType = p.payType || null;
+      leCap = p.leCap; meCap = p.meCap; payType = p.payType || null; empStatus = p.empStatus || '';
       // Aggregate items by (name, isPostTax, isFuture)
       const agg = {};
       for (const it of p.items) {
@@ -626,7 +631,7 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
       items.sort((a,b) => (a.isFuture?1:0) - (b.isFuture?1:0));
     }
     employees[pid] = {
-      payrollId: pid, first, last, leCap, meCap, items, payType,
+      payrollId: pid, first, last, leCap, meCap, items, payType, empStatus,
       preTax: null, postTax: null, inPackage: inPkg,
       hasFuture: items.some(i => i.isFuture)
     };
@@ -798,6 +803,19 @@ function feeCapReached(pid) {
   if (!FEES_PAID || !FEES_PAID[pid]) return false;
   const p = feePosition(pid);
   return (p.admin && p.admin.room <= 0.005) || (p.ebfee && p.ebfee.room <= 0.005) || p.specialLeft > 0.005;
+}
+function empStatusLabel(v) {
+  const k = String(v || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (k === 'FULLTIME') return 'Full time';
+  if (k === 'PARTTIME') return 'Part time';
+  if (k === 'CASUAL') return 'Casual';
+  return v ? String(v).charAt(0).toUpperCase() + String(v).slice(1).toLowerCase() : '';
+}
+function empStatusChip(v) {
+  const label = empStatusLabel(v);
+  if (!label) return '';
+  const cls = label === 'Full time' ? 'ft' : (label === 'Part time' ? 'pt' : (label === 'Casual' ? 'cas' : ''));
+  return `<span class="emp-status ${cls}" title="Employment status (Package Benefit Details)">${escHtml(label)}</span>`;
 }
 function feesPaidHtml(pid) {
   if (!FEES_PAID) return '';
@@ -1530,7 +1548,7 @@ function renderDetail() {
   const terminating = s.terminating;
   const postTaxMissing = !!(emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005);
   let html = `<div class="emp-header">
-      <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span> ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
+      <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span>${empStatusChip(emp.empStatus)} ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
       <div style="margin-top: 8px;">${emp.inPackage ? '<span class="chip-ok">In Package Benefit Details</span>' : '<span class="chip-neg">NOT IN PACKAGE - funds received but no record</span>'}</div>
       ${feesPaidHtml(emp.payrollId)}
     </div>`;
