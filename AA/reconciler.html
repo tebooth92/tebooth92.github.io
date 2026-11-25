@@ -351,6 +351,82 @@
   /* Freshen toward home master: larger panel radius (shadows already match) */
   :root{ --r-lg:12px; }
 </style>
+<style id="pay-tools">
+  /* Header tool buttons (Upload file + GST reconciliation popups) */
+  .tool-btn { padding:6px 12px; border:1px solid var(--accent); background:var(--accent-weak); color:var(--accent); border-radius:var(--r-md); cursor:pointer; font-size:12px; font-weight:600; font-family:var(--font-ui); margin-left:6px; }
+  .tool-btn:hover { background:var(--accent); color:#fff; }
+  .tool-btn .tb-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:6px; vertical-align:middle; }
+  .tb-dot.ok { background:var(--pos); } .tb-dot.bad { background:var(--neg); } .tb-dot.warn { background:var(--warn-border); }
+
+  /* Popup shell (reuses .am-backdrop / .am-dialog / .am-head) */
+  .pm-dialog { max-width:880px; }
+  .pm-body { padding:4px 20px 18px; overflow-y:auto; font-size:13px; }
+  .pm-link { font-size:12px; color:var(--accent); text-decoration:none; font-weight:600; }
+  .pm-link:hover { text-decoration:underline; }
+  .pm-note { font-size:12px; color:var(--text-muted); margin-top:8px; }
+  .pm-box { border-radius:var(--r-lg); padding:14px 16px; margin-top:14px; border:1px solid var(--border); border-left-width:4px; }
+  .pm-box h3 { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .pm-box p { font-size:13px; line-height:1.5; }
+  .pm-box.ok { background:var(--pos-weak); border-color:#b7dcc9; border-left-color:var(--pos); color:#14532d; }
+  .pm-box.warn { background:var(--warn-weak); border-color:#f3d6a6; border-left-color:var(--warn-border); color:#7a4a00; }
+  .pm-box.bad { background:var(--neg-weak); border-color:#f1c4c7; border-left-color:var(--neg); color:#7f1d1d; }
+  .pm-big { font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; }
+  .pm-counts { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .pm-count { background:#fff; border:1px solid currentColor; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
+  .pm-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; align-items:center; }
+  .pm-btn { padding:8px 14px; border-radius:var(--r-md); font-size:13px; font-weight:600; font-family:var(--font-ui); cursor:pointer; border:1px solid var(--border-strong); background:var(--surface); color:var(--text); }
+  .pm-btn:hover { background:var(--surface-2); }
+  .pm-btn.dark { background:#334155; border-color:#334155; color:#fff; }
+  .pm-btn.dark:hover { background:#1e293b; }
+  .pm-file { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:12px; color:var(--text-muted); }
+  .pm-file b { color:var(--text); font-weight:600; }
+  .pm-loading { margin-top:12px; font-size:13px; color:var(--text-muted); }
+
+  table.pm-table { width:100%; border-collapse:collapse; margin-top:10px; background:#fff; border:1px solid #f3d6a6; border-radius:var(--r-md); overflow:hidden; font-size:12.5px; color:var(--text); }
+  table.pm-table th { background:#fbe6c2; color:#7a4a00; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; text-align:left; padding:7px 10px; }
+  table.pm-table td { padding:7px 10px; border-top:1px solid var(--border); white-space:nowrap; }
+  table.pm-table td.num { font-family:var(--font-num); text-align:right; font-weight:600; }
+  table.pm-table th.num { text-align:right; }
+  table.pm-table td.recv { background:#faf5ff; } table.pm-table td.tgt { background:#f0fdf4; }
+  .pm-chip { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+  .pm-chip.missing { background:var(--neg-weak); color:var(--neg); }
+  .pm-chip.calc { background:#991b1b; color:#fff; }
+  .pm-chip.var { background:var(--warn-weak); color:var(--warn); }
+  .pm-open { border:none; background:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:12.5px; padding:0; font-family:var(--font-ui); }
+  .pm-open:hover { text-decoration:underline; }
+
+  /* Upload popup */
+  .up-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+  .up-card { position:relative; overflow:hidden; border:1px solid var(--border); border-radius:var(--r-lg); padding:14px 16px; background:#fff; }
+  .up-card.loaded { border-color:#b7dcc9; background:var(--pos-weak); }
+  .up-card .up-wm { position:absolute; top:4px; right:10px; font-size:44px; font-weight:800; color:var(--text); opacity:0.06; }
+  .up-card .up-lbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); }
+  .up-card .up-val { font-size:22px; font-weight:700; margin-top:2px; font-family:var(--font-ui); }
+  .up-card .up-cnt { font-size:12px; color:var(--text-muted); margin-left:6px; font-weight:500; }
+  .up-card .up-fn { font-size:11.5px; color:var(--pos); margin-top:6px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .up-cycle-ok { margin-top:14px; font-size:13px; color:var(--pos); font-weight:500; }
+  .up-type { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:12px; border:2px solid; border-radius:var(--r-lg); padding:14px 16px; }
+  .up-type.M { border-color:#14b8a6; background:#f0fdfa; color:#134e4a; }
+  .up-type.H { border-color:#a855f7; background:#faf5ff; color:#581c87; }
+  .up-type .up-letter { flex:none; width:48px; height:48px; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; }
+  .up-type.M .up-letter { background:#0d9488; } .up-type.H .up-letter { background:#7e22ce; }
+  .up-type .up-ttl { font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; }
+  .up-type .up-why { font-size:12.5px; margin-top:2px; }
+  .up-change { border:none; background:none; color:inherit; font-weight:600; text-decoration:underline; text-underline-offset:2px; cursor:pointer; font-size:13px; font-family:var(--font-ui); flex:none; }
+  .up-prompt-btns { display:flex; gap:10px; margin-top:12px; }
+  .up-prompt-btns button { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 14px; border:none; border-radius:var(--r-md); color:#fff; font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-ui); }
+  .up-prompt-btns .pick-M { background:#0d9488; } .up-prompt-btns .pick-M:hover { background:#0f766e; }
+  .up-prompt-btns .pick-H { background:#7e22ce; } .up-prompt-btns .pick-H:hover { background:#6b21a8; }
+  .up-prompt-btns .pl { width:26px; height:26px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; }
+  .pick-M .pl { color:#0f766e; } .pick-H .pl { color:#6b21a8; }
+  .up-total { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:14px; background:#312e81; color:#fff; border-radius:var(--r-lg); padding:18px 20px; box-shadow:var(--shadow-md); }
+  .up-total .up-tl { font-size:14px; color:#c7d2fe; font-weight:500; }
+  .up-total .up-tv { font-size:28px; font-weight:700; letter-spacing:-0.01em; }
+  .up-dl { display:flex; align-items:center; gap:8px; background:#fff; color:#312e81; border:none; border-radius:var(--r-md); padding:11px 16px; font-weight:600; font-size:13.5px; cursor:pointer; font-family:var(--font-ui); box-shadow:var(--shadow-sm); }
+  .up-dl:hover { background:#eef2ff; }
+  .up-dl:disabled { opacity:0.5; cursor:not-allowed; }
+  @media (max-width:700px) { .up-cards { grid-template-columns:1fr; } }
+</style>
 </head>
 <body>
 <header>
@@ -360,6 +436,8 @@
   </div>
   <div class="meta">
     <span id="header-info" style="display:none;">Loaded from your files</span>
+    <button class="tool-btn" id="upload-tool-btn" style="display:none; margin-left:10px;" onclick="openUploadModal()" title="Build the Eziway upload file (Summary &amp; Download) from the Pre-Tax and Post-Tax files already loaded">&#8681; Upload file</button>
+    <button class="tool-btn" id="gst-tool-btn" style="display:none;" onclick="openGstModal()" title="Drop the GST Invoice report to check it against the Pre-Tax and Post-Tax files already loaded">GST reconciliation<span class="tb-dot" id="gst-tool-dot" hidden></span></button>
     <button class="back-btn" id="save-btn" style="display:none; margin-left:10px;" onclick="saveSession()" title="Download everything loaded plus your allocations as one .json file. Drop it back in later instead of the original files.">&#8681; Save session</button>
     <button class="back-btn" id="back-btn" style="display:none; margin-left:6px;" onclick="goBackToUpload()">Load new files</button>
   </div>
@@ -1081,6 +1159,9 @@ async function processFiles() {
     };
     STORAGE_KEY = `payrollReconciler_${cycle}_${asOfStr}`;
     state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    // Keep the parsed Pre-Tax / Post-Tax files for the Upload file and GST reconciliation popups
+    const _preEntry = LOADED.find(x => x.type === 'pre'), _postEntry = LOADED.find(x => x.type === 'post');
+    setPayFiles({ pre: parsePayFile(_preEntry.rows, 'pre', _preEntry.name), post: parsePayFile(_postEntry.rows, 'post', _postEntry.name) });
     status.textContent = `Done. ${result.employees.length} variance employees found. ${result.skippedFuture} future-dated rows excluded.`;
 
     DATA.hmDetected = !!result.hmDetected;
@@ -1098,6 +1179,8 @@ function showMainApp(infoText) {
   document.getElementById('main-app').style.display = '';
   document.getElementById('back-btn').style.display = '';
   document.getElementById('save-btn').style.display = '';
+  document.getElementById('upload-tool-btn').style.display = '';
+  document.getElementById('gst-tool-btn').style.display = '';
   const info = document.getElementById('header-info');
   info.textContent = infoText; info.style.display = '';
   document.getElementById('pc').textContent = DATA.payCycle === 'ALL' ? 'All cycles' : DATA.payCycle;
@@ -1119,7 +1202,8 @@ window.saveSession = function() {
   const session = {
     kind: SESSION_KIND, version: 1, savedAt: new Date().toISOString(),
     data: DATA, cards: CARDS, feesPaid: FEES_PAID, feeCaps: FEE_CAPS,
-    state, activePid
+    state, activePid,
+    payFiles: PAYFILES   // parsed Pre-Tax / Post-Tax, so Upload file + GST reconciliation work after a restore
   };
   const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1143,6 +1227,7 @@ function restoreSession(session, fileName) {
   FEES_PAID = session.feesPaid || null;
   FEE_CAPS = session.feeCaps || {};
   state = session.state || {};
+  setPayFiles(session.payFiles || null);
   STORAGE_KEY = `payrollReconciler_${DATA.payCycle}_${DATA.generated}`;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
   activePid = session.activePid && DATA.employees.some(e => e.payrollId === session.activePid) ? session.activePid : null;
@@ -1158,6 +1243,9 @@ function goBackToUpload() {
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('back-btn').style.display = 'none';
   document.getElementById('save-btn').style.display = 'none';
+  document.getElementById('upload-tool-btn').style.display = 'none';
+  document.getElementById('gst-tool-btn').style.display = 'none';
+  closePayModal();
   document.getElementById('header-info').style.display = 'none';
   document.getElementById('status-msg').textContent = '';
   document.getElementById('error-area').innerHTML = '';
@@ -2129,6 +2217,382 @@ window.copyEaid = function(btn) {
     : new Promise((resolve, reject) => { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); } finally { document.body.removeChild(t); } });
   copyText().then(() => { const o = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = o; btn.classList.remove('copied'); }, 900); }).catch(() => { btn.textContent = 'Fail'; setTimeout(() => { btn.textContent = 'Copy'; }, 900); });
 };
+
+// ========================
+// PAY TOOLS: "Upload file" and "GST reconciliation" popups
+// Same checks as Pay Processing (salary-packaging.html, sections 2 and 4-5), run on the
+// Pre-Tax / Post-Tax files already loaded for this reconciliation.
+// ========================
+const PAY_CONST = {
+  PRE_TAX_CODE: '4202', POST_TAX_CODE: '4024',
+  GST_HEADER_ID: 'Payroll ID', GST_HEADER_DEPOSIT: 'Deposit Amount', GST_HEADER_GST: 'GST',
+  MEDICAL_MAX_TOTAL: 1500000,   // combined total at or below this = Medical (M)
+  HOSPITAL_MIN_TOTAL: 2500000,  // combined total at or above this = Hospital (H)
+  PRE_POST_MATCH_MIN: 0.80,     // at least 80% of post-tax employees must appear in the pre-tax file
+  GST_LIST_MAX: 10              // more GST issues than this: CSV export only, no on-screen list
+};
+const PAY_TYPES = {
+  M: { label: 'Medical Pay', file: 'Medical' },
+  H: { label: 'Hospital Pay', file: 'Hospital' }
+};
+const GST_REPORT_URL = 'https://ah.eziway.net.au/ASPX/SalaryPackaging/EmployerDepositGSTInvoicesReport.aspx';
+const DL_ICON = '<svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>';
+let PAYFILES = null;   // { pre, post } from parsePayFile()
+let UPLOAD = { payType: null, auto: false, prompting: false };
+let GST = null;        // last GST run (kept while the popup is closed)
+let payModal = null;   // 'upload' | 'gst' | null
+
+function money(n) { return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(n); }
+
+// Parse an AH Pre-Tax / Post-Tax file (array of rows, header first) the way Pay Processing does.
+function parsePayFile(rows, kind, name) {
+  const out = { name: name || '', records: [], total: 0, error: null };
+  const hdr = (rows && rows[0] ? rows[0] : []).map(hkey);
+  const col = (k, fallback) => { const i = hdr.indexOf(k); return i >= 0 ? i : fallback; };
+  const cAmt = col(kind === 'pre' ? 'ahpretax' : 'nlposttax', 1);
+  const cPid = col('persno', 0), cFn = col('firstname', 2), cLn = col('lastname', 3);
+  const code = kind === 'pre' ? PAY_CONST.PRE_TAX_CODE : PAY_CONST.POST_TAX_CODE;
+  const str = v => (v == null ? '' : String(v));
+  for (let r = 1; r < (rows ? rows.length : 0); r++) {
+    const row = rows[r];
+    if (!row || !row.some(v => v != null && String(v).trim() !== '')) continue;   // blank row
+    const amt = parseFloat(row[cAmt]);
+    if (amt > 0 && !out.error) {
+      out.error = `Blocking Error: Positive deduction amount (${amt}) found for employee ${str(row[cFn])} ${str(row[cLn])} (Row ${r + 1}) in file ${name}.`;
+    }
+    out.records.push({
+      employeeName: `${str(row[cFn])} ${str(row[cLn])}`.trim(),
+      payrollId: str(row[cPid]).replace(/^0+/, ''),
+      deduction: Math.abs(amt || 0),
+      code, comments: ''
+    });
+  }
+  out.total = out.records.reduce((s, x) => s + x.deduction, 0);
+  if (!out.records.length && !out.error) out.error = `File ${name} appears empty.`;
+  return out;
+}
+
+function setPayFiles(pf) {
+  PAYFILES = (pf && pf.pre && pf.post) ? pf : null;
+  GST = null;
+  UPLOAD = { payType: null, auto: false, prompting: false };
+  if (PAYFILES) {
+    const t = detectPayType(payTotal());
+    UPLOAD = t ? { payType: t, auto: true, prompting: false } : { payType: null, auto: false, prompting: true };
+  }
+  paintGstDot();
+}
+function payRecords() { return PAYFILES ? [...PAYFILES.pre.records, ...PAYFILES.post.records] : []; }
+function payTotal() { return PAYFILES ? PAYFILES.pre.total + PAYFILES.post.total : 0; }
+function payBlockingError() { return PAYFILES ? (PAYFILES.pre.error || PAYFILES.post.error) : null; }
+
+// --- Upload file (Summary & Download) ---
+function cycleMatch() {
+  const preIds = new Set(PAYFILES.pre.records.map(r => String(r.payrollId).trim()));
+  const postIds = new Set(PAYFILES.post.records.map(r => String(r.payrollId).trim()));
+  let matched = 0; postIds.forEach(id => { if (preIds.has(id)) matched++; });
+  const postCount = postIds.size, pct = postCount ? matched / postCount : 1;
+  return { postCount, matched, pct, ok: pct >= PAY_CONST.PRE_POST_MATCH_MIN };
+}
+function detectPayType(total) {
+  if (total <= PAY_CONST.MEDICAL_MAX_TOTAL) return 'M';
+  if (total >= PAY_CONST.HOSPITAL_MIN_TOTAL) return 'H';
+  return null;   // between bands: ask
+}
+function uploadFileName() {
+  const pt = PAY_TYPES[UPLOAD.payType];
+  if (!pt) return 'Salary_Packaging_Upload.xlsx';
+  const d = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${pt.file}_${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')} ${d.getFullYear()}_Salary_Packaging_Upload.xlsx`;
+}
+window.setUploadPayType = function(t) { UPLOAD = { payType: t, auto: false, prompting: false }; renderPayModal(); };
+window.changeUploadPayType = function() { UPLOAD.prompting = true; renderPayModal(); };
+
+window.downloadUploadFile = function() {
+  if (!PAYFILES) return;
+  const err = payBlockingError();
+  if (err) { alert(err); return; }
+  const records = payRecords();
+  if (!records.length) return;
+  const cm = cycleMatch();
+  if (!cm.ok && !confirm(`PAY CYCLE MISMATCH\n\nOnly ${cm.matched} of ${cm.postCount} Post-Tax employees (${Math.round(cm.pct * 100)}%) appear in the Pre-Tax file. The files may be from different pay cycles.\n\nExport anyway?`)) return;
+  if (!UPLOAD.payType) { UPLOAD.prompting = true; renderPayModal(); return; }
+
+  // Columns required by the Eziway upload
+  const aoa = [['Employee Name', 'Payroll ID', 'Projected Deduction', 'Pre/Post Tax', 'Comments']];
+  records.forEach(r => aoa.push([r.employeeName, String(r.payrollId), Number(r.deduction.toFixed(2)), r.code, r.comments]));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Payroll ID as text, Projected Deduction to 2 decimals
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let row = 1; row <= range.e.r; row++) {
+    const idCell = ws[XLSX.utils.encode_cell({ r: row, c: 1 })];
+    if (idCell) idCell.t = 's';
+    const dedCell = ws[XLSX.utils.encode_cell({ r: row, c: 2 })];
+    if (dedCell && dedCell.t === 'n') dedCell.z = '0.00';
+  }
+  ws['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 18 }, { wch: 12 }, { wch: 30 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Upload');
+  XLSX.writeFile(wb, uploadFileName());
+};
+
+function noPayFilesHtml() {
+  return `<div class="pm-box warn"><h3>Pre-Tax and Post-Tax files not available</h3>
+    <p>This session was saved before sessions kept the Pre-Tax and Post-Tax files. Click <b>Load new files</b> and drop the files in again. Sessions you save from now on will include them.</p></div>`;
+}
+
+function uploadBodyHtml() {
+  if (!PAYFILES) return noPayFilesHtml();
+  const pre = PAYFILES.pre, post = PAYFILES.post;
+  const card = (p, lbl, wm) => `<div class="up-card${p.error ? '' : ' loaded'}"><span class="up-wm">${wm}</span>
+      <div class="up-lbl">${lbl}</div>
+      <div class="up-val">${money(p.total)}<span class="up-cnt">${p.records.length.toLocaleString('en-AU')} records</span></div>
+      <div class="up-fn" title="${escHtml(p.name)}">Loaded: ${escHtml(p.name)}</div></div>`;
+  let h = `<div class="up-cards">${card(pre, 'Pre-Tax', 'PRE')}${card(post, 'Post-Tax', 'POST')}</div>`;
+
+  const err = payBlockingError();
+  if (err) return h + `<div class="pm-box bad"><h3>Can't build the upload file</h3><p>${escHtml(err)}</p>
+      <p class="pm-note">Fix the file, then click <b>Load new files</b> and run the reconciliation again.</p></div>`;
+
+  const cm = cycleMatch(), pctText = Math.round(cm.pct * 100) + '%';
+  if (cm.postCount) {
+    h += cm.ok
+      ? `<p class="up-cycle-ok">Pay cycle check passed: ${cm.matched} of ${cm.postCount} Post-Tax employees (${pctText}) also appear in the Pre-Tax file.</p>`
+      : `<div class="pm-box bad"><div class="pm-big">Pay cycle mismatch</div>
+          <p>Only ${cm.matched} of ${cm.postCount} Post-Tax employees (${pctText}) appear in the Pre-Tax file. At least ${Math.round(PAY_CONST.PRE_POST_MATCH_MIN * 100)}% is expected when both files are from the same pay cycle.</p>
+          <p style="font-weight:600;margin-top:6px;">Check that the Pre-Tax and Post-Tax files are from the same pay cycle before exporting.</p></div>`;
+  }
+
+  const total = payTotal(), pt = PAY_TYPES[UPLOAD.payType];
+  if (pt) {
+    const why = UPLOAD.auto
+      ? (UPLOAD.payType === 'M'
+          ? `Set automatically: total ${money(total)} is ${money(PAY_CONST.MEDICAL_MAX_TOTAL)} or below.`
+          : `Set automatically: total ${money(total)} is ${money(PAY_CONST.HOSPITAL_MIN_TOTAL)} or above.`)
+      : `Selected manually. Total ${money(total)}.`;
+    h += `<div class="up-type ${UPLOAD.payType}">
+        <div style="display:flex;align-items:center;gap:14px;"><span class="up-letter">${UPLOAD.payType}</span>
+          <div><div class="up-ttl">${pt.label} (${UPLOAD.payType})</div><div class="up-why">${why}</div></div></div>
+        <button class="up-change" onclick="changeUploadPayType()">Change pay type</button></div>`;
+  }
+  if (UPLOAD.prompting) {
+    const msg = pt
+      ? `Total deductions are ${money(total)}. Select the pay cycle for this export.`
+      : `Total deductions are ${money(total)}. This is between the Medical band (${money(PAY_CONST.MEDICAL_MAX_TOTAL)} or below) and the Hospital band (${money(PAY_CONST.HOSPITAL_MIN_TOTAL)} or above), so it could not be set automatically.`;
+    h += `<div class="pm-box warn"><h3>Which pay cycle is this?</h3><p>${msg}</p>
+        <div class="up-prompt-btns">
+          <button class="pick-M" onclick="setUploadPayType('M')"><span class="pl">M</span>Medical Pay</button>
+          <button class="pick-H" onclick="setUploadPayType('H')"><span class="pl">H</span>Hospital Pay</button>
+        </div></div>`;
+  }
+  h += `<div class="up-total"><div><div class="up-tl">Total Deductions</div><div class="up-tv">${money(total)}</div></div>
+      <button class="up-dl" onclick="downloadUploadFile()"${pt ? '' : ' disabled'}>${DL_ICON}<span>${pt ? 'Download ' + escHtml(uploadFileName()) : 'Select pay type to download'}</span></button></div>`;
+  return h;
+}
+
+// --- GST reconciliation ---
+async function handleGstDrop(files) {
+  const file = files && files[0];
+  if (!file || !PAYFILES) return;
+  GST = { fileName: file.name, loading: true };
+  renderPayModal();
+  try {
+    const buf = await readFileAsArrayBuffer(file);
+    const wb = XLSX.read(buf, { type: 'array' });
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+    const ID = PAY_CONST.GST_HEADER_ID, DEP = PAY_CONST.GST_HEADER_DEPOSIT;
+    // Header row is somewhere in the first 20 rows
+    let h = -1;
+    for (let i = 0; i < Math.min(aoa.length, 20); i++) {
+      const row = (aoa[i] || []).map(c => String(c).trim());
+      if (row.includes(ID) && row.includes(DEP)) { h = i; break; }
+    }
+    if (h < 0) throw new Error(`Invalid GST Report. Could not find header row containing '${ID}' and '${DEP}' in the first 20 rows.`);
+    const head = aoa[h].map(c => String(c).trim());
+    const cId = head.indexOf(ID), cDep = head.indexOf(DEP), cGst = head.indexOf(PAY_CONST.GST_HEADER_GST), cName = head.indexOf('Employee Name');
+    const num = v => parseFloat(String(v == null ? '' : v).replace(/[^0-9.\-]/g, '')) || 0;
+    let total = null;
+    const gstRows = [];
+    for (let r = h + 1; r < aoa.length; r++) {
+      const row = aoa[r]; if (!row) continue;
+      const name = cName >= 0 ? String(row[cName] == null ? '' : row[cName]).trim() : '';
+      if (name.toLowerCase().startsWith('total')) { if (total === null) total = num(row[cDep]) || null; continue; }
+      const pid = String(row[cId] == null ? '' : row[cId]).trim().replace(/^0+/, '').replace(/\.0$/, '');
+      if (!pid) continue;
+      gstRows.push({ payrollId: pid, deposit: num(row[cDep]), gst: cGst >= 0 ? num(row[cGst]) : 0, employeeName: name });
+    }
+    GST = runGstCheck(gstRows, total, file.name);
+  } catch (e) {
+    console.error(e);
+    GST = { fileName: file.name, error: e.message || String(e) };
+  }
+  paintGstDot();
+  renderPayModal();
+}
+
+function runGstCheck(gstRows, total, fileName) {
+  const gstMap = {};
+  gstRows.forEach(r => { gstMap[r.payrollId] = r; });
+  const payroll = {};
+  payRecords().forEach(r => {
+    if (!payroll[r.payrollId]) payroll[r.payrollId] = { total: 0, name: r.employeeName };
+    payroll[r.payrollId].total += r.deduction;
+  });
+  const results = Object.keys(payroll).map(id => {
+    const p = payroll[id], g = gstMap[id];
+    const res = { id, name: p.name, payrollTotal: p.total, gstTarget: 0, variance: 0, status: 'OK' };
+    if (!g) { res.status = 'MISSING_IN_GST'; res.variance = null; return res; }
+    const target = g.deposit - g.gst;
+    res.gstTarget = target;
+    res.variance = target - p.total;   // Target - Actual
+    // Calculation error: deposit ~0 but GST isn't, or GST > deposit
+    if ((Math.abs(g.deposit) < 0.001 && Math.abs(g.gst) > 0.001) || target < -0.001) res.status = 'CALCULATION_ERROR';
+    else if (Math.abs(res.variance) > 0.01) res.status = 'VARIANCE';
+    return res;
+  });
+  const rank = { CALCULATION_ERROR: 1, VARIANCE: 2, MISSING_IN_GST: 3, OK: 4 };
+  results.sort((a, b) => (rank[a.status] - rank[b.status]) || String(a.name).localeCompare(String(b.name)));
+  const issues = results.filter(r => r.status !== 'OK');
+  const counts = { CALCULATION_ERROR: 0, VARIANCE: 0, MISSING_IN_GST: 0 };
+  issues.forEach(r => { counts[r.status]++; });
+  return { fileName, results, issues, counts, total, gstRowCount: gstRows.length, matched: results.length - counts.MISSING_IN_GST };
+}
+
+window.downloadGstCsv = function() {
+  if (!GST || !GST.results) return;
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const headers = ['Employee Name', 'Payroll ID', 'Payroll Total', 'GST Target (Deposit-GST)', 'Variance', 'Status'];
+  const rows = GST.results.map(r => {
+    const miss = r.status === 'MISSING_IN_GST';
+    const v = r.status === 'OK' ? 0 : r.variance;
+    return [q(r.name), q(r.id), r.payrollTotal.toFixed(2), miss ? 'N/A' : r.gstTarget.toFixed(2), miss ? 'N/A' : v.toFixed(2), r.status].join(',');
+  });
+  const blob = new Blob([[headers.join(',')].concat(rows).join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'GST_Validation_Report.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+window.openFromGst = function(pid) { closePayModal(); selectEmployee(pid); };
+
+function paintGstDot() {
+  const dot = document.getElementById('gst-tool-dot');
+  if (!dot) return;
+  if (!GST || GST.loading) { dot.hidden = true; return; }
+  dot.hidden = false;
+  const n = GST.issues ? GST.issues.length : 0;
+  dot.className = 'tb-dot ' + (GST.error || n > PAY_CONST.GST_LIST_MAX ? 'bad' : (n ? 'warn' : 'ok'));
+  dot.title = GST.error ? 'GST report could not be read' : (n ? `${n} GST issue${n === 1 ? '' : 's'}` : 'GST reconciliation passed');
+}
+
+function gstBodyHtml() {
+  if (!PAYFILES) return noPayFilesHtml();
+  const err = payBlockingError();
+  if (err) return `<div class="pm-box bad"><h3>Can't run the GST check</h3><p>${escHtml(err)}</p></div>`;
+  const empCount = new Set(payRecords().map(r => r.payrollId)).size;
+  let h = `<label class="drop-zone" id="gst-drop">
+      <input type="file" id="gst-input" accept=".xlsx,.xls" />
+      <div class="dz-main">${GST && !GST.loading ? 'Drop a different GST report to run it again' : 'Drop the GST Invoice report here, or click to choose'}</div>
+      <div class="dz-sub">Expecting: 'GST Invoice Report.xlsx'. Checked against the ${empCount.toLocaleString('en-AU')} employees in the Pre-Tax and Post-Tax files loaded for this reconciliation.</div>
+    </label>`;
+  if (!GST) return h;
+  if (GST.loading) return h + `<div class="pm-loading">Reading ${escHtml(GST.fileName)}...</div>`;
+  h += `<div class="pm-file">GST report: <b>${escHtml(GST.fileName)}</b></div>`;
+  if (GST.error) return h + `<div class="pm-box bad"><h3>Couldn't read the GST report</h3><p>${escHtml(GST.error)}</p></div>`;
+
+  const n = GST.issues.length, MAX = PAY_CONST.GST_LIST_MAX;
+  const csvBtn = `<button class="pm-btn dark" onclick="downloadGstCsv()">&#8681; Download validation report (.csv)</button>`;
+  if (!n) {
+    const tot = (GST.total != null && !isNaN(GST.total))
+      ? `<p style="margin-top:10px;font-size:15px;font-weight:700;">Bank Payment Process Log Total to Enter: ${GST.total.toFixed(2)}</p>` : '';
+    return h + `<div class="pm-box ok"><h3>GST Reconciliation Successful</h3>
+        <p>All ${GST.results.length.toLocaleString('en-AU')} employees match the GST Report. No variances found.</p>${tot}
+        <div class="pm-actions">${csvBtn}</div></div>`;
+  }
+  const c = GST.counts;
+  const chips = [
+    c.CALCULATION_ERROR ? `<span class="pm-count">Calculation error: ${c.CALCULATION_ERROR}</span>` : '',
+    c.VARIANCE ? `<span class="pm-count">Variance: ${c.VARIANCE}</span>` : '',
+    c.MISSING_IN_GST ? `<span class="pm-count">Missing in GST: ${c.MISSING_IN_GST}</span>` : ''
+  ].join('');
+  if (n > MAX) {
+    return h + `<div class="pm-box bad"><div class="pm-big">${n.toLocaleString('en-AU')} GST issues found</div>
+        <p style="margin-top:6px;">That's more than ${MAX}, so they aren't listed here. <b>Is this the GST report for the correct pay run?</b>
+        Check the report's pay date matches the Pre-Tax and Post-Tax files. If it is the right report, download the CSV to see every issue.</p>
+        <div class="pm-counts">${chips}</div>
+        <p class="pm-note" style="color:inherit;">${GST.matched.toLocaleString('en-AU')} of ${GST.results.length.toLocaleString('en-AU')} payroll employees were found in this GST report (${GST.gstRowCount.toLocaleString('en-AU')} rows).</p>
+        <div class="pm-actions">${csvBtn}</div></div>`;
+  }
+  const inList = new Set((DATA && DATA.employees ? DATA.employees : []).map(e => e.payrollId));
+  const rows = GST.issues.map(r => {
+    const miss = r.status === 'MISSING_IN_GST', calc = r.status === 'CALCULATION_ERROR';
+    const chip = miss ? '<span class="pm-chip missing">Missing in GST</span>'
+      : calc ? '<span class="pm-chip calc">Calculation Error</span>' : '<span class="pm-chip var">Variance</span>';
+    const action = inList.has(r.id)
+      ? `<button class="pm-open" data-pid="${escHtml(r.id)}" onclick="openFromGst(this.dataset.pid)" title="Open this employee in the reconciler">Open</button>`
+      : '<span style="color:var(--text-faint);">-</span>';
+    return `<tr><td>${escHtml(r.name)}</td><td>${escHtml(r.id)}</td>
+        <td class="num recv">${money(r.payrollTotal)}</td>
+        <td class="num tgt">${miss ? '<span style="color:var(--neg);font-style:italic;font-weight:500;">Not Found</span>' : money(r.gstTarget)}</td>
+        <td class="num" style="color:var(--neg);">${miss ? '-' : (r.variance > 0 ? '+' : '') + money(r.variance)}</td>
+        <td>${chip}</td><td>${action}</td></tr>`;
+  }).join('');
+  return h + `<div class="pm-box warn"><h3>GST Issues Detected (${n})</h3>
+      <p>The following discrepancies were found between the Payroll Files and the GST Report.</p>
+      <div style="overflow-x:auto;"><table class="pm-table"><thead><tr>
+        <th>Employee</th><th>Payroll ID</th><th class="num">Payroll Received</th><th class="num">Eziway GST Target</th><th class="num">Variance</th><th>Issue</th><th>Action</th>
+      </tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="pm-actions">${csvBtn}</div></div>`;
+}
+
+// --- Popup shell ---
+window.openUploadModal = function() { openPayModal('upload'); };
+window.openGstModal = function() { openPayModal('gst'); };
+function openPayModal(kind) {
+  payModal = kind;
+  let el = document.getElementById('pay-modal');
+  if (!el) {
+    el = document.createElement('div'); el.id = 'pay-modal'; el.className = 'am-backdrop';
+    el.addEventListener('mousedown', e => { if (e.target === el) closePayModal(); });
+    document.body.appendChild(el);
+  }
+  el.style.display = 'flex';
+  renderPayModal();
+  document.removeEventListener('keydown', payModalKeys);
+  document.addEventListener('keydown', payModalKeys);
+}
+function payModalKeys(e) { if (e.key === 'Escape') closePayModal(); }
+function closePayModal() {
+  payModal = null;
+  const el = document.getElementById('pay-modal');
+  if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  document.removeEventListener('keydown', payModalKeys);
+}
+window.closePayModal = closePayModal;
+function renderPayModal() {
+  const el = document.getElementById('pay-modal');
+  if (!el || !payModal) return;
+  const isGst = payModal === 'gst';
+  const title = isGst ? 'GST reconciliation' : 'Upload file: Summary &amp; Download';
+  const sub = isGst
+    ? `Checks the Eziway GST Invoice report against the Pre-Tax and Post-Tax files. <a class="pm-link" href="${GST_REPORT_URL}" target="_blank" rel="noopener">Open the GST report in Eziway &#8599;</a>`
+    : 'Builds the Eziway pay-run upload file from the Pre-Tax and Post-Tax files already loaded, with the same checks as Pay Processing.';
+  el.innerHTML = `<div class="am-dialog pm-dialog" role="dialog" aria-modal="true" aria-label="${isGst ? 'GST reconciliation' : 'Upload file'}">
+      <div class="am-head"><div><div class="am-title">${title}</div><div class="am-sub">${sub}</div></div>
+        <button class="am-x" onclick="closePayModal()" title="Close">&#10005;</button></div>
+      <div class="pm-body">${isGst ? gstBodyHtml() : uploadBodyHtml()}</div>
+    </div>`;
+  const zone = document.getElementById('gst-drop');
+  if (zone) {
+    const input = document.getElementById('gst-input');
+    input.addEventListener('change', e => { const f = e.target.files; handleGstDrop(f); });
+    ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
+    zone.addEventListener('dragleave', e => { e.preventDefault(); zone.classList.remove('drag'); });
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleGstDrop(e.dataTransfer.files); });
+  }
+}
 
 (function initSearch() {
   const input = document.getElementById('search');
