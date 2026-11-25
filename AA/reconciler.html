@@ -217,6 +217,28 @@
   .emlcard-eaid { font-family:var(--font-num); font-weight:700; font-size:15px; color:var(--text); letter-spacing:0.04em; }
   .emlcard-bal { font-family:var(--font-num); font-weight:700; font-size:15px; color:var(--text); }
   .emlcard-meta { font-size:11px; color:var(--text-faint); margin-top:4px; font-family:var(--font-num); }
+  .fees-paid { display:flex; gap:var(--s-2); flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); align-items:stretch; }
+  .fees-paid .fp-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); align-self:center; margin-right:4px; }
+  .fee-tile { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-md); padding:6px 12px; min-width:150px; }
+  .fee-tile .ft-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); }
+  .fee-tile .ft-val { font-family:var(--font-num); font-weight:700; font-size:15px; color:var(--text); }
+  .fee-tile .ft-cap { font-size:10px; color:var(--text-faint); font-family:var(--font-num); }
+  .fee-tile.over { background:var(--neg-weak); border-color:var(--neg); }
+  .fee-tile.over .ft-val, .fee-tile.over .ft-cap { color:var(--neg); }
+  .fee-caps { display:flex; gap:var(--s-2); margin-top:8px; }
+  .fee-caps > div { flex:1; }
+  .fee-caps label { display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px; font-weight:600; }
+  .fee-caps input { width:100%; padding:6px 10px; border:1px solid var(--border-strong); border-radius:var(--r-md); font-size:13px; font-family:var(--font-ui); }
+  .badge.feecap { background: var(--neg-weak); color: var(--neg); }
+  .fp-toggle { margin-left:auto; align-self:center; padding:5px 12px; border:1px solid var(--border-strong); background:var(--surface); border-radius:var(--r-md); cursor:pointer; font-size:12px; color:var(--text-muted); font-family:var(--font-ui); }
+  .fp-toggle:hover { background:var(--surface-2); color:var(--text); }
+  .pay-breakdown { display:none; margin-top:12px; }
+  .pay-breakdown.open { display:block; }
+  table.paybd { width:100%; max-width:560px; border-collapse:collapse; font-size:13px; }
+  table.paybd th, table.paybd td { padding:6px 10px; border-bottom:1px solid var(--border); text-align:left; }
+  table.paybd th { background:var(--surface-2); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); font-weight:600; }
+  table.paybd td.num, table.paybd th.num { text-align:right; font-family:var(--font-num); }
+  table.paybd tfoot td { font-weight:700; background:var(--surface-2); border-top:2px solid var(--border-strong); }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style id="brand-consistency">
@@ -247,17 +269,17 @@
 <div id="upload-screen" class="upload-screen">
   <div class="upload-card">
     <h2>Load your three files</h2>
-    <div class="subtitle">Variance is calculated using Deposit Amount (column I) of items with Next Payment Date on or before the as-of date, with a one-day tolerance either side so a pay run a day early or late still treats them as current. Pre-tax items are GST-adjusted (divided by 1.10). All processing happens locally in your browser — no data leaves your machine.</div>
+    <div class="subtitle">Variance is calculated using Deposit Amount (column I) of items with Next Payment Date on or before the as-of date, with a one-day tolerance either side so a pay run a day early or late still treats them as current. Pre-tax items are GST-adjusted (divided by 1.10). All processing happens locally in your browser, no data leaves your machine.</div>
 
     <div class="upload-row">
       <label>1. Package Benefit Details (xlsx)</label>
-      <div class="hint">The full package extract — expected columns include PayCycle Category, Payroll ID, Salary Package Item, Fortnightly Amount, Deposit Amount, Next Payment Date, Capped Amount Available, EB Capped Amount Available, Status.</div>
+      <div class="hint">The full package extract. Expected columns include PayCycle Category, Payroll ID, Salary Package Item, Fortnightly Amount, Deposit Amount, Next Payment Date, Capped Amount Available, EB Capped Amount Available, Status.</div>
       <input type="file" id="pkg-file" accept=".xlsx,.xls" />
     </div>
 
     <div class="upload-row">
       <label>2. AH Pre-Tax (xlsx)</label>
-      <div class="hint">Pre-tax deductions per Payroll ID. Amounts are negative in the file — converted to positive automatically.</div>
+      <div class="hint">Pre-tax deductions per Payroll ID. Amounts are negative in the file and converted to positive automatically.</div>
       <input type="file" id="pre-file" accept=".xlsx,.xls" />
     </div>
 
@@ -277,6 +299,17 @@
       <label>5. EMLMEC card balances (csv) <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
       <div class="hint">Meal Entertainment (EMLMEC) card export. Matched to employees by EmployeeNumber (column F); pulls through the EAID (column G) and Balance.</div>
       <input type="file" id="emlmec-file" accept=".csv,.xlsx,.xls" />
+    </div>
+
+    <div class="upload-row">
+      <label>6. Finance Batch Report (xlsx) <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+      <div class="hint">Payments to date. Matched by Pay Roll ID; the header shows Entertainment Benefits Fee, Admin Fee and Admin Fee - Special, with an expandable breakdown of every benefit paid. Set a max below to flag anyone who has reached it (leave blank to just show totals).</div>
+      <input type="file" id="fees-file" accept=".xlsx,.xls,.csv" />
+      <div class="fee-caps">
+        <div><label>Max Entertainment Benefits Fee ($)</label><input type="number" id="cap-ebfee" step="0.01" min="0" placeholder="No max" /></div>
+        <div><label>Max Admin Fee ($)</label><input type="number" id="cap-admin" step="0.01" min="0" placeholder="No max" /></div>
+        <div><label>Max Admin Fee - Special ($)</label><input type="number" id="cap-adminsp" step="0.01" min="0" placeholder="No max" /></div>
+      </div>
     </div>
 
     <div class="config-row">
@@ -364,6 +397,22 @@ const POST_TAX_ITEMS_SET = new Set(['Post Tax Contribution']);
 
 let DATA = null;
 let CARDS = { emlmec: {}, emlebc: {} };  // EmployeeNumber -> { eaid, balance, ... }
+// Fees paid (Finance Batch Report). Only these three item names are counted.
+const FEE_PAID_TYPES = [
+  { key: 'ebfee',   item: 'Entertainment Benefits Fee', label: 'Entertainment Benefit Fee', capId: 'cap-ebfee' },
+  { key: 'admin',   item: 'Admin Fee',                  label: 'Admin Fee',                 capId: 'cap-admin' },
+  { key: 'adminsp', item: 'Admin Fee - Special',        label: 'Admin Fee Special',         capId: 'cap-adminsp' }
+];
+let FEES_PAID = null;   // null = report not loaded; otherwise PayrollID -> { ebfee, admin, adminsp }
+let FEE_CAPS = {};      // key -> number (optional max)
+let payBreakdownOpen = false;   // remembers expand state across employees
+const FEE_CAPS_KEY = 'payrollReconciler_feeCaps';
+(function restoreFeeCaps() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FEE_CAPS_KEY) || '{}');
+    FEE_PAID_TYPES.forEach(t => { const el = document.getElementById(t.capId); if (el && saved[t.key] != null) el.value = saved[t.key]; });
+  } catch (e) {}
+})();
 let STORAGE_KEY = null;
 let state = {};
 let activePid = null;
@@ -681,6 +730,87 @@ function parseCardFile(rows) {
   return out;
 }
 
+// Parse the Finance Batch Report (Employee Name, Pay Roll ID, Item Name, Payment).
+// Sums Payment per Payroll ID for the three fee items only; every other item is ignored.
+function parseFeeFile(rows) {
+  const out = {};
+  if (!rows || !rows.length) return out;
+  const hdr = (rows[0] || []).map(h => String(h == null ? '' : h).trim().toLowerCase().replace(/\s+/g, ' '));
+  const find = (names, fallback) => { for (const n of names) { const i = hdr.indexOf(n); if (i >= 0) return i; } return fallback; };
+  const cPid = find(['pay roll id', 'payroll id', 'employee number'], 1);
+  const cItem = find(['item name', 'salary package item', 'item'], 2);
+  const cPay = find(['payment', 'amount'], 3);
+  const byItem = {};
+  FEE_PAID_TYPES.forEach(t => { byItem[t.item.toLowerCase()] = t.key; });
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]; if (!row || !row.length) continue;
+    const pidRaw = row[cPid];
+    if (pidRaw === null || pidRaw === undefined || String(pidRaw).trim() === '') continue;   // skips SubTotal / Grand Total
+    const itemName = String(row[cItem] == null ? '' : row[cItem]).trim().replace(/\s+/g, ' ');
+    if (!itemName) continue;
+    const amt = typeof row[cPay] === 'number' ? row[cPay] : parseFloat(String(row[cPay] || '').replace(/[$,\s]/g, ''));
+    if (isNaN(amt)) continue;
+    const pid = normalizeKey(pidRaw);
+    if (!out[pid]) out[pid] = { ebfee: 0, admin: 0, adminsp: 0, all: {} };
+    // Full breakdown: every item, summed per item name
+    out[pid].all[itemName] = Math.round(((out[pid].all[itemName] || 0) + amt) * 100) / 100;
+    const key = byItem[itemName.toLowerCase()];
+    if (key) out[pid][key] = Math.round((out[pid][key] + amt) * 100) / 100;
+  }
+  return out;
+}
+function readFeeCaps() {
+  const caps = {};
+  FEE_PAID_TYPES.forEach(t => {
+    const v = parseFloat((document.getElementById(t.capId) || {}).value);
+    if (!isNaN(v) && v > 0) caps[t.key] = v;
+  });
+  try { localStorage.setItem(FEE_CAPS_KEY, JSON.stringify(caps)); } catch (e) {}
+  return caps;
+}
+// True when any fee paid has reached its max (only where a max is set).
+function feeCapReached(pid) {
+  if (!FEES_PAID) return false;
+  const f = FEES_PAID[pid]; if (!f) return false;
+  return FEE_PAID_TYPES.some(t => FEE_CAPS[t.key] != null && f[t.key] >= FEE_CAPS[t.key] - 0.005);
+}
+function feesPaidHtml(pid) {
+  if (!FEES_PAID) return '';
+  const f = FEES_PAID[pid] || { ebfee: 0, admin: 0, adminsp: 0 };
+  const tiles = FEE_PAID_TYPES.map(t => {
+    const paid = f[t.key] || 0;
+    const cap = FEE_CAPS[t.key];
+    const over = cap != null && paid >= cap - 0.005;
+    const capLine = cap != null
+      ? `<div class="ft-cap">${over ? (paid > cap + 0.005 ? 'Over max by ' + fmt(paid - cap) : 'Max reached') : 'Room ' + fmt(cap - paid) + ' of ' + fmt(cap)}</div>`
+      : '';
+    return `<div class="fee-tile${over ? ' over' : ''}"><div class="ft-label">${t.label}</div><div class="ft-val">${fmt(paid)}</div>${capLine}</div>`;
+  }).join('');
+  const none = FEES_PAID[pid] ? '' : '<div class="ft-cap" style="align-self:center;">Not in Finance Batch Report</div>';
+  // Full payment breakdown (hidden until expanded). Only benefits with a paid amount are listed.
+  const all = (FEES_PAID[pid] && FEES_PAID[pid].all) || {};
+  const rows = Object.keys(all).filter(n => Math.abs(all[n]) >= 0.005).sort((a, b) => all[b] - all[a]);
+  let toggle = '', table = '';
+  if (rows.length) {
+    const total = rows.reduce((sum, n) => sum + all[n], 0);
+    toggle = `<button class="fp-toggle" onclick="togglePayBreakdown(this)">${payBreakdownOpen ? 'Hide all payments' : 'Show all payments (' + rows.length + ')'}</button>`;
+    table = `<div class="pay-breakdown${payBreakdownOpen ? ' open' : ''}" data-count="${rows.length}"><table class="paybd">
+        <thead><tr><th>Benefit</th><th class="num">Total paid</th></tr></thead>
+        <tbody>${rows.map(n => `<tr><td>${n}</td><td class="num">${fmt(all[n])}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td>Total</td><td class="num">${fmt(total)}</td></tr></tfoot>
+      </table></div>`;
+  }
+  return `<div class="fees-paid"><span class="fp-title">Fees paid</span>${tiles}${none}${toggle}</div>${table}`;
+}
+window.togglePayBreakdown = function(btn) {
+  payBreakdownOpen = !payBreakdownOpen;
+  const box = btn.closest('.emp-header').querySelector('.pay-breakdown');
+  if (box) {
+    box.classList.toggle('open', payBreakdownOpen);
+    btn.textContent = payBreakdownOpen ? 'Hide all payments' : 'Show all payments (' + box.dataset.count + ')';
+  }
+}
+
 async function processFiles() {
   const pkgFile = document.getElementById('pkg-file').files[0];
   const preFile = document.getElementById('pre-file').files[0];
@@ -711,6 +841,10 @@ async function processFiles() {
     CARDS = { emlmec: {}, emlebc: {} };
     if (emlebcFile) { status.textContent = 'Reading EMLEBC card balances...'; CARDS.emlebc = parseCardFile(await parseXlsx(emlebcFile)); }
     if (emlmecFile) { status.textContent = 'Reading EMLMEC card balances...'; CARDS.emlmec = parseCardFile(await parseXlsx(emlmecFile)); }
+    FEES_PAID = null;
+    FEE_CAPS = readFeeCaps();
+    const feesFile = document.getElementById('fees-file').files[0];
+    if (feesFile) { status.textContent = 'Reading Finance Batch Report...'; FEES_PAID = parseFeeFile(await parseXlsx(feesFile)); }
     status.textContent = 'Calculating variances...';
     const asOfDate = new Date(asOfStr + 'T00:00:00');
     const result = buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolerance);
@@ -1157,7 +1291,8 @@ function renderList() {
     const addedBadge = (s.addedItems || []).length ? '<span class="badge added">+'+s.addedItems.length+'</span>' : '';
     const termBadge = s.terminating ? '<span class="badge terminating">TERM</span>' : '';
     const noPostBadge = (emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005) ? '<span class="badge nopost">NO POST-TAX</span>' : '';
-    div.innerHTML = `<div class="pid">${emp.payrollId}${reviewedBadge}${termBadge}${noPostBadge}${excessBadge}${futureBadge}${addedBadge}</div>
+    const feeCapBadge = feeCapReached(emp.payrollId) ? '<span class="badge feecap">FEE MAX</span>' : '';
+    div.innerHTML = `<div class="pid">${emp.payrollId}${reviewedBadge}${termBadge}${feeCapBadge}${noPostBadge}${excessBadge}${futureBadge}${addedBadge}</div>
       <div class="name">${emp.first || ''} ${emp.last || ''}</div>
       <div class="var ${varClass}">Variance: ${fmt(v)}</div>`;
     panel.appendChild(div);
@@ -1184,6 +1319,7 @@ function renderDetail() {
   let html = `<div class="emp-header">
       <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span> ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
       <div style="margin-top: 8px;">${emp.inPackage ? '<span class="chip-ok">In Package Benefit Details</span>' : '<span class="chip-neg">NOT IN PACKAGE - funds received but no record</span>'}</div>
+      ${feesPaidHtml(emp.payrollId)}
     </div>`;
   ['preTax','postTax'].forEach(side => {
     const d = emp[side]; if (!d) return;
