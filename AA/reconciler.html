@@ -358,6 +358,23 @@
   .tool-btn .tb-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:6px; vertical-align:middle; }
   .tb-dot.ok { background:var(--pos); } .tb-dot.bad { background:var(--neg); } .tb-dot.warn { background:var(--warn-border); }
 
+  /* Pay runs (Medical M / Hospital H) */
+  .run-tag { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:999px; font-size:10.5px; font-weight:800; color:#fff; margin-left:6px; vertical-align:middle; }
+  .run-tag.run-M { background:#0d9488; } .run-tag.run-H { background:#7e22ce; }
+  .badge.run-M { background:#ccfbf1; color:#0f766e; } .badge.run-H { background:#f3e8ff; color:#6b21a8; }
+  .badge.crossrun { background:var(--warn-weak); color:var(--warn); }
+  #run-pick .run-pick-opts { display:flex; gap:14px; align-items:center; min-height:36px; }
+  #run-pick .run-opt { display:inline-flex; align-items:center; gap:4px; font-weight:500; font-size:13px; margin:0; cursor:pointer; }
+  #run-pick .run-opt input { width:auto; }
+  #run-pick .run-opt .run-tag { margin-left:2px; }
+  .run-warnings { flex:none; background:var(--warn-weak); border-bottom:1px solid #f3d6a6; color:#7a4a00; font-size:12.5px; padding:8px 24px; }
+  .pm-tabs { display:flex; gap:6px; margin-bottom:12px; border-bottom:1px solid var(--border); }
+  .pm-tab { border:none; background:none; padding:8px 12px; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:var(--font-ui); display:inline-flex; align-items:center; }
+  .pm-tab.on { color:var(--text); border-bottom-color:var(--accent); }
+  .pm-run-head { display:flex; align-items:center; gap:4px; font-size:14px; font-weight:700; margin-top:18px; padding-top:12px; border-top:1px solid var(--border); }
+  .pm-run-head:first-of-type { border-top:none; padding-top:0; }
+  .pm-run-head .run-tag { margin-left:0; margin-right:6px; }
+
   /* Popup shell (reuses .am-backdrop / .am-dialog / .am-head) */
   .pm-dialog { max-width:880px; }
   .pm-body { padding:4px 20px 18px; overflow-y:auto; font-size:13px; }
@@ -394,6 +411,9 @@
   .pm-chip.var { background:var(--warn-weak); color:var(--warn); }
   .pm-open { border:none; background:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:12.5px; padding:0; font-family:var(--font-ui); }
   .pm-open:hover { text-decoration:underline; }
+  .pm-ack { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; margin:0 0 0 6px; cursor:pointer; color:inherit; }
+  .pm-ack input { width:auto; margin:0; }
+  .run-warnings .rw-link { border:none; background:none; padding:0; color:inherit; font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; }
 
   /* Upload popup */
   .up-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
@@ -436,7 +456,7 @@
   </div>
   <div class="meta">
     <span id="header-info" style="display:none;">Loaded from your files</span>
-    <button class="tool-btn" id="upload-tool-btn" style="display:none; margin-left:10px;" onclick="openUploadModal()" title="Build the Eziway upload file (Summary &amp; Download) from the Pre-Tax and Post-Tax files already loaded">&#8681; Upload file</button>
+    <button class="tool-btn" id="upload-tool-btn" style="display:none; margin-left:10px;" onclick="openUploadModal()" title="Build the Eziway upload file (Summary &amp; Download) from the Pre-Tax and Post-Tax files already loaded">&#8681; Upload file<span class="tb-dot" id="upload-tool-dot" hidden></span></button>
     <button class="tool-btn" id="gst-tool-btn" style="display:none;" onclick="openGstModal()" title="Drop the GST Invoice report to check it against the Pre-Tax and Post-Tax files already loaded">GST reconciliation<span class="tb-dot" id="gst-tool-dot" hidden></span></button>
     <button class="back-btn" id="save-btn" style="display:none; margin-left:10px;" onclick="saveSession()" title="Download everything loaded plus your allocations as one .json file. Drop it back in later instead of the original files.">&#8681; Save session</button>
     <button class="back-btn" id="back-btn" style="display:none; margin-left:6px;" onclick="goBackToUpload()">Load new files</button>
@@ -453,7 +473,7 @@
       <label class="drop-zone" id="drop-zone">
         <input type="file" id="drop-input" multiple accept=".xlsx,.xls,.csv,.json" />
         <div class="dz-main">Drop all your files here, or click to choose</div>
-        <div class="dz-sub">Needs Package Benefit Details, AH Pre-Tax and AH Post-Tax. Optional: LE and ME card reports and the Finance Batch Report. Files are recognised automatically; you'll be asked about any that can't be. To pick up where you left off, drop in a saved session (.json) on its own.</div>
+        <div class="dz-sub">Needs Package Benefit Details, plus AH Pre-Tax and AH Post-Tax for one or both pay runs (Medical M, Hospital H). Each pay file's run is worked out from the Package file. Optional: LE and ME card reports and the Finance Batch Report. Files are recognised automatically; you'll be asked about any that can't be. To pick up where you left off, drop in a saved session (.json) on its own.</div>
       </label>
       <div class="file-checklist" id="file-checklist"></div>
       <div class="file-list" id="file-list"></div>
@@ -469,6 +489,7 @@
     </div>
 
     <div class="config-row">
+      <div id="run-pick" hidden></div>
 <div>
         <label>As-of Date</label>
         <input type="date" id="as-of-date" />
@@ -489,6 +510,7 @@
 
 <!-- Main app (hidden until files loaded) -->
 <div id="main-app" style="display: none;">
+  <div class="run-warnings" id="run-warnings" hidden></div>
   <div class="toolbar">
     <div class="search-box">
       <input id="search" type="text" placeholder="Search by Payroll ID or name..." autocomplete="off" spellcheck="false" />
@@ -546,7 +568,6 @@ const FEE_CAPS_KEY = 'payrollReconciler_feeCaps';
     FEE_PAID_TYPES.forEach(t => { const el = t.capId && document.getElementById(t.capId); if (el && saved[t.key] != null) el.value = saved[t.key]; });
   } catch (e) {}
 })();
-let STORAGE_KEY = null;
 let state = {};
 let activePid = null;
 let activeFilter = 'all';
@@ -561,11 +582,10 @@ let payTypeFilter = 'ALL';
 // Auto-detect pay cycle and as-of date from the AH filename (e.g. "AH - Pre-Tax M 14.05.2026.xlsx").
 function detectFromFilename(fname) {
   if (!fname) return;
-  const m = fname.match(/AH\s*-\s*(?:Pre|Post)-Tax\s+([A-Z])\s+(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})/i);
+  // As-of date only; the pay run (M / H) is worked out per file by detectRun().
+  const m = fname.match(/(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})/);
   if (!m) return;
-  // Cycle is stored internally for the localStorage key only (no longer shown to the user)
-  window.__detectedCycle = m[1].toUpperCase();
-  const dd = m[2].padStart(2,'0'), mm = m[3].padStart(2,'0'), yyyy = m[4];
+  const dd = m[1].padStart(2,'0'), mm = m[2].padStart(2,'0'), yyyy = m[3];
   const dateInput = document.getElementById('as-of-date');
   const iso = `${yyyy}-${mm}-${dd}`;
   if (dateInput && dateInput.value !== iso) {
@@ -622,7 +642,31 @@ function normalizeKey(s) {
   return String(s).trim().replace(/^0+/, '') || '0';
 }
 
-function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolerance) {
+// runs: [{ cycle: 'M'|'H', preRows, postRows }] - the pay runs being reconciled.
+// otherPaid: Map pid -> cycle for employees paid in a loaded pay run that is NOT being
+// reconciled, so they are left out rather than looking like they are missing.
+function buildReconciliation(pkgRows, runs, otherPaid, asOfDate, tolerance) {
+  const selected = new Set(runs.map(r => r.cycle));
+  const cycle = runs.map(r => r.cycle).join('+');
+  // Which pay run each employee was actually paid in (from the AH files), so someone on
+  // the "wrong" cycle in the Package file still reconciles against the run that paid them.
+  const paidRun = new Map();
+  const warnings = [];
+  const _dupSeen = new Set();
+  for (const run of runs) {
+    for (const rows of [run.preRows, run.postRows]) {
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r]; if (!row || row.length === 0) continue;
+        const pid = normalizeKey(row[0]); if (!pid || pid === '0') continue;
+        const prev = paidRun.get(pid);
+        if (prev && prev !== run.cycle && !_dupSeen.has(pid)) {
+          _dupSeen.add(pid);
+          warnings.push(`Payroll ID ${pid} is in both the ${prev} and ${run.cycle} pay run files. Their amounts from both runs are added together.`);
+        }
+        if (!prev) paidRun.set(pid, run.cycle);
+      }
+    }
+  }
   // Column indices (1-based for clarity but 0-based for JS access)
   // 1=PayCycle, 2=PayrollID, 5=First, 6=Last, 7=Item, 8=Fortnightly, 9=Deposit,
   // 18=NextPaymentDate, 21=Capped (LE cap), 22=EBCapped (ME cap), 24=Status
@@ -669,15 +713,19 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
   for (let r = 1; r < pkgRows.length; r++) {
     const row = pkgRows[r];
     if (!row || row.length === 0) continue;
-    if (cycle !== 'ALL' && row[C_CYCLE] !== cycle) continue;
+    const pid = normalizeKey(row[C_PID]);
+    const rowCycle = String(row[C_CYCLE] == null ? '' : row[C_CYCLE]).trim().toUpperCase();
+    // Include the employee if they were paid in a run being reconciled; otherwise only if
+    // the Package file puts them on a run being reconciled (and they weren't paid elsewhere).
+    const paidIn = paidRun.get(pid);
+    if (!paidIn && (otherPaid.has(pid) || !selected.has(rowCycle))) continue;
     if (row[C_STATUS] !== 'Active') continue;
     const npd = parseDMY(row[C_NPD]);
     if (!npd) continue;
     const isFuture = npd > futureCutoff;
     if (isFuture) skippedFuture++;
-    const pid = normalizeKey(row[C_PID]);
     if (!pkg[pid]) {
-      pkg[pid] = { first: row[C_FN]||'', last: row[C_LN]||'', leCap: null, meCap: null, items: [], payType: null, empStatus: '' };
+      pkg[pid] = { first: row[C_FN]||'', last: row[C_LN]||'', leCap: null, meCap: null, items: [], payType: null, empStatus: '', cycle: rowCycle };
     }
     if (hmCol >= 0) {
       const _pv = row[hmCol];
@@ -714,8 +762,20 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
     }
     return out;
   }
-  const ahPre = parseAH(preRows);
-  const ahPost = parseAH(postRows);
+  // Merge each run's AH files (Payroll IDs don't overlap between runs; if one does, add them)
+  function mergeAH(key) {
+    const out = {};
+    for (const run of runs) {
+      const part = parseAH(run[key]);
+      for (const pid in part) {
+        if (out[pid]) out[pid].received += part[pid].received;
+        else out[pid] = part[pid];
+      }
+    }
+    return out;
+  }
+  const ahPre = mergeAH('preRows');
+  const ahPost = mergeAH('postRows');
 
   // Build employees
   const employees = {};
@@ -826,12 +886,20 @@ function buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolera
     }
   }
 
+  // Tag each employee with the pay run they belong to (where they were paid, else their
+  // Package cycle) and the Package cycle, so a cross-run employee can be flagged.
+  for (const pid in employees) {
+    const e = employees[pid];
+    e.pkgCycle = pkg[pid] ? (pkg[pid].cycle || null) : null;
+    e.run = paidRun.get(pid) || e.pkgCycle || null;
+  }
+
   const empList = Object.values(employees).sort((a,b) => {
     const va = Math.max(Math.abs((a.preTax?.variance)||0), Math.abs((a.postTax?.variance)||0));
     const vb = Math.max(Math.abs((b.preTax?.variance)||0), Math.abs((b.postTax?.variance)||0));
     return vb - va;
   });
-  return { employees: empList, skippedFuture, cycle, asOfDate, hmDetected };
+  return { employees: empList, skippedFuture, cycle, asOfDate, hmDetected, warnings };
 }
 
 // Parse an EML card export (EMLMEC / EMLEBC). Keyed by normalised EmployeeNumber (col F).
@@ -1003,7 +1071,19 @@ const FILE_TYPES = [
   { key: 'ignore', label: 'Not needed (ignore)',     required: false }
 ];
 const typeLabel = k => (FILE_TYPES.find(t => t.key === k) || {}).label || k;
-let LOADED = [];   // { id, name, rows, type, auto, note }
+// Pay runs. Pre-Tax / Post-Tax files carry a run (entry.run = 'M' | 'H'); one of each per run.
+const RUNS = ['M', 'H'];
+const RUN_NAMES = { M: 'Medical', H: 'Hospital' };
+const runLabel = c => RUN_NAMES[c] ? `${RUN_NAMES[c]} (${c})` : c;
+const isPay = t => t === 'pre' || t === 'post';
+const fileLabel = (type, run) => isPay(type) && run ? `${typeLabel(type)}, ${runLabel(run)}` : typeLabel(type);
+// Dropdown choices: pre/post are split by pay run
+const TYPE_CHOICES = [
+  { v: 'pkg' }, { v: 'pre:M' }, { v: 'pre:H' }, { v: 'post:M' }, { v: 'post:H' },
+  { v: 'le' }, { v: 'me' }, { v: 'fees' }, { v: 'ignore' }
+].map(c => { const [t, r] = c.v.split(':'); return { v: c.v, label: fileLabel(t, r) }; });
+let RUN_PICK = { M: true, H: true };   // which loaded pay runs to reconcile
+let LOADED = [];   // { id, name, rows, type, run, auto, note }
 let _fileSeq = 0;
 function hkey(v) { return String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function escHtml(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -1059,50 +1139,159 @@ async function addFiles(fileList) {
     let rows = null, det;
     try { rows = await parseXlsx(file); det = detectFileType(file.name, rows); }
     catch (e) { console.error(e); det = { type: null, note: 'Could not read this file. Remove it or set it to "Not needed".' }; }
-    const entry = { id: ++_fileSeq, name: file.name, rows, type: det.type, auto: !!det.type, note: det.note, detNote: det.note };
+    const entry = { id: ++_fileSeq, name: file.name, rows, type: det.type, run: null, runManual: false, auto: !!det.type, note: det.note, detNote: det.note };
     LOADED.push(entry);
-    if (entry.type === 'pre' || entry.type === 'post') detectFromFilename(file.name);
+    if (isPay(entry.type)) detectFromFilename(file.name);
   }
   status.textContent = '';
   renderFileList();
 }
-window.setFileType = function(id, type) {
+window.setFileType = function(id, value) {
   const f = LOADED.find(x => x.id === id); if (!f) return;
+  const [type, run] = String(value || '').split(':');
   f.type = type || null; f.auto = false;
-  f.note = type ? 'Set manually' : f.detNote;
-  if (f.type === 'pre' || f.type === 'post') detectFromFilename(f.name);
+  f.run = isPay(f.type) && run ? run : null;
+  f.runManual = !!f.run;
+  f.note = f.type ? 'Set manually' : f.detNote;
+  if (isPay(f.type)) detectFromFilename(f.name);
   renderFileList();
 };
 window.removeFile = function(id) { LOADED = LOADED.filter(x => x.id !== id); renderFileList(); };
+window.setRunPick = function(c, on) { RUN_PICK[c] = !!on; renderFileList(); };
+
+// --- Pay run detection for Pre-Tax / Post-Tax files ---
+// 1. Match the file's employees to the Package file's "PayCycle Category" (H / M).
+// 2. Otherwise, a standalone M or H in the file name (e.g. "AH - Pre-Tax M.xlsx").
+// If the two disagree, or neither works, ask.
+function runFromName(name) {
+  const base = String(name || '').replace(/\.[^.]+$/, '');
+  const m = base.match(/(?:^|[^A-Za-z])([MH])(?=[^A-Za-z]|$)/);
+  return m ? m[1] : null;
+}
+function pkgCycleMap(pkgEntry) {
+  if (pkgEntry._cycleMap) return pkgEntry._cycleMap;
+  const rows = pkgEntry.rows || [];
+  const hdr = (rows[0] || []).map(hkey);
+  let cCycle = hdr.findIndex(h => h === 'paycyclecategory' || h === 'paycycle');
+  if (cCycle < 0) cCycle = 0;
+  let cPid = hdr.indexOf('payrollid'); if (cPid < 0) cPid = 1;
+  const map = new Map();
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]; if (!row) continue;
+    const c = String(row[cCycle] == null ? '' : row[cCycle]).trim().toUpperCase();
+    if (!RUNS.includes(c)) continue;
+    const pid = normalizeKey(row[cPid]); if (pid && pid !== '0' && !map.has(pid)) map.set(pid, c);
+  }
+  pkgEntry._cycleMap = map;
+  return map;
+}
+function payFileIds(f) {
+  if (f._ids) return f._ids;
+  const rows = f.rows || [];
+  let c = (rows[0] || []).map(hkey).indexOf('persno'); if (c < 0) c = 0;
+  const ids = [];
+  for (let r = 1; r < rows.length; r++) { const row = rows[r]; if (!row) continue; const pid = normalizeKey(row[c]); if (pid && pid !== '0') ids.push(pid); }
+  f._ids = ids;
+  return ids;
+}
+function detectRun(f, pkgEntry) {
+  const nameRun = runFromName(f.name);
+  let pkgRun = null, pkgNote = '';
+  const map = pkgEntry && pkgEntry.rows ? pkgCycleMap(pkgEntry) : null;
+  if (map && map.size) {
+    const ids = payFileIds(f), cnt = { M: 0, H: 0 };
+    ids.forEach(pid => { const c = map.get(pid); if (c) cnt[c]++; });
+    const matched = cnt.M + cnt.H;
+    const best = cnt.M >= cnt.H ? 'M' : 'H';
+    if (matched && cnt[best] / matched >= 0.9) {
+      pkgRun = best;
+      pkgNote = `${cnt[best].toLocaleString('en-AU')} of ${ids.length.toLocaleString('en-AU')} employees are on the ${best} pay cycle in the Package file`;
+    } else if (matched) {
+      pkgNote = `its employees are split across pay cycles in the Package file (M: ${cnt.M}, H: ${cnt.H})`;
+    } else {
+      pkgNote = 'none of its employees are in the Package file';
+    }
+  }
+  if (pkgRun && nameRun && pkgRun !== nameRun)
+    return { run: null, note: `The file name says ${nameRun}, but ${pkgNote}. Which pay run is it?` };
+  if (pkgRun) return { run: pkgRun, note: `${runLabel(pkgRun)} pay run: ${pkgNote}.` };
+  if (nameRun) return { run: nameRun, note: `${runLabel(nameRun)} pay run, from the file name` + (pkgEntry ? (pkgNote ? ` (${pkgNote})` : '') : '. It will be checked against the Package file once that is added') + '.' };
+  if (!pkgEntry) return { run: null, waiting: true, note: 'Add the Package Benefit Details file so I can tell which pay run (M or H) this is.' };
+  return { run: null, note: `Can't tell which pay run this is${pkgNote ? ': ' + pkgNote : ''}. Choose it here.` };
+}
+// Re-work out the pay run of every auto-detected Pre-Tax / Post-Tax file (the Package file may have changed)
+function assignRuns() {
+  const pkgs = LOADED.filter(x => x.type === 'pkg');
+  const pkgEntry = pkgs.length === 1 ? pkgs[0] : null;
+  LOADED.forEach(f => {
+    if (!isPay(f.type)) { f.run = null; return; }
+    if (f.runManual) return;
+    const d = detectRun(f, pkgEntry);
+    f.run = d.run; f.runNote = d.note; f.runWaiting = !!d.waiting;
+  });
+}
+// Pay runs with both a Pre-Tax and Post-Tax file, and which of those are ticked to reconcile
+function completeRuns() { return RUNS.filter(c => LOADED.some(f => f.type === 'pre' && f.run === c) && LOADED.some(f => f.type === 'post' && f.run === c)); }
+function pickedRuns() { const comp = completeRuns(); return comp.length > 1 ? comp.filter(c => RUN_PICK[c]) : comp; }
 
 // Returns { ready, message } and paints the checklist + file list.
 function renderFileList() {
+  assignRuns();
+  const slot = f => (isPay(f.type) ? f.type + ':' + (f.run || '?') : f.type);
   const counts = {};
-  LOADED.forEach(f => { if (f.type && f.type !== 'ignore') counts[f.type] = (counts[f.type] || 0) + 1; });
-  document.getElementById('file-checklist').innerHTML = LOADED.length ? FILE_TYPES.filter(t => t.key !== 'ignore').map(t =>
-    `<span class="fc-chip${t.required ? ' req' : ''}${counts[t.key] ? ' got' : ''}">${counts[t.key] ? '✓ ' : ''}${t.label}${t.required ? '' : ' (optional)'}</span>`).join('') : '';
+  LOADED.forEach(f => { if (f.type && f.type !== 'ignore' && !(isPay(f.type) && !f.run)) counts[slot(f)] = (counts[slot(f)] || 0) + 1; });
+  const runsSeen = RUNS.filter(c => LOADED.some(f => isPay(f.type) && f.run === c));
+  // Checklist: Package, then Pre/Post per pay run seen (or a generic pair before any run is known), then optional files
+  const chip = (got, req, label) => `<span class="fc-chip${req ? ' req' : ''}${got ? ' got' : ''}">${got ? '✓ ' : ''}${label}${req ? '' : ' (optional)'}</span>`;
+  let chips = chip(counts.pkg, true, typeLabel('pkg'));
+  if (runsSeen.length) runsSeen.forEach(c => { chips += chip(counts['pre:' + c], true, fileLabel('pre', c)) + chip(counts['post:' + c], true, fileLabel('post', c)); });
+  else chips += chip(false, true, 'AH Pre-Tax') + chip(false, true, 'AH Post-Tax');
+  chips += ['le', 'me', 'fees'].map(k => chip(counts[k], false, typeLabel(k))).join('');
+  document.getElementById('file-checklist').innerHTML = LOADED.length ? chips : '';
+
   document.getElementById('file-list').innerHTML = LOADED.map(f => {
-    const dup = f.type && f.type !== 'ignore' && counts[f.type] > 1;
-    const needs = !f.type || dup;
+    const noRun = isPay(f.type) && !f.run;
+    const dup = f.type && f.type !== 'ignore' && !noRun && counts[slot(f)] > 1;
+    const needs = !f.type || noRun || dup;
     const cls = needs ? 'confirm' : (f.type === 'ignore' ? 'ignored' : '');
-    const note = dup ? `More than one file is set as ${typeLabel(f.type)}. Change one, or remove it.` : f.note;
+    let note = f.note;
+    if (isPay(f.type)) note = f.runManual ? `Set manually: ${fileLabel(f.type, f.run)}.` : (f.runNote || f.note);
+    if (dup) note = `More than one file is set as ${fileLabel(f.type, f.run)}. Change one, or remove it.`;
     const rowCount = f.rows ? Math.max(0, f.rows.length - 1).toLocaleString('en-AU') + ' rows' : '';
-    const opts = `<option value=""${f.type ? '' : ' selected'}>Choose what this file is...</option>` +
-      FILE_TYPES.map(t => `<option value="${t.key}"${f.type === t.key ? ' selected' : ''}>${t.label}</option>`).join('');
+    const cur = isPay(f.type) ? (f.run ? f.type + ':' + f.run : '') : (f.type || '');
+    const prompt = isPay(f.type) && !f.run ? `${typeLabel(f.type)}: which pay run?` : 'Choose what this file is...';
+    const opts = `<option value=""${cur ? '' : ' selected'}>${prompt}</option>` +
+      TYPE_CHOICES.map(t => `<option value="${t.v}"${cur === t.v ? ' selected' : ''}>${t.label}</option>`).join('');
     return `<div class="file-item ${cls}">
-        <div class="fi-name" title="${escHtml(f.name)}">${escHtml(f.name)}<span class="fi-meta">${rowCount}</span></div>
+        <div class="fi-name" title="${escHtml(f.name)}">${escHtml(f.name)}${f.run ? `<span class="run-tag run-${f.run}">${f.run}</span>` : ''}<span class="fi-meta">${rowCount}</span></div>
         <select onchange="setFileType(${f.id}, this.value)">${opts}</select>
         <button class="fi-remove" onclick="removeFile(${f.id})" title="Remove this file">Remove</button>
-        <div class="fi-note">${needs ? '⚠ ' : ''}${note}</div>
+        <div class="fi-note">${needs && !f.runWaiting ? '⚠ ' : ''}${note}</div>
       </div>`;
   }).join('');
-  const unresolved = LOADED.filter(f => !f.type).length;
+
+  // Which pay runs to reconcile (only asked when both are loaded)
+  const comp = completeRuns();
+  const pickEl = document.getElementById('run-pick');
+  if (comp.length > 1) {
+    pickEl.hidden = false;
+    pickEl.innerHTML = `<label>Pay runs to reconcile</label><div class="run-pick-opts">` + comp.map(c =>
+      `<label class="run-opt"><input type="checkbox" ${RUN_PICK[c] ? 'checked' : ''} onchange="setRunPick('${c}', this.checked)"> <span class="run-tag run-${c}">${c}</span> ${RUN_NAMES[c]}</label>`).join('') + `</div>`;
+  } else { pickEl.hidden = true; pickEl.innerHTML = ''; }
+
+  const unknownType = LOADED.filter(f => !f.type).length;
+  const unknownRun = LOADED.filter(f => isPay(f.type) && !f.run);
   const dups = Object.keys(counts).filter(k => counts[k] > 1);
-  const missing = FILE_TYPES.filter(t => t.required && !counts[t.key]).map(t => t.label);
+  const missing = [];
+  if (!counts.pkg) missing.push(typeLabel('pkg'));
+  if (!runsSeen.length && !unknownRun.length) missing.push('AH Pre-Tax and AH Post-Tax');
+  runsSeen.forEach(c => { ['pre', 'post'].forEach(t => { if (!counts[t + ':' + c]) missing.push(fileLabel(t, c)); }); });
   let message = '';
-  if (unresolved) message = `Tell me what ${unresolved === 1 ? '1 file is' : unresolved + ' files are'} before running.`;
-  else if (dups.length) message = `More than one file is set as ${dups.map(typeLabel).join(', ')}.`;
+  if (unknownType) message = `Tell me what ${unknownType === 1 ? '1 file is' : unknownType + ' files are'} before running.`;
+  else if (unknownRun.length && !unknownRun.every(f => f.runWaiting && !counts.pkg)) message = `Choose the pay run (M or H) for ${unknownRun.length === 1 ? '1 file' : unknownRun.length + ' files'} before running.`;
+  else if (dups.length) message = `More than one file is set as ${dups.map(k => { const [t, r] = k.split(':'); return fileLabel(t, r); }).join(', ')}.`;
   else if (missing.length) message = `Still needed: ${missing.join(', ')}.`;
+  else if (!pickedRuns().length) message = 'Tick at least one pay run to reconcile.';
   const ready = !message;
   document.getElementById('process-btn').disabled = !ready;
   const st = document.getElementById('status-msg');
@@ -1122,9 +1311,31 @@ function renderFileList() {
   renderFileList();
 })();
 function rowsOf(type) { const f = LOADED.find(x => x.type === type); return f ? f.rows : null; }
+function payEntry(type, run) { return LOADED.find(x => x.type === type && x.run === run) || null; }
+
+// Allocation state is stored per pay run + as-of date, so reconciling M, H or both shares it.
+function storageKeyFor(c, asOf) { return `payrollReconciler_${c}_${asOf}`; }
+function dataRuns() { return (DATA && DATA.runs && DATA.runs.length) ? DATA.runs : [DATA && DATA.payCycle ? DATA.payCycle : 'ALL']; }
+function loadState() {
+  state = {};
+  dataRuns().forEach(c => { try { Object.assign(state, JSON.parse(localStorage.getItem(storageKeyFor(c, DATA.generated)) || '{}')); } catch (e) {} });
+}
+function saveState() {
+  if (!DATA) return;
+  const runs = dataRuns();
+  try {
+    if (runs.length === 1) { localStorage.setItem(storageKeyFor(runs[0], DATA.generated), JSON.stringify(state)); return; }
+    const runOf = {};
+    DATA.employees.forEach(e => { runOf[e.payrollId] = e.run; });
+    runs.forEach(c => {
+      const sub = {};
+      Object.keys(state).forEach(pid => { if ((runs.includes(runOf[pid]) ? runOf[pid] : runs[0]) === c) sub[pid] = state[pid]; });
+      localStorage.setItem(storageKeyFor(c, DATA.generated), JSON.stringify(sub));
+    });
+  } catch (e) { console.error(e); }
+}
 
 async function processFiles() {
-  const cycle = window.__detectedCycle || 'ALL';
   const asOfStr = document.getElementById('as-of-date').value;
   const _tolRaw = parseFloat(document.getElementById('tolerance').value); const tolerance = isNaN(_tolRaw) ? 0.01 : _tolRaw;
   const errArea = document.getElementById('error-area');
@@ -1142,8 +1353,11 @@ async function processFiles() {
   status.textContent = 'Preparing files...';
   try {
     const pkgRows = rowsOf('pkg');
-    const preRows = rowsOf('pre');
-    const postRows = rowsOf('post');
+    const runs = pickedRuns();
+    const runInputs = runs.map(c => ({ cycle: c, preRows: payEntry('pre', c).rows, postRows: payEntry('post', c).rows }));
+    // Employees paid in a loaded pay run that isn't being reconciled: leave them out
+    const otherPaid = new Map();
+    LOADED.filter(f => isPay(f.type) && f.run && !runs.includes(f.run)).forEach(f => payFileIds(f).forEach(pid => otherPaid.set(pid, f.run)));
     CARDS = { emlmec: {}, emlebc: {} };
     if (rowsOf('le')) CARDS.emlebc = parseCardFile(rowsOf('le'));
     if (rowsOf('me')) CARDS.emlmec = parseCardFile(rowsOf('me'));
@@ -1152,17 +1366,27 @@ async function processFiles() {
     if (rowsOf('fees')) FEES_PAID = parseFeeFile(rowsOf('fees'));
     status.textContent = 'Calculating variances...';
     const asOfDate = new Date(asOfStr + 'T00:00:00');
-    const result = buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolerance);
+    const result = buildReconciliation(pkgRows, runInputs, otherPaid, asOfDate, tolerance);
     DATA = {
-      generated: asOfStr, payCycle: cycle, tolerance,
-      employees: result.employees
+      generated: asOfStr, payCycle: runs.join('+'), runs, tolerance,
+      employees: result.employees, warnings: result.warnings || []
     };
-    STORAGE_KEY = `payrollReconciler_${cycle}_${asOfStr}`;
-    state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    // Keep the parsed Pre-Tax / Post-Tax files for the Upload file and GST reconciliation popups
-    const _preEntry = LOADED.find(x => x.type === 'pre'), _postEntry = LOADED.find(x => x.type === 'post');
-    setPayFiles({ pre: parsePayFile(_preEntry.rows, 'pre', _preEntry.name), post: parsePayFile(_postEntry.rows, 'post', _postEntry.name) });
-    status.textContent = `Done. ${result.employees.length} variance employees found. ${result.skippedFuture} future-dated rows excluded.`;
+    loadState();
+    // Keep each run's parsed Pre-Tax / Post-Tax files for the Upload file and GST reconciliation popups
+    // and check every employee in them against the Package file (in it, and on that pay cycle)
+    const payRuns = { runs };
+    const pkgIdx = packageIndex(pkgRows);
+    const pkgName = (LOADED.find(x => x.type === 'pkg') || {}).name || '';
+    runs.forEach(c => {
+      const pre = payEntry('pre', c), post = payEntry('post', c);
+      payRuns[c] = { pre: parsePayFile(pre.rows, 'pre', pre.name), post: parsePayFile(post.rows, 'post', post.name) };
+      const otherIds = new Map();
+      LOADED.filter(f => isPay(f.type) && f.run && f.run !== c).forEach(f => payFileIds(f).forEach(pid => otherIds.set(pid, f.run)));
+      payRuns[c].pkgCheck = packageCheck(pkgIdx, c, payRuns[c], otherIds, pkgName);
+    });
+    setPayRuns(payRuns);
+    const perRun = runs.length > 1 ? ' (' + runs.map(c => `${c}: ${result.employees.filter(e => e.run === c).length}`).join(', ') + ')' : '';
+    status.textContent = `Done. ${result.employees.length} variance employees found${perRun}. ${result.skippedFuture} future-dated rows excluded.`;
 
     DATA.hmDetected = !!result.hmDetected;
     activePid = null;
@@ -1183,7 +1407,19 @@ function showMainApp(infoText) {
   document.getElementById('gst-tool-btn').style.display = '';
   const info = document.getElementById('header-info');
   info.textContent = infoText; info.style.display = '';
-  document.getElementById('pc').textContent = DATA.payCycle === 'ALL' ? 'All cycles' : DATA.payCycle;
+  document.getElementById('pc').textContent = DATA.payCycle === 'ALL' ? 'All cycles' : dataRuns().map(runLabel).join(' + ');
+  const warnEl = document.getElementById('run-warnings');
+  const warns = DATA.warnings || [];
+  const parts = [];
+  const pkgBad = runsList().filter(c => pkgIssues(c).length);
+  if (pkgBad.length) {
+    const multi = runsList().length > 1;
+    parts.push('<strong>Fix before exporting the upload file:</strong> ' + pkgBad.map(c => (multi ? `${runLabel(c)} files: ` : '') + escHtml(pkgIssueSummary(c))).join('; ')
+      + '. <button class="rw-link" onclick="openUploadModal()">See who in Upload file</button>');
+  }
+  if (warns.length) parts.push('<strong>Check pay runs:</strong> ' + warns.slice(0, 5).map(escHtml).join(' ') + (warns.length > 5 ? ` (+${warns.length - 5} more)` : ''));
+  warnEl.hidden = !parts.length;
+  warnEl.innerHTML = parts.join('<br>');
   document.getElementById('gen').textContent = DATA.generated;
   payTypeFilter = 'ALL';
   activeFilter = 'all';
@@ -1203,7 +1439,7 @@ window.saveSession = function() {
     kind: SESSION_KIND, version: 1, savedAt: new Date().toISOString(),
     data: DATA, cards: CARDS, feesPaid: FEES_PAID, feeCaps: FEE_CAPS,
     state, activePid,
-    payFiles: PAYFILES   // parsed Pre-Tax / Post-Tax, so Upload file + GST reconciliation work after a restore
+    payRuns: PAYRUNS   // parsed Pre-Tax / Post-Tax per pay run, so Upload file + GST reconciliation work after a restore
   };
   const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1227,9 +1463,15 @@ function restoreSession(session, fileName) {
   FEES_PAID = session.feesPaid || null;
   FEE_CAPS = session.feeCaps || {};
   state = session.state || {};
-  setPayFiles(session.payFiles || null);
-  STORAGE_KEY = `payrollReconciler_${DATA.payCycle}_${DATA.generated}`;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  let payRuns = session.payRuns || null;
+  if (!payRuns && session.payFiles && session.payFiles.pre && session.payFiles.post) {
+    // Sessions saved by the single-run version: one pay run, cycle from the session or the total
+    const pf = session.payFiles;
+    const c = RUNS.includes(DATA.payCycle) ? DATA.payCycle : (detectPayType(pf.pre.total + pf.post.total) || 'M');
+    payRuns = { runs: [c], [c]: pf };
+  }
+  setPayRuns(payRuns);
+  saveState();
   activePid = session.activePid && DATA.employees.some(e => e.payrollId === session.activePid) ? session.activePid : null;
   const when = session.savedAt ? new Date(session.savedAt).toLocaleString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   showMainApp('Session restored' + (when ? ' (saved ' + when + ')' : ''));
@@ -1704,7 +1946,7 @@ function terminatingAllocate(emp) {
   return { allocations: alloc, excess };
 }
 function getEmpState(pid) { return state[pid] || { allocations: {}, excess: 0, reviewed: false, addedItems: [], terminating: false, lockedItems: {} }; }
-function setEmpState(pid, partial) { state[pid] = { ...getEmpState(pid), ...partial }; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function setEmpState(pid, partial) { state[pid] = { ...getEmpState(pid), ...partial }; saveState(); }
 function payTypeOk(emp) { return payTypeFilter === 'ALL' || !emp.payType || emp.payType === payTypeFilter; }
 // Filter buttons + pay type (everything except the typed search)
 function filterMatches(emp) {
@@ -1719,7 +1961,10 @@ function filterMatches(emp) {
 }
 function empBadges(emp) {
   const s = getEmpState(emp.payrollId);
-  return (s.reviewed ? '<span class="badge reviewed">REVIEWED</span>' : '')
+  const multiRun = DATA && DATA.runs && DATA.runs.length > 1;
+  return (multiRun && emp.run ? `<span class="badge run-${emp.run}">${emp.run}</span>` : '')
+    + (emp.run && emp.pkgCycle && emp.run !== emp.pkgCycle ? `<span class="badge crossrun" title="Paid in the ${emp.run} pay run, but on the ${emp.pkgCycle} pay cycle in the Package file">PAID IN ${emp.run}, PKG ${emp.pkgCycle}</span>` : '')
+    + (s.reviewed ? '<span class="badge reviewed">REVIEWED</span>' : '')
     + (s.terminating ? '<span class="badge terminating">TERM</span>' : '')
     + (feeCapReached(emp.payrollId) ? '<span class="badge feecap">FEE MAX</span>' : '')
     + ((emp.postTax && emp.postTax.received <= 0.005 && emp.postTax.expected > 0.005) ? '<span class="badge nopost">NO POST-TAX</span>' : '')
@@ -1795,7 +2040,7 @@ function renderDetail() {
   let html = `<div class="emp-header">
       <div class="eh-row">
         <div class="eh-main">
-          <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span>${empStatusChip(emp.empStatus)} ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
+          <h2>${emp.first} ${emp.last} <span class="pid">(${emp.payrollId})</span>${emp.run && RUN_NAMES[emp.run] ? `<span class="run-tag run-${emp.run}" title="${RUN_NAMES[emp.run]} pay run">${emp.run}</span>` : ''}${empStatusChip(emp.empStatus)} ${terminating ? '<span class="term-tag" style="margin-left:8px;">TERMINATING</span>' : ''}</h2>
           <div class="eh-chips">${emp.inPackage ? '<span class="chip-ok">In Package Benefit Details</span>' : '<span class="chip-neg">NOT IN PACKAGE - funds received but no record</span>'}${_pb.toggle}</div>
         </div>
         ${feeStackHtml(emp.payrollId)}
@@ -2229,7 +2474,8 @@ const PAY_CONST = {
   MEDICAL_MAX_TOTAL: 1500000,   // combined total at or below this = Medical (M)
   HOSPITAL_MIN_TOTAL: 2500000,  // combined total at or above this = Hospital (H)
   PRE_POST_MATCH_MIN: 0.80,     // at least 80% of post-tax employees must appear in the pre-tax file
-  GST_LIST_MAX: 10              // more GST issues than this: CSV export only, no on-screen list
+  GST_LIST_MAX: 10,             // more GST issues than this: CSV export only, no on-screen list
+  PKG_LIST_MAX: 25              // more Package-check issues than this: CSV export only
 };
 const PAY_TYPES = {
   M: { label: 'Medical Pay', file: 'Medical' },
@@ -2237,10 +2483,12 @@ const PAY_TYPES = {
 };
 const GST_REPORT_URL = 'https://ah.eziway.net.au/ASPX/SalaryPackaging/EmployerDepositGSTInvoicesReport.aspx';
 const DL_ICON = '<svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>';
-let PAYFILES = null;   // { pre, post } from parsePayFile()
-let UPLOAD = { payType: null, auto: false, prompting: false };
-let GST = null;        // last GST run (kept while the popup is closed)
-let payModal = null;   // 'upload' | 'gst' | null
+let PAYRUNS = null;     // { runs: ['M','H'], M: { pre, post }, H: { pre, post } } from parsePayFile()
+let UPLOAD = { tab: null };   // UPLOAD[run] = { payType, auto, prompting }; tab = run shown in the popup
+let GST = {};           // GST[run] = last GST result for that pay run (kept while the popup is closed)
+let GST_LOADING = null; // names of GST files being read
+let GST_NOTES = [];     // [{ kind: 'info'|'warn'|'bad', html }] about how dropped reports were matched
+let payModal = null;    // 'upload' | 'gst' | null
 
 function money(n) { return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(n); }
 
@@ -2272,24 +2520,33 @@ function parsePayFile(rows, kind, name) {
   return out;
 }
 
-function setPayFiles(pf) {
-  PAYFILES = (pf && pf.pre && pf.post) ? pf : null;
-  GST = null;
-  UPLOAD = { payType: null, auto: false, prompting: false };
-  if (PAYFILES) {
-    const t = detectPayType(payTotal());
-    UPLOAD = t ? { payType: t, auto: true, prompting: false } : { payType: null, auto: false, prompting: true };
-  }
-  paintGstDot();
+function setPayRuns(pr) {
+  PAYRUNS = (pr && Array.isArray(pr.runs) && pr.runs.length && pr.runs.every(c => pr[c] && pr[c].pre && pr[c].post)) ? pr : null;
+  GST = {}; GST_LOADING = null; GST_NOTES = [];
+  UPLOAD = { tab: PAYRUNS ? PAYRUNS.runs[0] : null };
+  // Pay type comes from the pay run the files belong to; the total bands are kept as a cross-check
+  if (PAYRUNS) PAYRUNS.runs.forEach(c => { UPLOAD[c] = PAY_TYPES[c] ? { payType: c, auto: 'run', prompting: false } : bandPayType(runTotal(c)); });
+  // Open on the first pay run that has Package issues to fix
+  const _bad = runsList().find(c => pkgIssues(c).length);
+  if (_bad) UPLOAD.tab = _bad;
+  paintGstDot(); paintUploadDot();
 }
-function payRecords() { return PAYFILES ? [...PAYFILES.pre.records, ...PAYFILES.post.records] : []; }
-function payTotal() { return PAYFILES ? PAYFILES.pre.total + PAYFILES.post.total : 0; }
-function payBlockingError() { return PAYFILES ? (PAYFILES.pre.error || PAYFILES.post.error) : null; }
+function bandPayType(total) {
+  const t = detectPayType(total);
+  return t ? { payType: t, auto: true, prompting: false } : { payType: null, auto: false, prompting: true };
+}
+function runsList() { return PAYRUNS ? PAYRUNS.runs : []; }
+function runRecords(c) { const r = PAYRUNS[c]; return [...r.pre.records, ...r.post.records]; }
+function runTotal(c) { const r = PAYRUNS[c]; return r.pre.total + r.post.total; }
+function runBlockingError(c) { const r = PAYRUNS[c]; return r.pre.error || r.post.error; }
+function runHeadHtml(c, extra) {
+  return `<div class="pm-run-head">${RUN_NAMES[c] ? `<span class="run-tag run-${c}">${c}</span>${RUN_NAMES[c]} pay run` : 'Pay run'}${extra || ''}</div>`;
+}
 
 // --- Upload file (Summary & Download) ---
-function cycleMatch() {
-  const preIds = new Set(PAYFILES.pre.records.map(r => String(r.payrollId).trim()));
-  const postIds = new Set(PAYFILES.post.records.map(r => String(r.payrollId).trim()));
+function cycleMatch(c) {
+  const preIds = new Set(PAYRUNS[c].pre.records.map(r => String(r.payrollId).trim()));
+  const postIds = new Set(PAYRUNS[c].post.records.map(r => String(r.payrollId).trim()));
   let matched = 0; postIds.forEach(id => { if (preIds.has(id)) matched++; });
   const postCount = postIds.size, pct = postCount ? matched / postCount : 1;
   return { postCount, matched, pct, ok: pct >= PAY_CONST.PRE_POST_MATCH_MIN };
@@ -2297,27 +2554,30 @@ function cycleMatch() {
 function detectPayType(total) {
   if (total <= PAY_CONST.MEDICAL_MAX_TOTAL) return 'M';
   if (total >= PAY_CONST.HOSPITAL_MIN_TOTAL) return 'H';
-  return null;   // between bands: ask
+  return null;   // between bands
 }
-function uploadFileName() {
-  const pt = PAY_TYPES[UPLOAD.payType];
+function uploadFileName(c) {
+  const pt = PAY_TYPES[UPLOAD[c] && UPLOAD[c].payType];
   if (!pt) return 'Salary_Packaging_Upload.xlsx';
   const d = new Date();
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   return `${pt.file}_${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')} ${d.getFullYear()}_Salary_Packaging_Upload.xlsx`;
 }
-window.setUploadPayType = function(t) { UPLOAD = { payType: t, auto: false, prompting: false }; renderPayModal(); };
-window.changeUploadPayType = function() { UPLOAD.prompting = true; renderPayModal(); };
+window.setUploadTab = function(c) { UPLOAD.tab = c; renderPayModal(); };
+window.setUploadPayType = function(c, t) { UPLOAD[c] = { ...UPLOAD[c], payType: t, auto: false, prompting: false }; renderPayModal(); };
+window.setPkgAck = function(c, on) { UPLOAD[c].pkgAck = !!on; renderPayModal(); };
+window.changeUploadPayType = function(c) { UPLOAD[c].prompting = true; renderPayModal(); };
 
-window.downloadUploadFile = function() {
-  if (!PAYFILES) return;
-  const err = payBlockingError();
+window.downloadUploadFile = function(c) {
+  if (!PAYRUNS || !PAYRUNS[c]) return;
+  const err = runBlockingError(c);
   if (err) { alert(err); return; }
-  const records = payRecords();
+  if (pkgBlocked(c)) { alert('Some employees in these files don\'t match the Package Benefit Details file. Fix them first (see the Package check in this popup).'); return; }
+  const records = runRecords(c);
   if (!records.length) return;
-  const cm = cycleMatch();
+  const cm = cycleMatch(c);
   if (!cm.ok && !confirm(`PAY CYCLE MISMATCH\n\nOnly ${cm.matched} of ${cm.postCount} Post-Tax employees (${Math.round(cm.pct * 100)}%) appear in the Pre-Tax file. The files may be from different pay cycles.\n\nExport anyway?`)) return;
-  if (!UPLOAD.payType) { UPLOAD.prompting = true; renderPayModal(); return; }
+  if (!UPLOAD[c].payType) { UPLOAD[c].prompting = true; renderPayModal(); return; }
 
   // Columns required by the Eziway upload
   const aoa = [['Employee Name', 'Payroll ID', 'Projected Deduction', 'Pre/Post Tax', 'Comments']];
@@ -2334,28 +2594,143 @@ window.downloadUploadFile = function() {
   ws['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 18 }, { wch: 12 }, { wch: 30 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Upload');
-  XLSX.writeFile(wb, uploadFileName());
+  XLSX.writeFile(wb, uploadFileName(c));
 };
+
+// --- Package check: Eziway can only load a deduction for someone who is in the Package Benefit
+// Details file on that pay cycle, so check every employee in each pay run's load files against it.
+// Worked out when the files are loaded (needs the Package file) and saved with the session.
+function packageIndex(pkgRows) {
+  const hdr = (pkgRows[0] || []).map(hkey);
+  let cCycle = hdr.findIndex(h => h === 'paycyclecategory' || h === 'paycycle'); if (cCycle < 0) cCycle = 0;
+  let cPid = hdr.indexOf('payrollid'); if (cPid < 0) cPid = 1;
+  const idx = new Map();
+  for (let r = 1; r < pkgRows.length; r++) {
+    const row = pkgRows[r]; if (!row) continue;
+    const pid = normalizeKey(row[cPid]); if (!pid || pid === '0') continue;
+    const cyc = String(row[cCycle] == null ? '' : row[cCycle]).trim().toUpperCase();
+    if (!idx.has(pid)) idx.set(pid, new Set());
+    if (cyc) idx.get(pid).add(cyc);
+  }
+  return idx;
+}
+// idx from packageIndex(); otherIds: Map pid -> pay run, for the other pay run's loaded files
+function packageCheck(idx, c, run, otherIds, pkgName) {
+  const byPid = new Map();
+  [['Pre-Tax', run.pre], ['Post-Tax', run.post]].forEach(([side, f]) => f.records.forEach(rec => {
+    const pid = normalizeKey(rec.payrollId); if (!pid) return;
+    const e = byPid.get(pid) || { pid, name: rec.employeeName, sides: [], amount: 0 };
+    if (!e.sides.includes(side)) e.sides.push(side);
+    e.amount += rec.deduction;
+    byPid.set(pid, e);
+  }));
+  const issues = [], counts = { missing: 0, wrongrun: 0, dup: 0 };
+  byPid.forEach(e => {
+    const cycles = idx.get(e.pid), problems = [];
+    let pkgCycle = '';
+    if (!cycles) { problems.push('missing'); }
+    else {
+      pkgCycle = [...cycles].join('/');
+      if (!cycles.has(c)) problems.push('wrongrun');
+    }
+    const other = otherIds.get(e.pid);
+    if (other) problems.push('dup');
+    if (!problems.length) return;
+    problems.forEach(k => counts[k]++);
+    const text = problems.map(k => k === 'missing' ? 'Not in the Package file'
+      : k === 'wrongrun' ? (pkgCycle ? `On the ${pkgCycle} pay cycle in the Package file` : 'No pay cycle in the Package file')
+      : `Also in the ${other} pay run files`).join('; ');
+    issues.push({ ...e, amount: Math.round(e.amount * 100) / 100, pkgCycle, problems, text, otherRun: other || '' });
+  });
+  const rank = { missing: 1, wrongrun: 2, dup: 3 };
+  issues.sort((a, b) => (rank[a.problems[0]] - rank[b.problems[0]]) || String(a.name).localeCompare(String(b.name)));
+  return { pkgName: pkgName || '', checked: byPid.size, issues, counts };
+}
+function pkgIssues(c) { const pc = PAYRUNS && PAYRUNS[c] && PAYRUNS[c].pkgCheck; return pc ? pc.issues : []; }
+function pkgBlocked(c) { return pkgIssues(c).length > 0 && !(UPLOAD[c] && UPLOAD[c].pkgAck); }
+function pkgIssueSummary(c) {
+  const pc = PAYRUNS[c].pkgCheck, k = pc.counts, parts = [];
+  const n = x => `${x.toLocaleString('en-AU')} employee${x === 1 ? '' : 's'}`;
+  if (k.missing) parts.push(`${n(k.missing)} not in the Package file`);
+  if (k.wrongrun) parts.push(`${n(k.wrongrun)} on the other pay cycle in the Package file`);
+  if (k.dup) parts.push(`${n(k.dup)} also in the other pay run's files`);
+  return parts.join(', ');
+}
+function paintUploadDot() {
+  const dot = document.getElementById('upload-tool-dot');
+  if (!dot) return;
+  const bad = runsList().filter(c => pkgIssues(c).length);
+  dot.hidden = !bad.length;
+  dot.className = 'tb-dot bad';
+  dot.title = bad.map(c => (runsList().length > 1 ? c + ': ' : '') + pkgIssueSummary(c)).join(' | ') + ' - fix before exporting';
+}
+window.downloadPkgCsv = function(c) {
+  const pc = PAYRUNS && PAYRUNS[c] && PAYRUNS[c].pkgCheck;
+  if (!pc) return;
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const headers = ['Employee Name', 'Payroll ID', 'In file', 'Deduction', 'Load file pay run', 'Package pay cycle', 'Issue'];
+  const rows = pc.issues.map(r => [q(r.name), q(r.pid), q(r.sides.join(' + ')), r.amount.toFixed(2), c, q(r.pkgCycle || (r.problems.includes('missing') ? 'Not in Package' : '')), q(r.text)].join(','));
+  const blob = new Blob([[headers.join(',')].concat(rows).join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `Package_Check_${c}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+function pkgCheckHtml(c) {
+  const pc = PAYRUNS[c].pkgCheck;
+  if (!pc) return `<p class="pm-note">Package check not available: this session was saved before the check existed. Load the files again to run it.</p>`;
+  const pkgFile = pc.pkgName ? ` (${escHtml(pc.pkgName)})` : '';
+  const n = pc.issues.length, MAX = PAY_CONST.PKG_LIST_MAX;
+  if (!n) return `<p class="up-cycle-ok">Package check passed: all ${pc.checked.toLocaleString('en-AU')} employees in these files are in the Package Benefit Details file${pkgFile} on the ${runLabel(c)} pay cycle.</p>`;
+  const csvBtn = `<button class="pm-btn dark" onclick="downloadPkgCsv('${c}')">&#8681; Download the list (.csv)</button>`;
+  const ack = UPLOAD[c] && UPLOAD[c].pkgAck;
+  const ackBox = `<label class="pm-ack"><input type="checkbox" ${ack ? 'checked' : ''} onchange="setPkgAck('${c}', this.checked)"> I've fixed ${n === 1 ? 'this' : 'these'} in Eziway (or the load file). Export anyway.</label>`;
+  const fixText = `<p style="margin-top:6px;">Eziway can't load a deduction for someone who isn't in the Package file, or who is on the other pay cycle. Fix each one before exporting: correct the employee in Eziway, or take them out of the load file. Then download a fresh Package Benefit Details file and click <b>Load new files</b>.</p>`;
+  const chips = ['missing', 'wrongrun', 'dup'].filter(k => pc.counts[k]).map(k =>
+    `<span class="pm-count">${k === 'missing' ? 'Not in Package' : k === 'wrongrun' ? 'Wrong pay cycle' : 'In both pay runs'}: ${pc.counts[k]}</span>`).join('');
+  if (n > MAX) {
+    return `<div class="pm-box bad"><div class="pm-big">${n.toLocaleString('en-AU')} employees don't match the Package file</div>
+        <p style="margin-top:6px;">That's more than ${MAX}, so they aren't listed here. <b>Is this the right Package Benefit Details file${pkgFile} for this pay run?</b> If it is, download the list to see every employee.</p>
+        <div class="pm-counts">${chips}</div>
+        <div class="pm-actions">${csvBtn}${ackBox}</div></div>`;
+  }
+  const inList = new Set((DATA && DATA.employees ? DATA.employees : []).map(e => e.payrollId));
+  const rows = pc.issues.map(r => {
+    const chip = r.problems.map(k => k === 'missing' ? '<span class="pm-chip missing" title="Not in the Package file">Not in Package</span>'
+      : k === 'wrongrun' ? `<span class="pm-chip var" title="${escHtml(r.pkgCycle ? 'On the ' + r.pkgCycle + ' pay cycle in the Package file' : 'No pay cycle in the Package file')}">Package says ${escHtml(r.pkgCycle || 'no cycle')}</span>`
+      : `<span class="pm-chip var" title="Also in the ${escHtml(r.otherRun)} pay run files">Also in ${escHtml(r.otherRun)} files</span>`).join(' ');
+    const action = inList.has(r.pid)
+      ? `<button class="pm-open" data-pid="${escHtml(r.pid)}" onclick="openFromGst(this.dataset.pid)" title="Open this employee in the reconciler">Open</button>`
+      : '<span style="color:var(--text-faint);">-</span>';
+    return `<tr><td>${escHtml(r.name)}</td><td>${escHtml(r.pid)}</td><td>${escHtml(r.sides.join(' + '))}</td>
+        <td class="num">${money(r.amount)}</td><td>${chip}</td><td>${action}</td></tr>`;
+  }).join('');
+  return `<div class="pm-box bad"><h3>Fix before exporting: ${n} employee${n === 1 ? '' : 's'} ${n === 1 ? "doesn't" : "don't"} match the Package file</h3>${fixText}
+      <div style="overflow-x:auto;"><table class="pm-table"><thead><tr>
+        <th>Employee</th><th>Payroll ID</th><th>In file</th><th class="num">Deduction</th><th>Issue</th><th>Action</th>
+      </tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="pm-actions">${csvBtn}${ackBox}</div></div>`;
+}
 
 function noPayFilesHtml() {
   return `<div class="pm-box warn"><h3>Pre-Tax and Post-Tax files not available</h3>
     <p>This session was saved before sessions kept the Pre-Tax and Post-Tax files. Click <b>Load new files</b> and drop the files in again. Sessions you save from now on will include them.</p></div>`;
 }
 
-function uploadBodyHtml() {
-  if (!PAYFILES) return noPayFilesHtml();
-  const pre = PAYFILES.pre, post = PAYFILES.post;
+function uploadRunHtml(c) {
+  const pre = PAYRUNS[c].pre, post = PAYRUNS[c].post, u = UPLOAD[c];
   const card = (p, lbl, wm) => `<div class="up-card${p.error ? '' : ' loaded'}"><span class="up-wm">${wm}</span>
       <div class="up-lbl">${lbl}</div>
       <div class="up-val">${money(p.total)}<span class="up-cnt">${p.records.length.toLocaleString('en-AU')} records</span></div>
       <div class="up-fn" title="${escHtml(p.name)}">Loaded: ${escHtml(p.name)}</div></div>`;
   let h = `<div class="up-cards">${card(pre, 'Pre-Tax', 'PRE')}${card(post, 'Post-Tax', 'POST')}</div>`;
 
-  const err = payBlockingError();
+  const err = runBlockingError(c);
   if (err) return h + `<div class="pm-box bad"><h3>Can't build the upload file</h3><p>${escHtml(err)}</p>
       <p class="pm-note">Fix the file, then click <b>Load new files</b> and run the reconciliation again.</p></div>`;
 
-  const cm = cycleMatch(), pctText = Math.round(cm.pct * 100) + '%';
+  const cm = cycleMatch(c), pctText = Math.round(cm.pct * 100) + '%';
   if (cm.postCount) {
     h += cm.ok
       ? `<p class="up-cycle-ok">Pay cycle check passed: ${cm.matched} of ${cm.postCount} Post-Tax employees (${pctText}) also appear in the Pre-Tax file.</p>`
@@ -2363,79 +2738,137 @@ function uploadBodyHtml() {
           <p>Only ${cm.matched} of ${cm.postCount} Post-Tax employees (${pctText}) appear in the Pre-Tax file. At least ${Math.round(PAY_CONST.PRE_POST_MATCH_MIN * 100)}% is expected when both files are from the same pay cycle.</p>
           <p style="font-weight:600;margin-top:6px;">Check that the Pre-Tax and Post-Tax files are from the same pay cycle before exporting.</p></div>`;
   }
+  h += pkgCheckHtml(c);
 
-  const total = payTotal(), pt = PAY_TYPES[UPLOAD.payType];
+  const total = runTotal(c), pt = PAY_TYPES[u.payType];
   if (pt) {
-    const why = UPLOAD.auto
-      ? (UPLOAD.payType === 'M'
-          ? `Set automatically: total ${money(total)} is ${money(PAY_CONST.MEDICAL_MAX_TOTAL)} or below.`
-          : `Set automatically: total ${money(total)} is ${money(PAY_CONST.HOSPITAL_MIN_TOTAL)} or above.`)
-      : `Selected manually. Total ${money(total)}.`;
-    h += `<div class="up-type ${UPLOAD.payType}">
-        <div style="display:flex;align-items:center;gap:14px;"><span class="up-letter">${UPLOAD.payType}</span>
-          <div><div class="up-ttl">${pt.label} (${UPLOAD.payType})</div><div class="up-why">${why}</div></div></div>
-        <button class="up-change" onclick="changeUploadPayType()">Change pay type</button></div>`;
+    const why = u.auto === 'run'
+      ? `Set from the pay run: these are the ${runLabel(c)} Pre-Tax and Post-Tax files.`
+      : u.auto
+        ? (u.payType === 'M'
+            ? `Set automatically: total ${money(total)} is ${money(PAY_CONST.MEDICAL_MAX_TOTAL)} or below.`
+            : `Set automatically: total ${money(total)} is ${money(PAY_CONST.HOSPITAL_MIN_TOTAL)} or above.`)
+        : `Selected manually. Total ${money(total)}.`;
+    h += `<div class="up-type ${u.payType}">
+        <div style="display:flex;align-items:center;gap:14px;"><span class="up-letter">${u.payType}</span>
+          <div><div class="up-ttl">${pt.label} (${u.payType})</div><div class="up-why">${why}</div></div></div>
+        <button class="up-change" onclick="changeUploadPayType('${c}')">Change pay type</button></div>`;
+    // Cross-check against Pay Processing's total bands
+    const band = detectPayType(total);
+    if (band && band !== u.payType) {
+      const bandText = band === 'M' ? `${money(PAY_CONST.MEDICAL_MAX_TOTAL)} or below` : `${money(PAY_CONST.HOSPITAL_MIN_TOTAL)} or above`;
+      h += `<div class="pm-box warn"><p><b>Check the pay type.</b> The total ${money(total)} is ${bandText}, which Pay Processing would treat as ${PAY_TYPES[band].label} (${band}), but this upload is set to ${pt.label} (${u.payType}).</p></div>`;
+    }
   }
-  if (UPLOAD.prompting) {
+  if (u.prompting) {
     const msg = pt
       ? `Total deductions are ${money(total)}. Select the pay cycle for this export.`
       : `Total deductions are ${money(total)}. This is between the Medical band (${money(PAY_CONST.MEDICAL_MAX_TOTAL)} or below) and the Hospital band (${money(PAY_CONST.HOSPITAL_MIN_TOTAL)} or above), so it could not be set automatically.`;
     h += `<div class="pm-box warn"><h3>Which pay cycle is this?</h3><p>${msg}</p>
         <div class="up-prompt-btns">
-          <button class="pick-M" onclick="setUploadPayType('M')"><span class="pl">M</span>Medical Pay</button>
-          <button class="pick-H" onclick="setUploadPayType('H')"><span class="pl">H</span>Hospital Pay</button>
+          <button class="pick-M" onclick="setUploadPayType('${c}', 'M')"><span class="pl">M</span>Medical Pay</button>
+          <button class="pick-H" onclick="setUploadPayType('${c}', 'H')"><span class="pl">H</span>Hospital Pay</button>
         </div></div>`;
   }
   h += `<div class="up-total"><div><div class="up-tl">Total Deductions</div><div class="up-tv">${money(total)}</div></div>
-      <button class="up-dl" onclick="downloadUploadFile()"${pt ? '' : ' disabled'}>${DL_ICON}<span>${pt ? 'Download ' + escHtml(uploadFileName()) : 'Select pay type to download'}</span></button></div>`;
+      <button class="up-dl" onclick="downloadUploadFile('${c}')"${pt && !pkgBlocked(c) ? '' : ' disabled'}>${DL_ICON}<span>${!pt ? 'Select pay type to download' : pkgBlocked(c) ? 'Fix the Package check above to download' : 'Download ' + escHtml(uploadFileName(c))}</span></button></div>`;
   return h;
 }
 
+function uploadBodyHtml() {
+  if (!PAYRUNS) return noPayFilesHtml();
+  const runs = runsList();
+  if (!runs.includes(UPLOAD.tab)) UPLOAD.tab = runs[0];
+  if (runs.length === 1) return (RUN_NAMES[runs[0]] ? runHeadHtml(runs[0]) : '') + uploadRunHtml(runs[0]);
+  const tabs = runs.map(c => `<button class="pm-tab${c === UPLOAD.tab ? ' on' : ''}" onclick="setUploadTab('${c}')"><span class="run-tag run-${c}" style="margin:0 6px 0 0;">${c}</span>${RUN_NAMES[c] || c} &nbsp;<span style="font-weight:500;color:var(--text-faint);">${money(runTotal(c))}</span>${pkgIssues(c).length ? '<span class="tb-dot bad" style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;" title="Package check: employees to fix"></span>' : ''}</button>`).join('');
+  return `<div class="pm-tabs">${tabs}</div>` + uploadRunHtml(UPLOAD.tab);
+}
+
 // --- GST reconciliation ---
-async function handleGstDrop(files) {
-  const file = files && files[0];
-  if (!file || !PAYFILES) return;
-  GST = { fileName: file.name, loading: true };
-  renderPayModal();
-  try {
-    const buf = await readFileAsArrayBuffer(file);
-    const wb = XLSX.read(buf, { type: 'array' });
-    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
-    const ID = PAY_CONST.GST_HEADER_ID, DEP = PAY_CONST.GST_HEADER_DEPOSIT;
-    // Header row is somewhere in the first 20 rows
-    let h = -1;
-    for (let i = 0; i < Math.min(aoa.length, 20); i++) {
-      const row = (aoa[i] || []).map(c => String(c).trim());
-      if (row.includes(ID) && row.includes(DEP)) { h = i; break; }
-    }
-    if (h < 0) throw new Error(`Invalid GST Report. Could not find header row containing '${ID}' and '${DEP}' in the first 20 rows.`);
-    const head = aoa[h].map(c => String(c).trim());
-    const cId = head.indexOf(ID), cDep = head.indexOf(DEP), cGst = head.indexOf(PAY_CONST.GST_HEADER_GST), cName = head.indexOf('Employee Name');
-    const num = v => parseFloat(String(v == null ? '' : v).replace(/[^0-9.\-]/g, '')) || 0;
-    let total = null;
-    const gstRows = [];
-    for (let r = h + 1; r < aoa.length; r++) {
-      const row = aoa[r]; if (!row) continue;
-      const name = cName >= 0 ? String(row[cName] == null ? '' : row[cName]).trim() : '';
-      if (name.toLowerCase().startsWith('total')) { if (total === null) total = num(row[cDep]) || null; continue; }
-      const pid = String(row[cId] == null ? '' : row[cId]).trim().replace(/^0+/, '').replace(/\.0$/, '');
-      if (!pid) continue;
-      gstRows.push({ payrollId: pid, deposit: num(row[cDep]), gst: cGst >= 0 ? num(row[cGst]) : 0, employeeName: name });
-    }
-    GST = runGstCheck(gstRows, total, file.name);
-  } catch (e) {
-    console.error(e);
-    GST = { fileName: file.name, error: e.message || String(e) };
+async function parseGstFile(file) {
+  const buf = await readFileAsArrayBuffer(file);
+  const wb = XLSX.read(buf, { type: 'array' });
+  const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+  const ID = PAY_CONST.GST_HEADER_ID, DEP = PAY_CONST.GST_HEADER_DEPOSIT;
+  // Header row is somewhere in the first 20 rows
+  let h = -1;
+  for (let i = 0; i < Math.min(aoa.length, 20); i++) {
+    const row = (aoa[i] || []).map(c => String(c).trim());
+    if (row.includes(ID) && row.includes(DEP)) { h = i; break; }
   }
+  if (h < 0) throw new Error(`Invalid GST Report. Could not find header row containing '${ID}' and '${DEP}' in the first 20 rows.`);
+  const head = aoa[h].map(c => String(c).trim());
+  const cId = head.indexOf(ID), cDep = head.indexOf(DEP), cGst = head.indexOf(PAY_CONST.GST_HEADER_GST), cName = head.indexOf('Employee Name');
+  const num = v => parseFloat(String(v == null ? '' : v).replace(/[^0-9.\-]/g, '')) || 0;
+  let total = null;
+  const gstRows = [];
+  for (let r = h + 1; r < aoa.length; r++) {
+    const row = aoa[r]; if (!row) continue;
+    const name = cName >= 0 ? String(row[cName] == null ? '' : row[cName]).trim() : '';
+    if (name.toLowerCase().startsWith('total')) { if (total === null) total = num(row[cDep]) || null; continue; }
+    const pid = String(row[cId] == null ? '' : row[cId]).trim().replace(/^0+/, '').replace(/\.0$/, '');
+    if (!pid) continue;
+    gstRows.push({ payrollId: pid, deposit: num(row[cDep]), gst: cGst >= 0 ? num(row[cGst]) : 0, employeeName: name });
+  }
+  return { gstRows, total };
+}
+
+// Which pay run(s) a GST report belongs to: every run with at least half its employees in
+// the report (a report covering both runs matches both); otherwise the run with most overlap.
+function matchGstRuns(gstRows) {
+  const gstIds = new Set(gstRows.map(r => r.payrollId));
+  const cov = runsList().map(c => {
+    const ids = new Set(runRecords(c).map(r => r.payrollId));
+    let hit = 0; ids.forEach(id => { if (gstIds.has(id)) hit++; });
+    return { c, hit, size: ids.size, share: ids.size ? hit / ids.size : 0 };
+  });
+  const covered = cov.filter(x => x.share >= 0.5).map(x => x.c);
+  if (covered.length) return { runs: covered, cov, weak: false };
+  const best = cov.slice().sort((a, b) => b.hit - a.hit)[0];
+  return { runs: [best.c], cov, weak: true };
+}
+
+async function handleGstDrop(files) {
+  const list = Array.from(files || []).filter(Boolean);
+  if (!list.length || !PAYRUNS) return;
+  GST_LOADING = list.map(f => f.name);
+  GST_NOTES = [];
+  renderPayModal();
+  const multi = runsList().length > 1;
+  const claimedBy = {};   // run -> file name, for this drop
+  for (const file of list) {
+    let parsed;
+    try { parsed = await parseGstFile(file); }
+    catch (e) {
+      console.error(e);
+      if (multi) GST_NOTES.push({ kind: 'bad', html: `<b>${escHtml(file.name)}</b> couldn't be read: ${escHtml(e.message || String(e))}` });
+      else GST[runsList()[0]] = { fileName: file.name, error: e.message || String(e) };
+      continue;
+    }
+    const m = multi ? matchGstRuns(parsed.gstRows) : { runs: [runsList()[0]], cov: [], weak: false };
+    if (multi) {
+      const covText = m.cov.map(x => `${x.c}: ${x.hit.toLocaleString('en-AU')} of ${x.size.toLocaleString('en-AU')}`).join(', ');
+      if (m.weak) GST_NOTES.push({ kind: 'warn', html: `<b>${escHtml(file.name)}</b> doesn't match either pay run well (employees found: ${covText}). It was checked against the ${runLabel(m.runs[0])} pay run.` });
+      else if (m.runs.length > 1) GST_NOTES.push({ kind: 'info', html: `<b>${escHtml(file.name)}</b> covers both pay runs (employees found: ${covText}), so it was checked against each.` });
+      else GST_NOTES.push({ kind: 'info', html: `<b>${escHtml(file.name)}</b> matched the ${runLabel(m.runs[0])} pay run (employees found: ${covText}).` });
+    }
+    m.runs.forEach(c => {
+      if (claimedBy[c]) GST_NOTES.push({ kind: 'warn', html: `<b>${escHtml(claimedBy[c])}</b> and <b>${escHtml(file.name)}</b> both matched the ${runLabel(c)} pay run. Showing the results for ${escHtml(file.name)}.` });
+      claimedBy[c] = file.name;
+      GST[c] = runGstCheck(parsed.gstRows, parsed.total, file.name, c);
+      GST[c].shared = m.runs.length > 1;
+    });
+  }
+  GST_LOADING = null;
   paintGstDot();
   renderPayModal();
 }
 
-function runGstCheck(gstRows, total, fileName) {
+function runGstCheck(gstRows, total, fileName, c) {
   const gstMap = {};
   gstRows.forEach(r => { gstMap[r.payrollId] = r; });
   const payroll = {};
-  payRecords().forEach(r => {
+  runRecords(c).forEach(r => {
     if (!payroll[r.payrollId]) payroll[r.payrollId] = { total: 0, name: r.employeeName };
     payroll[r.payrollId].total += r.deduction;
   });
@@ -2456,14 +2889,15 @@ function runGstCheck(gstRows, total, fileName) {
   const issues = results.filter(r => r.status !== 'OK');
   const counts = { CALCULATION_ERROR: 0, VARIANCE: 0, MISSING_IN_GST: 0 };
   issues.forEach(r => { counts[r.status]++; });
-  return { fileName, results, issues, counts, total, gstRowCount: gstRows.length, matched: results.length - counts.MISSING_IN_GST };
+  return { run: c, fileName, results, issues, counts, total, gstRowCount: gstRows.length, matched: results.length - counts.MISSING_IN_GST };
 }
 
-window.downloadGstCsv = function() {
-  if (!GST || !GST.results) return;
+window.downloadGstCsv = function(c) {
+  const g = GST[c];
+  if (!g || !g.results) return;
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const headers = ['Employee Name', 'Payroll ID', 'Payroll Total', 'GST Target (Deposit-GST)', 'Variance', 'Status'];
-  const rows = GST.results.map(r => {
+  const rows = g.results.map(r => {
     const miss = r.status === 'MISSING_IN_GST';
     const v = r.status === 'OK' ? 0 : r.variance;
     return [q(r.name), q(r.id), r.payrollTotal.toFixed(2), miss ? 'N/A' : r.gstTarget.toFixed(2), miss ? 'N/A' : v.toFixed(2), r.status].join(',');
@@ -2471,62 +2905,67 @@ window.downloadGstCsv = function() {
   const blob = new Blob([[headers.join(',')].concat(rows).join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'GST_Validation_Report.csv';
+  a.href = url; a.download = runsList().length > 1 ? `GST_Validation_Report_${c}.csv` : 'GST_Validation_Report.csv';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 window.openFromGst = function(pid) { closePayModal(); selectEmployee(pid); };
 
+function gstRunState(g) {
+  if (!g) return null;
+  if (g.error || (g.issues && g.issues.length > PAY_CONST.GST_LIST_MAX)) return 'bad';
+  return g.issues && g.issues.length ? 'warn' : 'ok';
+}
 function paintGstDot() {
   const dot = document.getElementById('gst-tool-dot');
   if (!dot) return;
-  if (!GST || GST.loading) { dot.hidden = true; return; }
+  const states = runsList().map(c => gstRunState(GST[c])).filter(Boolean);
+  if (!states.length) { dot.hidden = true; return; }
   dot.hidden = false;
-  const n = GST.issues ? GST.issues.length : 0;
-  dot.className = 'tb-dot ' + (GST.error || n > PAY_CONST.GST_LIST_MAX ? 'bad' : (n ? 'warn' : 'ok'));
-  dot.title = GST.error ? 'GST report could not be read' : (n ? `${n} GST issue${n === 1 ? '' : 's'}` : 'GST reconciliation passed');
+  const worst = states.includes('bad') ? 'bad' : states.includes('warn') ? 'warn' : 'ok';
+  dot.className = 'tb-dot ' + worst;
+  dot.title = runsList().map(c => {
+    const g = GST[c]; const lbl = runsList().length > 1 ? c + ': ' : '';
+    if (!g) return lbl + 'no GST report yet';
+    if (g.error) return lbl + 'GST report could not be read';
+    const n = g.issues.length;
+    return lbl + (n ? `${n} GST issue${n === 1 ? '' : 's'}` : 'passed');
+  }).join(' | ');
 }
 
-function gstBodyHtml() {
-  if (!PAYFILES) return noPayFilesHtml();
-  const err = payBlockingError();
+function gstRunHtml(c) {
+  const err = runBlockingError(c);
   if (err) return `<div class="pm-box bad"><h3>Can't run the GST check</h3><p>${escHtml(err)}</p></div>`;
-  const empCount = new Set(payRecords().map(r => r.payrollId)).size;
-  let h = `<label class="drop-zone" id="gst-drop">
-      <input type="file" id="gst-input" accept=".xlsx,.xls" />
-      <div class="dz-main">${GST && !GST.loading ? 'Drop a different GST report to run it again' : 'Drop the GST Invoice report here, or click to choose'}</div>
-      <div class="dz-sub">Expecting: 'GST Invoice Report.xlsx'. Checked against the ${empCount.toLocaleString('en-AU')} employees in the Pre-Tax and Post-Tax files loaded for this reconciliation.</div>
-    </label>`;
-  if (!GST) return h;
-  if (GST.loading) return h + `<div class="pm-loading">Reading ${escHtml(GST.fileName)}...</div>`;
-  h += `<div class="pm-file">GST report: <b>${escHtml(GST.fileName)}</b></div>`;
-  if (GST.error) return h + `<div class="pm-box bad"><h3>Couldn't read the GST report</h3><p>${escHtml(GST.error)}</p></div>`;
+  const g = GST[c];
+  if (!g) return `<p class="pm-note">No GST report checked for this pay run yet.</p>`;
+  let h = `<div class="pm-file">GST report: <b>${escHtml(g.fileName)}</b>${g.shared ? ' (covers both pay runs)' : ''}</div>`;
+  if (g.error) return h + `<div class="pm-box bad"><h3>Couldn't read the GST report</h3><p>${escHtml(g.error)}</p></div>`;
 
-  const n = GST.issues.length, MAX = PAY_CONST.GST_LIST_MAX;
-  const csvBtn = `<button class="pm-btn dark" onclick="downloadGstCsv()">&#8681; Download validation report (.csv)</button>`;
+  const n = g.issues.length, MAX = PAY_CONST.GST_LIST_MAX;
+  const csvBtn = `<button class="pm-btn dark" onclick="downloadGstCsv('${c}')">&#8681; Download validation report (.csv)</button>`;
   if (!n) {
-    const tot = (GST.total != null && !isNaN(GST.total))
-      ? `<p style="margin-top:10px;font-size:15px;font-weight:700;">Bank Payment Process Log Total to Enter: ${GST.total.toFixed(2)}</p>` : '';
+    const tot = (g.total != null && !isNaN(g.total))
+      ? `<p style="margin-top:10px;font-size:15px;font-weight:700;">Bank Payment Process Log Total to Enter: ${g.total.toFixed(2)}${g.shared ? ' <span style="font-weight:500;font-size:12px;">(report total, both pay runs)</span>' : ''}</p>` : '';
     return h + `<div class="pm-box ok"><h3>GST Reconciliation Successful</h3>
-        <p>All ${GST.results.length.toLocaleString('en-AU')} employees match the GST Report. No variances found.</p>${tot}
+        <p>All ${g.results.length.toLocaleString('en-AU')} employees match the GST Report. No variances found.</p>${tot}
         <div class="pm-actions">${csvBtn}</div></div>`;
   }
-  const c = GST.counts;
+  const k = g.counts;
   const chips = [
-    c.CALCULATION_ERROR ? `<span class="pm-count">Calculation error: ${c.CALCULATION_ERROR}</span>` : '',
-    c.VARIANCE ? `<span class="pm-count">Variance: ${c.VARIANCE}</span>` : '',
-    c.MISSING_IN_GST ? `<span class="pm-count">Missing in GST: ${c.MISSING_IN_GST}</span>` : ''
+    k.CALCULATION_ERROR ? `<span class="pm-count">Calculation error: ${k.CALCULATION_ERROR}</span>` : '',
+    k.VARIANCE ? `<span class="pm-count">Variance: ${k.VARIANCE}</span>` : '',
+    k.MISSING_IN_GST ? `<span class="pm-count">Missing in GST: ${k.MISSING_IN_GST}</span>` : ''
   ].join('');
   if (n > MAX) {
     return h + `<div class="pm-box bad"><div class="pm-big">${n.toLocaleString('en-AU')} GST issues found</div>
         <p style="margin-top:6px;">That's more than ${MAX}, so they aren't listed here. <b>Is this the GST report for the correct pay run?</b>
         Check the report's pay date matches the Pre-Tax and Post-Tax files. If it is the right report, download the CSV to see every issue.</p>
         <div class="pm-counts">${chips}</div>
-        <p class="pm-note" style="color:inherit;">${GST.matched.toLocaleString('en-AU')} of ${GST.results.length.toLocaleString('en-AU')} payroll employees were found in this GST report (${GST.gstRowCount.toLocaleString('en-AU')} rows).</p>
+        <p class="pm-note" style="color:inherit;">${g.matched.toLocaleString('en-AU')} of ${g.results.length.toLocaleString('en-AU')} payroll employees were found in this GST report (${g.gstRowCount.toLocaleString('en-AU')} rows).</p>
         <div class="pm-actions">${csvBtn}</div></div>`;
   }
   const inList = new Set((DATA && DATA.employees ? DATA.employees : []).map(e => e.payrollId));
-  const rows = GST.issues.map(r => {
+  const rows = g.issues.map(r => {
     const miss = r.status === 'MISSING_IN_GST', calc = r.status === 'CALCULATION_ERROR';
     const chip = miss ? '<span class="pm-chip missing">Missing in GST</span>'
       : calc ? '<span class="pm-chip calc">Calculation Error</span>' : '<span class="pm-chip var">Variance</span>';
@@ -2545,6 +2984,28 @@ function gstBodyHtml() {
         <th>Employee</th><th>Payroll ID</th><th class="num">Payroll Received</th><th class="num">Eziway GST Target</th><th class="num">Variance</th><th>Issue</th><th>Action</th>
       </tr></thead><tbody>${rows}</tbody></table></div>
       <div class="pm-actions">${csvBtn}</div></div>`;
+}
+
+function gstBodyHtml() {
+  if (!PAYRUNS) return noPayFilesHtml();
+  const runs = runsList(), multi = runs.length > 1;
+  const empCount = new Set(runs.flatMap(c => runRecords(c).map(r => r.payrollId))).size;
+  const anyResult = runs.some(c => GST[c]);
+  let h = `<label class="drop-zone" id="gst-drop">
+      <input type="file" id="gst-input" accept=".xlsx,.xls"${multi ? ' multiple' : ''} />
+      <div class="dz-main">${anyResult && !GST_LOADING ? `Drop ${multi ? 'GST reports' : 'a different GST report'} to run it again` : `Drop the GST Invoice report${multi ? 's' : ''} here, or click to choose`}</div>
+      <div class="dz-sub">${multi
+        ? `Drop one report per pay run (both at once is fine), or one report covering both. Each report is matched to its pay run by the employees in it.`
+        : `Expecting: 'GST Invoice Report.xlsx'.`} Checked against the ${empCount.toLocaleString('en-AU')} employees in the Pre-Tax and Post-Tax files loaded for this reconciliation.</div>
+    </label>`;
+  if (GST_LOADING) return h + `<div class="pm-loading">Reading ${GST_LOADING.map(escHtml).join(', ')}...</div>`;
+  if (GST_NOTES.length) {
+    h += GST_NOTES.map(n => n.kind === 'info'
+      ? `<p class="pm-note">${n.html}</p>`
+      : `<div class="pm-box ${n.kind}" style="margin-top:10px;padding:10px 14px;"><p>${n.html}</p></div>`).join('');
+  }
+  if (!multi) return h + (anyResult || runBlockingError(runs[0]) ? gstRunHtml(runs[0]) : '');
+  return h + runs.map(c => runHeadHtml(c) + gstRunHtml(c)).join('');
 }
 
 // --- Popup shell ---
@@ -2575,10 +3036,11 @@ function renderPayModal() {
   const el = document.getElementById('pay-modal');
   if (!el || !payModal) return;
   const isGst = payModal === 'gst';
+  const multi = runsList().length > 1;
   const title = isGst ? 'GST reconciliation' : 'Upload file: Summary &amp; Download';
   const sub = isGst
-    ? `Checks the Eziway GST Invoice report against the Pre-Tax and Post-Tax files. <a class="pm-link" href="${GST_REPORT_URL}" target="_blank" rel="noopener">Open the GST report in Eziway &#8599;</a>`
-    : 'Builds the Eziway pay-run upload file from the Pre-Tax and Post-Tax files already loaded, with the same checks as Pay Processing.';
+    ? `Checks the Eziway GST Invoice report${multi ? 's' : ''} against the Pre-Tax and Post-Tax files. <a class="pm-link" href="${GST_REPORT_URL}" target="_blank" rel="noopener">Open the GST report in Eziway &#8599;</a>`
+    : `Builds the Eziway pay-run upload file${multi ? ' for each pay run' : ''} from the Pre-Tax and Post-Tax files already loaded, with the same checks as Pay Processing.`;
   el.innerHTML = `<div class="am-dialog pm-dialog" role="dialog" aria-modal="true" aria-label="${isGst ? 'GST reconciliation' : 'Upload file'}">
       <div class="am-head"><div><div class="am-title">${title}</div><div class="am-sub">${sub}</div></div>
         <button class="am-x" onclick="closePayModal()" title="Close">&#10005;</button></div>
@@ -2587,7 +3049,7 @@ function renderPayModal() {
   const zone = document.getElementById('gst-drop');
   if (zone) {
     const input = document.getElementById('gst-input');
-    input.addEventListener('change', e => { const f = e.target.files; handleGstDrop(f); });
+    input.addEventListener('change', e => { handleGstDrop(e.target.files); });
     ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
     zone.addEventListener('dragleave', e => { e.preventDefault(); zone.classList.remove('drag'); });
     zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleGstDrop(e.dataTransfer.files); });
