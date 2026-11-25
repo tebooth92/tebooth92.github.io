@@ -22,7 +22,9 @@
     --font-num:"SF Mono","Cascadia Mono","Consolas",ui-monospace,monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-ui); background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; }
+  html { height: 100%; }
+  body { font-family: var(--font-ui); background: var(--bg); color: var(--text); height: 100%; overflow: hidden; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; }
+  body > header, .toolbar { flex: none; }
   .num, td.num, .sum-card .value, .cap-item .value, table.alloc td input, .list-item .var { font-feature-settings: "tnum" 1, "lnum" 1; }
 
   header { background: var(--surface); color: var(--text); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
@@ -56,8 +58,9 @@
   .export-btn.ghost { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border-strong); font-weight: 500; margin-left: 4px; }
   .export-btn.ghost:hover { background: var(--surface-2); color: var(--text); }
 
-  main { display: flex; height: calc(100vh - 110px); }
-  .list-panel { width: 320px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
+  #main-app { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  main { display: flex; flex: 1 1 auto; min-height: 0; }
+  .list-panel { width: 320px; flex: none; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
   .list-item { padding: 11px 16px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; gap: 3px; transition: background .1s; }
   .list-item:hover { background: var(--surface-2); }
   .list-item.active { background: var(--accent-weak); border-left: 3px solid var(--accent); padding-left: 13px; }
@@ -74,7 +77,7 @@
   .badge.terminating { background: var(--neg-weak); color: var(--neg); }
   .badge.nopost { background: var(--neg-weak); color: var(--neg); }
 
-  .detail-panel { flex: 1; overflow-y: auto; padding: 24px; }
+  .detail-panel { flex: 1; min-width: 0; overflow-y: auto; padding: 24px; }
   .empty-state { text-align: center; color: var(--text-faint); margin-top: 80px; font-size: 14px; }
   .emp-header { background: var(--surface); padding: 18px 22px; border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); margin-bottom: var(--s-4); }
   .emp-header h2 { font-size: 20px; font-weight: 650; margin-bottom: 4px; letter-spacing: -0.01em; }
@@ -169,8 +172,8 @@
   .note ul { margin-left: 16px; margin-top: 4px; }
 
   /* Upload screen */
-  .upload-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 60px); padding: 40px 20px; }
-  .upload-card { background: var(--surface); padding: 36px 44px; border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width: 720px; width: 100%; border: 1px solid var(--border); }
+  .upload-screen { display: flex; flex-direction: column; align-items: center; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 32px 20px; }
+  .upload-card { margin: auto 0; flex: none; background: var(--surface); padding: 36px 44px; border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width: 720px; width: 100%; border: 1px solid var(--border); }
   .upload-card h2 { color: var(--text); margin-bottom: 8px; font-size: 22px; font-weight: 650; }
   .upload-card .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
   .upload-row { margin-bottom: 18px; }
@@ -178,6 +181,27 @@
   .upload-row .hint { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
   .upload-row input[type="file"] { width: 100%; padding: 10px; border: 2px dashed var(--border-strong); border-radius: var(--r-md); background: var(--surface-2); cursor: pointer; font-size: 13px; }
   .upload-row input[type="file"]:hover { border-color: var(--accent); background: var(--accent-weak); }
+  .drop-zone { display:block; border:2px dashed var(--border-strong); border-radius:var(--r-lg); background:var(--surface-2); padding:22px; text-align:center; cursor:pointer; transition:background .12s, border-color .12s; }
+  .drop-zone:hover, .drop-zone.drag { border-color:var(--accent); background:var(--accent-weak); }
+  .drop-zone .dz-main { font-size:14px; font-weight:600; color:var(--text); }
+  .drop-zone .dz-sub { font-size:12px; color:var(--text-muted); margin-top:4px; line-height:1.5; }
+  .drop-zone input { display:none; }
+  .file-checklist { display:flex; gap:6px; flex-wrap:wrap; margin:12px 0 8px; }
+  .fc-chip { font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--text-faint); }
+  .fc-chip.got { background:var(--pos-weak); border-color:var(--pos-weak); color:var(--pos); }
+  .fc-chip.req:not(.got) { color:var(--neg); border-color:var(--neg-weak); }
+  .file-list { display:flex; flex-direction:column; gap:6px; }
+  .file-item { display:grid; grid-template-columns:1fr 230px auto; gap:4px 10px; align-items:center; padding:8px 12px; border:1px solid var(--border); border-left:3px solid var(--pos); border-radius:var(--r-md); background:var(--surface); }
+  .file-item.confirm { border-left-color:var(--warn-border); background:var(--warn-weak); }
+  .file-item.ignored { border-left-color:var(--border-strong); opacity:0.7; }
+  .file-item .fi-name { font-size:13px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .file-item .fi-meta { font-weight:400; color:var(--text-faint); font-size:11px; margin-left:6px; }
+  .file-item select { padding:5px 8px; border:1px solid var(--border-strong); border-radius:var(--r-sm); font-size:12px; font-family:var(--font-ui); background:var(--surface); }
+  .file-item.confirm select { border-color:var(--warn-border); }
+  .file-item .fi-remove { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; padding:4px 6px; border-radius:var(--r-sm); }
+  .file-item .fi-remove:hover { background:var(--neg-weak); color:var(--neg); }
+  .file-item .fi-note { grid-column:1 / -1; font-size:11px; color:var(--text-muted); }
+  .file-item.confirm .fi-note { color:var(--warn); font-weight:600; }
   .config-row { display: flex; gap: var(--s-4); margin-bottom: var(--s-6); }
   .config-row > div { flex: 1; }
   .config-row label { display: block; font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 6px; }
@@ -261,55 +285,34 @@
   </div>
   <div class="meta">
     <span id="header-info" style="display:none;">Loaded from your files</span>
-    <button class="back-btn" id="back-btn" style="display:none; margin-left:10px;" onclick="goBackToUpload()">Load new files</button>
+    <button class="back-btn" id="save-btn" style="display:none; margin-left:10px;" onclick="saveSession()" title="Download everything loaded plus your allocations as one .json file. Drop it back in later instead of the original files.">&#8681; Save session</button>
+    <button class="back-btn" id="back-btn" style="display:none; margin-left:6px;" onclick="goBackToUpload()">Load new files</button>
   </div>
 </header>
 
 <!-- Upload screen -->
 <div id="upload-screen" class="upload-screen">
   <div class="upload-card">
-    <h2>Load your three files</h2>
+    <h2>Load your files</h2>
     <div class="subtitle">Variance is calculated using Deposit Amount (column I) of items with Next Payment Date on or before the as-of date, with a one-day tolerance either side so a pay run a day early or late still treats them as current. Pre-tax items are GST-adjusted (divided by 1.10). All processing happens locally in your browser, no data leaves your machine.</div>
 
     <div class="upload-row">
-      <label>1. Package Benefit Details (xlsx)</label>
-      <div class="hint">The full package extract. Expected columns include PayCycle Category, Payroll ID, Salary Package Item, Fortnightly Amount, Deposit Amount, Next Payment Date, Capped Amount Available, EB Capped Amount Available, Status.</div>
-      <input type="file" id="pkg-file" accept=".xlsx,.xls" />
+      <label class="drop-zone" id="drop-zone">
+        <input type="file" id="drop-input" multiple accept=".xlsx,.xls,.csv,.json" />
+        <div class="dz-main">Drop all your files here, or click to choose</div>
+        <div class="dz-sub">Needs Package Benefit Details, AH Pre-Tax and AH Post-Tax. Optional: LE and ME card reports and the Finance Batch Report. Files are recognised automatically; you'll be asked about any that can't be. To pick up where you left off, drop in a saved session (.json) on its own.</div>
+      </label>
+      <div class="file-checklist" id="file-checklist"></div>
+      <div class="file-list" id="file-list"></div>
     </div>
 
     <div class="upload-row">
-      <label>2. AH Pre-Tax (xlsx)</label>
-      <div class="hint">Pre-tax deductions per Payroll ID. Amounts are negative in the file and converted to positive automatically.</div>
-      <input type="file" id="pre-file" accept=".xlsx,.xls" />
-    </div>
-
-    <div class="upload-row">
-      <label>3. AH Post-Tax (xlsx)</label>
-      <div class="hint">Post-tax deductions per Payroll ID (NL Post Tax). Same negative-amount convention.</div>
-      <input type="file" id="post-file" accept=".xlsx,.xls" />
-    </div>
-
-    <div class="upload-row">
-      <label>4. EMLEBC card balances (csv) <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-      <div class="hint">Living Expenses (EMLEBC) card export. Matched to employees by EmployeeNumber (column F); pulls through the EAID (column G) and Balance.</div>
-      <input type="file" id="emlebc-file" accept=".csv,.xlsx,.xls" />
-    </div>
-
-    <div class="upload-row">
-      <label>5. EMLMEC card balances (csv) <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-      <div class="hint">Meal Entertainment (EMLMEC) card export. Matched to employees by EmployeeNumber (column F); pulls through the EAID (column G) and Balance.</div>
-      <input type="file" id="emlmec-file" accept=".csv,.xlsx,.xls" />
-    </div>
-
-    <div class="upload-row">
-      <label>6. Finance Batch Report (xlsx) <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-      <div class="hint">Payments to date. Matched by Pay Roll ID; the header shows Entertainment Benefits Fee, Admin Fee and Admin Fee - Special, with an expandable breakdown of every benefit paid. Set a max below to flag anyone who has reached it (leave blank to just show totals).</div>
-      <input type="file" id="fees-file" accept=".xlsx,.xls,.csv" />
-      <div class="fee-caps">
-        <div><label>Max Entertainment Benefits Fee ($)</label><input type="number" id="cap-ebfee" step="0.01" min="0" placeholder="No max" /></div>
-        <div><label>Max Admin Fee ($)</label><input type="number" id="cap-admin" step="0.01" min="0" placeholder="No max" /></div>
-        <div><label>Max Admin Fee - Special ($)</label><input type="number" id="cap-adminsp" step="0.01" min="0" placeholder="No max" /></div>
+      <label>Fee maxes <span style="font-weight:400;color:var(--text-muted);">(used with the Finance Batch Report)</span></label>
+      <div class="fee-caps" style="margin-top:0;">
+        <div><label>Max Admin Fee, Living Expenses ($)</label><input type="number" id="cap-admin" step="0.01" min="0" value="451" placeholder="No max" /></div>
+        <div><label>Max Entertainment Benefits Fee ($)</label><input type="number" id="cap-ebfee" step="0.01" min="0" value="133" placeholder="No max" /></div>
       </div>
+      <div class="hint" style="margin-top:6px;">Admin Fee - Special has no max of its own. It offsets the Admin Fee max first, then any balance offsets the Entertainment Benefits Fee max.</div>
     </div>
 
     <div class="config-row">
@@ -332,7 +335,7 @@
 </div>
 
 <!-- Main app (hidden until files loaded) -->
-<div id="main-app" style="display: none; height: calc(100vh - 60px);">
+<div id="main-app" style="display: none;">
   <div class="toolbar">
     <div class="search-box">
       <input id="search" type="text" placeholder="Search by Payroll ID or name..." />
@@ -401,7 +404,7 @@ let CARDS = { emlmec: {}, emlebc: {} };  // EmployeeNumber -> { eaid, balance, .
 const FEE_PAID_TYPES = [
   { key: 'ebfee',   item: 'Entertainment Benefits Fee', label: 'Entertainment Benefit Fee', capId: 'cap-ebfee' },
   { key: 'admin',   item: 'Admin Fee',                  label: 'Admin Fee',                 capId: 'cap-admin' },
-  { key: 'adminsp', item: 'Admin Fee - Special',        label: 'Admin Fee Special',         capId: 'cap-adminsp' }
+  { key: 'adminsp', item: 'Admin Fee - Special',        label: 'Admin Fee Special',         capId: null }
 ];
 let FEES_PAID = null;   // null = report not loaded; otherwise PayrollID -> { ebfee, admin, adminsp }
 let FEE_CAPS = {};      // key -> number (optional max)
@@ -410,7 +413,7 @@ const FEE_CAPS_KEY = 'payrollReconciler_feeCaps';
 (function restoreFeeCaps() {
   try {
     const saved = JSON.parse(localStorage.getItem(FEE_CAPS_KEY) || '{}');
-    FEE_PAID_TYPES.forEach(t => { const el = document.getElementById(t.capId); if (el && saved[t.key] != null) el.value = saved[t.key]; });
+    FEE_PAID_TYPES.forEach(t => { const el = t.capId && document.getElementById(t.capId); if (el && saved[t.key] != null) el.value = saved[t.key]; });
   } catch (e) {}
 })();
 let STORAGE_KEY = null;
@@ -448,8 +451,6 @@ function flashHint(msg) {
   area.innerHTML = `<div style="background:#d1fae5;color:#065f46;padding:8px 14px;border-radius:6px;margin-top:10px;font-size:12px;">${msg}</div>`;
   setTimeout(() => { if (area.firstChild) area.firstChild.remove(); }, 2400);
 }
-document.getElementById('pre-file').addEventListener('change', e => detectFromFilename(e.target.files[0]?.name));
-document.getElementById('post-file').addEventListener('change', e => detectFromFilename(e.target.files[0]?.name));
 
 // ========================
 // FILE PROCESSING
@@ -762,30 +763,64 @@ function parseFeeFile(rows) {
 function readFeeCaps() {
   const caps = {};
   FEE_PAID_TYPES.forEach(t => {
+    if (!t.capId) return;
     const v = parseFloat((document.getElementById(t.capId) || {}).value);
     if (!isNaN(v) && v > 0) caps[t.key] = v;
   });
   try { localStorage.setItem(FEE_CAPS_KEY, JSON.stringify(caps)); } catch (e) {}
   return caps;
 }
-// True when any fee paid has reached its max (only where a max is set).
+// Work out fee position against the maxes. Admin Fee Special has no max of its own:
+// it offsets the Admin Fee (LE) max first, then any balance offsets the Entertainment Benefits Fee max.
+function feePosition(pid) {
+  const f = (FEES_PAID && FEES_PAID[pid]) || { ebfee: 0, admin: 0, adminsp: 0 };
+  const adminCap = FEE_CAPS.admin, ebCap = FEE_CAPS.ebfee;
+  let special = Math.max(0, f.adminsp || 0);
+  const pos = { f, offAdmin: 0, offEb: 0, specialLeft: 0, admin: null, ebfee: null };
+  if (adminCap != null) {
+    pos.offAdmin = Math.min(special, Math.max(0, adminCap - f.admin));
+    special -= pos.offAdmin;
+    const used = f.admin + pos.offAdmin;
+    pos.admin = { cap: adminCap, used, room: Math.round((adminCap - used) * 100) / 100 };
+  }
+  if (ebCap != null) {
+    pos.offEb = Math.min(special, Math.max(0, ebCap - f.ebfee));
+    special -= pos.offEb;
+    const used = f.ebfee + pos.offEb;
+    pos.ebfee = { cap: ebCap, used, room: Math.round((ebCap - used) * 100) / 100 };
+  }
+  // Special left over once both maxes are fully offset (only counts when a max is set)
+  if (adminCap != null || ebCap != null) pos.specialLeft = Math.round(special * 100) / 100;
+  return pos;
+}
+// True when any fee max has been reached (including via the Special offset).
 function feeCapReached(pid) {
-  if (!FEES_PAID) return false;
-  const f = FEES_PAID[pid]; if (!f) return false;
-  return FEE_PAID_TYPES.some(t => FEE_CAPS[t.key] != null && f[t.key] >= FEE_CAPS[t.key] - 0.005);
+  if (!FEES_PAID || !FEES_PAID[pid]) return false;
+  const p = feePosition(pid);
+  return (p.admin && p.admin.room <= 0.005) || (p.ebfee && p.ebfee.room <= 0.005) || p.specialLeft > 0.005;
 }
 function feesPaidHtml(pid) {
   if (!FEES_PAID) return '';
-  const f = FEES_PAID[pid] || { ebfee: 0, admin: 0, adminsp: 0 };
-  const tiles = FEE_PAID_TYPES.map(t => {
-    const paid = f[t.key] || 0;
-    const cap = FEE_CAPS[t.key];
-    const over = cap != null && paid >= cap - 0.005;
-    const capLine = cap != null
-      ? `<div class="ft-cap">${over ? (paid > cap + 0.005 ? 'Over max by ' + fmt(paid - cap) : 'Max reached') : 'Room ' + fmt(cap - paid) + ' of ' + fmt(cap)}</div>`
-      : '';
-    return `<div class="fee-tile${over ? ' over' : ''}"><div class="ft-label">${t.label}</div><div class="ft-val">${fmt(paid)}</div>${capLine}</div>`;
-  }).join('');
+  const p = feePosition(pid);
+  const f = p.f;
+  const capTile = (label, paid, cp, offset) => {
+    if (!cp) return `<div class="fee-tile"><div class="ft-label">${label}</div><div class="ft-val">${fmt(paid)}</div></div>`;
+    const over = cp.room <= 0.005;
+    const offLine = offset > 0.005 ? `<div class="ft-cap">+ ${fmt(offset)} Special offset</div>` : '';
+    const status = over
+      ? (cp.room < -0.005 ? 'Over max by ' + fmt(-cp.room) : 'Max reached')
+      : 'Payable ' + fmt(cp.room) + ' of ' + fmt(cp.cap);
+    return `<div class="fee-tile${over ? ' over' : ''}"><div class="ft-label">${label}</div><div class="ft-val">${fmt(paid)}</div>${offLine}<div class="ft-cap">${status}</div></div>`;
+  };
+  const spOver = p.specialLeft > 0.005;
+  const spBits = [];
+  if (p.offAdmin > 0.005) spBits.push(fmt(p.offAdmin) + ' to Admin');
+  if (p.offEb > 0.005) spBits.push(fmt(p.offEb) + ' to Ent.');
+  if (spOver) spBits.push(fmt(p.specialLeft) + ' over both maxes');
+  const spTile = `<div class="fee-tile${spOver ? ' over' : ''}"><div class="ft-label">Admin Fee Special</div><div class="ft-val">${fmt(f.adminsp || 0)}</div>${spBits.length ? `<div class="ft-cap">Offset: ${spBits.join(', ')}</div>` : ''}</div>`;
+  const tiles = capTile('Admin Fee (LE)', f.admin || 0, p.admin, p.offAdmin)
+              + capTile('Entertainment Benefit Fee', f.ebfee || 0, p.ebfee, p.offEb)
+              + spTile;
   const none = FEES_PAID[pid] ? '' : '<div class="ft-cap" style="align-self:center;">Not in Finance Batch Report</div>';
   // Full payment breakdown (hidden until expanded). Only benefits with a paid amount are listed.
   const all = (FEES_PAID[pid] && FEES_PAID[pid].all) || {};
@@ -811,40 +846,166 @@ window.togglePayBreakdown = function(btn) {
   }
 }
 
+// ========================
+// FILE RECOGNITION
+// ========================
+const FILE_TYPES = [
+  { key: 'pkg',    label: 'Package Benefit Details', required: true },
+  { key: 'pre',    label: 'AH Pre-Tax',              required: true },
+  { key: 'post',   label: 'AH Post-Tax',             required: true },
+  { key: 'le',     label: 'LE card report (EMLEBC)', required: false },
+  { key: 'me',     label: 'ME card report (EMLMEC)', required: false },
+  { key: 'fees',   label: 'Finance Batch Report',    required: false },
+  { key: 'ignore', label: 'Not needed (ignore)',     required: false }
+];
+const typeLabel = k => (FILE_TYPES.find(t => t.key === k) || {}).label || k;
+let LOADED = [];   // { id, name, rows, type, auto, note }
+let _fileSeq = 0;
+function hkey(v) { return String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function escHtml(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+// Work out what a file is from its headers (and file name for LE / ME card reports).
+// Returns { type, note }; type null means the user must be asked.
+function detectFileType(name, rows) {
+  const hdrRaw = rows && rows[0] ? rows[0] : [];
+  const hdr = hdrRaw.map(hkey);
+  const has = k => hdr.includes(k);
+  if (has('salarypackageitem') && has('payrollid')) return { type: 'pkg', note: 'Recognised from its headers' };
+  if (has('itemname') && has('payment') && has('payrollid')) return { type: 'fees', note: 'Recognised from its headers' };
+  if (has('employeenumber') && has('eaid')) {
+    const base = name.replace(/\.[^.]+$/, '').toLowerCase();
+    const tags = new Set(); const re = /(?:^|[^a-z])(le|me|emlebc|emlmec)(?=[^a-z]|$)/g; let m;
+    while ((m = re.exec(base))) tags.add(m[1] === 'emlebc' ? 'le' : (m[1] === 'emlmec' ? 'me' : m[1]));
+    if (tags.size === 1) { const t = [...tags][0]; return { type: t, note: `Card report, ${t.toUpperCase()} in the file name` }; }
+    return { type: null, note: tags.size > 1
+      ? 'Card report, but the file name has both LE and ME in it. Which card is it?'
+      : 'Card report, but the file name doesn\'t say LE or ME. Which card is it?' };
+  }
+  const colB = hdr[1] || '';
+  if (colB === 'ahpretax') return { type: 'pre', note: 'Column B heading is "AH - Pre-Tax"' };
+  if (colB === 'nlposttax') return { type: 'post', note: 'Column B heading is "NL Post Tax"' };
+  if (hdr[0] === 'persno' || /pre.?tax|post.?tax/i.test(name)) {
+    return { type: null, note: `Looks like a pay deduction file, but column B heading is "${escHtml(hdrRaw[1] == null ? '' : hdrRaw[1])}" (expected "AH - Pre-Tax" or "NL Post Tax"). Is it pre-tax or post-tax?` };
+  }
+  return { type: null, note: 'Not recognised. What is this file?' };
+}
+
+async function addFiles(fileList) {
+  let files = Array.from(fileList || []);
+  if (!files.length) return;
+  const status = document.getElementById('status-msg');
+  const errArea = document.getElementById('error-area');
+  errArea.innerHTML = '';
+  // A saved session (.json) restores everything on its own; no other files needed.
+  const jsonFiles = files.filter(f => /\.json$/i.test(f.name));
+  if (jsonFiles.length) {
+    if (jsonFiles.length > 1) { errArea.innerHTML = '<div class="error-msg">Drop one saved session (.json) at a time.</div>'; return; }
+    try {
+      status.textContent = `Restoring ${jsonFiles[0].name}...`;
+      restoreSession(JSON.parse(await readFileAsText(jsonFiles[0])), jsonFiles[0].name);
+      status.textContent = '';
+    } catch (e) {
+      console.error(e); status.textContent = '';
+      errArea.innerHTML = `<div class="error-msg">Could not restore session: ${escHtml(e.message || e)}</div>`;
+    }
+    return;   // other files dropped alongside a session are not needed
+  }
+  for (const file of files) {
+    status.textContent = `Reading ${file.name}...`;
+    let rows = null, det;
+    try { rows = await parseXlsx(file); det = detectFileType(file.name, rows); }
+    catch (e) { console.error(e); det = { type: null, note: 'Could not read this file. Remove it or set it to "Not needed".' }; }
+    const entry = { id: ++_fileSeq, name: file.name, rows, type: det.type, auto: !!det.type, note: det.note, detNote: det.note };
+    LOADED.push(entry);
+    if (entry.type === 'pre' || entry.type === 'post') detectFromFilename(file.name);
+  }
+  status.textContent = '';
+  renderFileList();
+}
+window.setFileType = function(id, type) {
+  const f = LOADED.find(x => x.id === id); if (!f) return;
+  f.type = type || null; f.auto = false;
+  f.note = type ? 'Set manually' : f.detNote;
+  if (f.type === 'pre' || f.type === 'post') detectFromFilename(f.name);
+  renderFileList();
+};
+window.removeFile = function(id) { LOADED = LOADED.filter(x => x.id !== id); renderFileList(); };
+
+// Returns { ready, message } and paints the checklist + file list.
+function renderFileList() {
+  const counts = {};
+  LOADED.forEach(f => { if (f.type && f.type !== 'ignore') counts[f.type] = (counts[f.type] || 0) + 1; });
+  document.getElementById('file-checklist').innerHTML = LOADED.length ? FILE_TYPES.filter(t => t.key !== 'ignore').map(t =>
+    `<span class="fc-chip${t.required ? ' req' : ''}${counts[t.key] ? ' got' : ''}">${counts[t.key] ? '✓ ' : ''}${t.label}${t.required ? '' : ' (optional)'}</span>`).join('') : '';
+  document.getElementById('file-list').innerHTML = LOADED.map(f => {
+    const dup = f.type && f.type !== 'ignore' && counts[f.type] > 1;
+    const needs = !f.type || dup;
+    const cls = needs ? 'confirm' : (f.type === 'ignore' ? 'ignored' : '');
+    const note = dup ? `More than one file is set as ${typeLabel(f.type)}. Change one, or remove it.` : f.note;
+    const rowCount = f.rows ? Math.max(0, f.rows.length - 1).toLocaleString('en-AU') + ' rows' : '';
+    const opts = `<option value=""${f.type ? '' : ' selected'}>Choose what this file is...</option>` +
+      FILE_TYPES.map(t => `<option value="${t.key}"${f.type === t.key ? ' selected' : ''}>${t.label}</option>`).join('');
+    return `<div class="file-item ${cls}">
+        <div class="fi-name" title="${escHtml(f.name)}">${escHtml(f.name)}<span class="fi-meta">${rowCount}</span></div>
+        <select onchange="setFileType(${f.id}, this.value)">${opts}</select>
+        <button class="fi-remove" onclick="removeFile(${f.id})" title="Remove this file">Remove</button>
+        <div class="fi-note">${needs ? '⚠ ' : ''}${note}</div>
+      </div>`;
+  }).join('');
+  const unresolved = LOADED.filter(f => !f.type).length;
+  const dups = Object.keys(counts).filter(k => counts[k] > 1);
+  const missing = FILE_TYPES.filter(t => t.required && !counts[t.key]).map(t => t.label);
+  let message = '';
+  if (unresolved) message = `Tell me what ${unresolved === 1 ? '1 file is' : unresolved + ' files are'} before running.`;
+  else if (dups.length) message = `More than one file is set as ${dups.map(typeLabel).join(', ')}.`;
+  else if (missing.length) message = `Still needed: ${missing.join(', ')}.`;
+  const ready = !message;
+  document.getElementById('process-btn').disabled = !ready;
+  const st = document.getElementById('status-msg');
+  if (!st.textContent.startsWith('Reading')) st.textContent = LOADED.length ? message : '';
+  return { ready, message };
+}
+(function initDropZone() {
+  const zone = document.getElementById('drop-zone');
+  const input = document.getElementById('drop-input');
+  input.addEventListener('change', async e => { await addFiles(e.target.files); input.value = ''; });
+  ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('drag'); }));
+  zone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+  // Stop a file dropped just outside the zone from opening in the browser
+  window.addEventListener('dragover', e => e.preventDefault());
+  window.addEventListener('drop', e => e.preventDefault());
+  renderFileList();
+})();
+function rowsOf(type) { const f = LOADED.find(x => x.type === type); return f ? f.rows : null; }
+
 async function processFiles() {
-  const pkgFile = document.getElementById('pkg-file').files[0];
-  const preFile = document.getElementById('pre-file').files[0];
-  const postFile = document.getElementById('post-file').files[0];
-  const emlebcFile = document.getElementById('emlebc-file').files[0];
-  const emlmecFile = document.getElementById('emlmec-file').files[0];
   const cycle = window.__detectedCycle || 'ALL';
   const asOfStr = document.getElementById('as-of-date').value;
   const _tolRaw = parseFloat(document.getElementById('tolerance').value); const tolerance = isNaN(_tolRaw) ? 0.01 : _tolRaw;
   const errArea = document.getElementById('error-area');
   errArea.innerHTML = '';
 
-  if (!pkgFile || !preFile || !postFile) {
-    errArea.innerHTML = '<div class="error-msg">Please select all three files before running.</div>';
+  const check = renderFileList();
+  if (!check.ready) {
+    errArea.innerHTML = `<div class="error-msg">${check.message}</div>`;
     return;
   }
 
   const status = document.getElementById('status-msg');
   const btn = document.getElementById('process-btn');
   btn.disabled = true;
-  status.textContent = 'Reading Package Benefit Details...';
+  status.textContent = 'Preparing files...';
   try {
-    const pkgRows = await parseXlsx(pkgFile);
-    status.textContent = 'Reading AH Pre-Tax...';
-    const preRows = await parseXlsx(preFile);
-    status.textContent = 'Reading AH Post-Tax...';
-    const postRows = await parseXlsx(postFile);
+    const pkgRows = rowsOf('pkg');
+    const preRows = rowsOf('pre');
+    const postRows = rowsOf('post');
     CARDS = { emlmec: {}, emlebc: {} };
-    if (emlebcFile) { status.textContent = 'Reading EMLEBC card balances...'; CARDS.emlebc = parseCardFile(await parseXlsx(emlebcFile)); }
-    if (emlmecFile) { status.textContent = 'Reading EMLMEC card balances...'; CARDS.emlmec = parseCardFile(await parseXlsx(emlmecFile)); }
+    if (rowsOf('le')) CARDS.emlebc = parseCardFile(rowsOf('le'));
+    if (rowsOf('me')) CARDS.emlmec = parseCardFile(rowsOf('me'));
     FEES_PAID = null;
     FEE_CAPS = readFeeCaps();
-    const feesFile = document.getElementById('fees-file').files[0];
-    if (feesFile) { status.textContent = 'Reading Finance Batch Report...'; FEES_PAID = parseFeeFile(await parseXlsx(feesFile)); }
+    if (rowsOf('fees')) FEES_PAID = parseFeeFile(rowsOf('fees'));
     status.textContent = 'Calculating variances...';
     const asOfDate = new Date(asOfStr + 'T00:00:00');
     const result = buildReconciliation(pkgRows, preRows, postRows, cycle, asOfDate, tolerance);
@@ -856,17 +1017,8 @@ async function processFiles() {
     state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     status.textContent = `Done. ${result.employees.length} variance employees found. ${result.skippedFuture} future-dated rows excluded.`;
 
-    document.getElementById('upload-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = '';
-    document.getElementById('back-btn').style.display = '';
-    document.getElementById('header-info').style.display = '';
-    document.getElementById('pc').textContent = cycle === 'ALL' ? 'All cycles' : cycle;
-    document.getElementById('gen').textContent = asOfStr;
-    payTypeFilter = 'ALL';
-    const _ptf = document.getElementById('paytype-filter');
-    _ptf.style.display = result.hmDetected ? 'flex' : 'none';
-    _ptf.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.pay === 'ALL'));
-    renderList();
+    DATA.hmDetected = !!result.hmDetected;
+    showMainApp('Loaded from your files');
   } catch (err) {
     console.error(err);
     errArea.innerHTML = `<div class="error-msg">Error: ${err.message || err}</div>`;
@@ -874,14 +1026,75 @@ async function processFiles() {
   }
 }
 
+function showMainApp(infoText) {
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = '';
+  document.getElementById('back-btn').style.display = '';
+  document.getElementById('save-btn').style.display = '';
+  const info = document.getElementById('header-info');
+  info.textContent = infoText; info.style.display = '';
+  document.getElementById('pc').textContent = DATA.payCycle === 'ALL' ? 'All cycles' : DATA.payCycle;
+  document.getElementById('gen').textContent = DATA.generated;
+  payTypeFilter = 'ALL';
+  const _ptf = document.getElementById('paytype-filter');
+  _ptf.style.display = DATA.hmDetected ? 'flex' : 'none';
+  _ptf.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.pay === 'ALL'));
+  renderList(); renderDetail();
+}
+
+// ========================
+// SAVE / RESTORE SESSION (.json)
+// ========================
+const SESSION_KIND = 'payroll-variance-reconciler-session';
+window.saveSession = function() {
+  if (!DATA) return;
+  const session = {
+    kind: SESSION_KIND, version: 1, savedAt: new Date().toISOString(),
+    data: DATA, cards: CARDS, feesPaid: FEES_PAID, feeCaps: FEE_CAPS,
+    state, activePid
+  };
+  const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const d = new Date(), pad = n => String(n).padStart(2, '0');
+  const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  const cyc = (DATA.payCycle && DATA.payCycle !== 'ALL') ? DATA.payCycle + '_' : '';
+  const a = document.createElement('a');
+  a.href = url; a.download = `reconciler_session_${cyc}${DATA.generated}_saved_${stamp}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const btn = document.getElementById('save-btn');
+  const orig = btn.innerHTML; btn.textContent = 'Saved ✓';
+  setTimeout(() => { btn.innerHTML = orig; }, 1500);
+};
+function restoreSession(session, fileName) {
+  if (!session || session.kind !== SESSION_KIND || !session.data || !Array.isArray(session.data.employees)) {
+    throw new Error(`${fileName} is not a saved reconciler session.`);
+  }
+  DATA = session.data;
+  CARDS = session.cards || { emlmec: {}, emlebc: {} };
+  FEES_PAID = session.feesPaid || null;
+  FEE_CAPS = session.feeCaps || {};
+  state = session.state || {};
+  STORAGE_KEY = `payrollReconciler_${DATA.payCycle}_${DATA.generated}`;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  activePid = session.activePid && DATA.employees.some(e => e.payrollId === session.activePid) ? session.activePid : null;
+  addFormOpen = {};
+  const when = session.savedAt ? new Date(session.savedAt).toLocaleString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+  showMainApp('Session restored' + (when ? ' (saved ' + when + ')' : ''));
+}
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.onerror = reject; r.readAsText(file); });
+}
+
 function goBackToUpload() {
   document.getElementById('upload-screen').style.display = '';
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('back-btn').style.display = 'none';
+  document.getElementById('save-btn').style.display = 'none';
   document.getElementById('header-info').style.display = 'none';
-  document.getElementById('process-btn').disabled = false;
   document.getElementById('status-msg').textContent = '';
   document.getElementById('error-area').innerHTML = '';
+  renderFileList();
 }
 
 // ========================
