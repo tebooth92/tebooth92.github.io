@@ -1054,10 +1054,28 @@
                                         <p id="paydetail-summary" class="text-xs text-slate-500 mt-0.5"></p>
                                     </div>
                                 </div>
-                                <button id="paydetail-btn" disabled
-                                    class="bg-slate-800 text-white font-semibold py-1.5 px-4 rounded-lg shadow hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap">
-                                    Export Pay Detail PDF
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button id="paydetail-email-btn" disabled
+                                        class="bg-white text-slate-800 border border-slate-300 font-semibold py-1.5 px-4 rounded-lg shadow-sm hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap">
+                                        &#9993; Draft email
+                                    </button>
+                                    <button id="paydetail-btn" disabled
+                                        class="bg-slate-800 text-white font-semibold py-1.5 px-4 rounded-lg shadow hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap">
+                                        Export Pay Detail PDF
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- ABA authorisation email draft (total = the Pay Detail Report's "Total paid") -->
+                            <div id="paydetail-email" class="hidden px-4 py-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Email draft</span>
+                                    <button id="paydetail-email-copy"
+                                        class="bg-indigo-600 text-white font-semibold py-1 px-3 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors text-xs whitespace-nowrap">
+                                        Copy
+                                    </button>
+                                </div>
+                                <textarea id="paydetail-email-text" rows="4" spellcheck="false"
+                                    class="w-full text-sm text-slate-800 border border-slate-200 rounded-lg p-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-y"></textarea>
                             </div>
                         </div>
 
@@ -3154,6 +3172,21 @@ Export anyway?`);
                         PayDetailReport.generate(this.data, this.fileName || '', {});
                     } catch (e) { alert('Could not generate PDF: ' + e.message); }
                 });
+                // Draft email asking for the ABA(s) to be authorised, for the Pay Detail Report's "Total paid"
+                const emBtn = el('paydetail-email-btn');
+                if (emBtn) emBtn.addEventListener('click', () => {
+                    const m = this.payDetail;
+                    if (!m) return;
+                    el('paydetail-email-text').value = 'Hi team,\n\nCould you please authorise our ABA(s), totalling - ' + PayDetailReport.money(m.total);
+                    el('paydetail-email').classList.remove('hidden');
+                });
+                const emCopy = el('paydetail-email-copy');
+                if (emCopy) emCopy.addEventListener('click', () => {
+                    const ta = el('paydetail-email-text');
+                    const done = () => { emCopy.textContent = 'Copied ✓'; setTimeout(() => { emCopy.textContent = 'Copy'; }, 1500); };
+                    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(ta.value).then(done, () => { ta.select(); document.execCommand('copy'); done(); });
+                    else { ta.select(); document.execCommand('copy'); done(); }
+                });
             },
 
             handleFile: function (file) {
@@ -3300,14 +3333,19 @@ Export anyway?`);
 
             displayPayDetailSummary: function () {
                 const el = (id) => document.getElementById(id);
-                const btn = el('paydetail-btn'), sum = el('paydetail-summary');
+                const btn = el('paydetail-btn'), sum = el('paydetail-summary'), emBtn = el('paydetail-email-btn');
                 if (!btn) return;
+                // A new file clears any earlier email draft
+                this.payDetail = null;
+                if (el('paydetail-email')) el('paydetail-email').classList.add('hidden');
                 try {
                     const m = PayDetailReport.build(this.data, this.fileName || '');
                     sum.textContent = 'Pay date ' + m.payDateLabel + ' · ' + m.count.toLocaleString() + ' transactions · ' + PayDetailReport.money(m.total)
                         + (m.exported ? ' · exported ' + PayDetailReport.fmtDateTime(m.exported) : '');
                     btn.disabled = !(window.jspdf && m.count > 0);
-                } catch (e) { sum.textContent = 'Could not summarise file: ' + e.message; btn.disabled = true; }
+                    this.payDetail = m.count > 0 ? m : null;
+                    if (emBtn) emBtn.disabled = !this.payDetail;
+                } catch (e) { sum.textContent = 'Could not summarise file: ' + e.message; btn.disabled = true; if (emBtn) emBtn.disabled = true; }
             },
 
             displayEmlResults: function (totalEml) {
